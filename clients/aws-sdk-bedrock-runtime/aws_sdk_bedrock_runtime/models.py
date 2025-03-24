@@ -141,16 +141,19 @@ from ._private.schemas import (
 )
 
 
-
 logger = logging.getLogger(__name__)
+
 
 class ServiceError(SmithyException):
     """Base error for all errors in the service."""
+
     pass
+
 
 @dataclass
 class ApiError(ServiceError):
     """Base error for all API errors in the service."""
+
     code: ClassVar[str]
     fault: ClassVar[Literal["client", "server"]]
 
@@ -159,11 +162,14 @@ class ApiError(ServiceError):
     def __post_init__(self) -> None:
         super().__init__(self.message)
 
+
 @dataclass
 class UnknownApiError(ApiError):
     """Error representing any unknown api errors."""
-    code: ClassVar[str] = 'Unknown'
+
+    code: ClassVar[str] = "Unknown"
     fault: ClassVar[Literal["client", "server"]] = "client"
+
 
 @dataclass(kw_only=True)
 class AccessDeniedException(ApiError):
@@ -186,7 +192,9 @@ class AccessDeniedException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_ACCESS_DENIED_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_ACCESS_DENIED_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -199,7 +207,9 @@ class AccessDeniedException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_ACCESS_DENIED_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_ACCESS_DENIED_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -207,23 +217,32 @@ class AccessDeniedException(ApiError):
         deserializer.read_struct(_SCHEMA_ACCESS_DENIED_EXCEPTION, consumer=_consumer)
         return kwargs
 
-def _serialize_additional_model_response_field_paths(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+
+def _serialize_additional_model_response_field_paths(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_string(member_schema, e)
 
-def _deserialize_additional_model_response_field_paths(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+
+def _deserialize_additional_model_response_field_paths(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
     result: list[str] = []
     member_schema = schema.members["member"]
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(d.read_string(member_schema))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GetAsyncInvokeInput:
@@ -253,13 +272,16 @@ class GetAsyncInvokeInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["invocation_arn"] = de.read_string(_SCHEMA_GET_ASYNC_INVOKE_INPUT.members["invocationArn"])
+                    kwargs["invocation_arn"] = de.read_string(
+                        _SCHEMA_GET_ASYNC_INVOKE_INPUT.members["invocationArn"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_GET_ASYNC_INVOKE_INPUT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class AsyncInvokeS3OutputDataConfig:
@@ -286,12 +308,20 @@ class AsyncInvokeS3OutputDataConfig:
         serializer.write_struct(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["s3Uri"], self.s3_uri)
+        serializer.write_string(
+            _SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["s3Uri"], self.s3_uri
+        )
         if self.kms_key_id is not None:
-            serializer.write_string(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["kmsKeyId"], self.kms_key_id)
+            serializer.write_string(
+                _SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["kmsKeyId"],
+                self.kms_key_id,
+            )
 
         if self.bucket_owner is not None:
-            serializer.write_string(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["bucketOwner"], self.bucket_owner)
+            serializer.write_string(
+                _SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["bucketOwner"],
+                self.bucket_owner,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -304,19 +334,30 @@ class AsyncInvokeS3OutputDataConfig:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["s3_uri"] = de.read_string(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["s3Uri"])
+                    kwargs["s3_uri"] = de.read_string(
+                        _SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["s3Uri"]
+                    )
 
                 case 1:
-                    kwargs["kms_key_id"] = de.read_string(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["kmsKeyId"])
+                    kwargs["kms_key_id"] = de.read_string(
+                        _SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["kmsKeyId"]
+                    )
 
                 case 2:
-                    kwargs["bucket_owner"] = de.read_string(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members["bucketOwner"])
+                    kwargs["bucket_owner"] = de.read_string(
+                        _SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG.members[
+                            "bucketOwner"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass
 class AsyncInvokeOutputDataConfigS3OutputDataConfig:
@@ -331,11 +372,15 @@ class AsyncInvokeOutputDataConfigS3OutputDataConfig:
         serializer.write_struct(_SCHEMA_ASYNC_INVOKE_OUTPUT_DATA_CONFIG, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_ASYNC_INVOKE_OUTPUT_DATA_CONFIG.members["s3OutputDataConfig"], self.value)
+        serializer.write_struct(
+            _SCHEMA_ASYNC_INVOKE_OUTPUT_DATA_CONFIG.members["s3OutputDataConfig"],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=AsyncInvokeS3OutputDataConfig.deserialize(deserializer))
+
 
 @dataclass
 class AsyncInvokeOutputDataConfigUnknown:
@@ -359,18 +404,27 @@ class AsyncInvokeOutputDataConfigUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-AsyncInvokeOutputDataConfig = Union[AsyncInvokeOutputDataConfigS3OutputDataConfig | AsyncInvokeOutputDataConfigUnknown]
+
+AsyncInvokeOutputDataConfig = Union[
+    AsyncInvokeOutputDataConfigS3OutputDataConfig | AsyncInvokeOutputDataConfigUnknown
+]
 
 """
 Asynchronous invocation output data settings.
 
 """
+
+
 class _AsyncInvokeOutputDataConfigDeserializer:
     _result: AsyncInvokeOutputDataConfig | None = None
 
-    def deserialize(self, deserializer: ShapeDeserializer) -> AsyncInvokeOutputDataConfig:
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> AsyncInvokeOutputDataConfig:
         self._result = None
-        deserializer.read_struct(_SCHEMA_ASYNC_INVOKE_OUTPUT_DATA_CONFIG, self._consumer)
+        deserializer.read_struct(
+            _SCHEMA_ASYNC_INVOKE_OUTPUT_DATA_CONFIG, self._consumer
+        )
 
         if self._result is None:
             raise SmithyException("Unions must have exactly one value, but found none.")
@@ -380,20 +434,26 @@ class _AsyncInvokeOutputDataConfigDeserializer:
     def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
         match schema.expect_member_index():
             case 0:
-                self._set_result(AsyncInvokeOutputDataConfigS3OutputDataConfig.deserialize(de))
+                self._set_result(
+                    AsyncInvokeOutputDataConfigS3OutputDataConfig.deserialize(de)
+                )
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: AsyncInvokeOutputDataConfig) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 class AsyncInvokeStatus(StrEnum):
     IN_PROGRESS = "InProgress"
     COMPLETED = "Completed"
     FAILED = "Failed"
+
 
 @dataclass(kw_only=True)
 class GetAsyncInvokeOutput:
@@ -447,23 +507,46 @@ class GetAsyncInvokeOutput:
         serializer.write_struct(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["invocationArn"], self.invocation_arn)
-        serializer.write_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["modelArn"], self.model_arn)
+        serializer.write_string(
+            _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["invocationArn"],
+            self.invocation_arn,
+        )
+        serializer.write_string(
+            _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["modelArn"], self.model_arn
+        )
         if self.client_request_token is not None:
-            serializer.write_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["clientRequestToken"], self.client_request_token)
+            serializer.write_string(
+                _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["clientRequestToken"],
+                self.client_request_token,
+            )
 
-        serializer.write_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["status"], self.status)
+        serializer.write_string(
+            _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["status"], self.status
+        )
         if self.failure_message is not None:
-            serializer.write_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["failureMessage"], self.failure_message)
+            serializer.write_string(
+                _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["failureMessage"],
+                self.failure_message,
+            )
 
-        serializer.write_timestamp(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["submitTime"], self.submit_time)
+        serializer.write_timestamp(
+            _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["submitTime"], self.submit_time
+        )
         if self.last_modified_time is not None:
-            serializer.write_timestamp(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["lastModifiedTime"], self.last_modified_time)
+            serializer.write_timestamp(
+                _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["lastModifiedTime"],
+                self.last_modified_time,
+            )
 
         if self.end_time is not None:
-            serializer.write_timestamp(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["endTime"], self.end_time)
+            serializer.write_timestamp(
+                _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["endTime"], self.end_time
+            )
 
-        serializer.write_struct(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["outputDataConfig"], self.output_data_config)
+        serializer.write_struct(
+            _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["outputDataConfig"],
+            self.output_data_config,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -476,37 +559,56 @@ class GetAsyncInvokeOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["invocation_arn"] = de.read_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["invocationArn"])
+                    kwargs["invocation_arn"] = de.read_string(
+                        _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["invocationArn"]
+                    )
 
                 case 1:
-                    kwargs["model_arn"] = de.read_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["modelArn"])
+                    kwargs["model_arn"] = de.read_string(
+                        _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["modelArn"]
+                    )
 
                 case 2:
-                    kwargs["client_request_token"] = de.read_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["clientRequestToken"])
+                    kwargs["client_request_token"] = de.read_string(
+                        _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["clientRequestToken"]
+                    )
 
                 case 3:
-                    kwargs["status"] = de.read_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["status"])
+                    kwargs["status"] = de.read_string(
+                        _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["status"]
+                    )
 
                 case 4:
-                    kwargs["failure_message"] = de.read_string(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["failureMessage"])
+                    kwargs["failure_message"] = de.read_string(
+                        _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["failureMessage"]
+                    )
 
                 case 5:
-                    kwargs["submit_time"] = de.read_timestamp(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["submitTime"])
+                    kwargs["submit_time"] = de.read_timestamp(
+                        _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["submitTime"]
+                    )
 
                 case 6:
-                    kwargs["last_modified_time"] = de.read_timestamp(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["lastModifiedTime"])
+                    kwargs["last_modified_time"] = de.read_timestamp(
+                        _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["lastModifiedTime"]
+                    )
 
                 case 7:
-                    kwargs["end_time"] = de.read_timestamp(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["endTime"])
+                    kwargs["end_time"] = de.read_timestamp(
+                        _SCHEMA_GET_ASYNC_INVOKE_OUTPUT.members["endTime"]
+                    )
 
                 case 8:
-                    kwargs["output_data_config"] = _AsyncInvokeOutputDataConfigDeserializer().deserialize(de)
+                    kwargs["output_data_config"] = (
+                        _AsyncInvokeOutputDataConfigDeserializer().deserialize(de)
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class InternalServerException(ApiError):
@@ -529,7 +631,9 @@ class InternalServerException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_INTERNAL_SERVER_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_INTERNAL_SERVER_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -542,13 +646,16 @@ class InternalServerException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_INTERNAL_SERVER_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_INTERNAL_SERVER_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_INTERNAL_SERVER_EXCEPTION, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ThrottlingException(ApiError):
@@ -571,7 +678,9 @@ class ThrottlingException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_THROTTLING_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_THROTTLING_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -584,13 +693,16 @@ class ThrottlingException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_THROTTLING_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_THROTTLING_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_THROTTLING_EXCEPTION, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ValidationException(ApiError):
@@ -613,7 +725,9 @@ class ValidationException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_VALIDATION_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_VALIDATION_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -626,7 +740,9 @@ class ValidationException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_VALIDATION_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_VALIDATION_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -634,29 +750,41 @@ class ValidationException(ApiError):
         deserializer.read_struct(_SCHEMA_VALIDATION_EXCEPTION, consumer=_consumer)
         return kwargs
 
+
 GET_ASYNC_INVOKE = APIOperation(
-        input = GetAsyncInvokeInput,
-        output = GetAsyncInvokeOutput,
-        schema = _SCHEMA_GET_ASYNC_INVOKE,
-        input_schema = _SCHEMA_GET_ASYNC_INVOKE_INPUT,
-        output_schema = _SCHEMA_GET_ASYNC_INVOKE_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=GetAsyncInvokeInput,
+    output=GetAsyncInvokeOutput,
+    schema=_SCHEMA_GET_ASYNC_INVOKE,
+    input_schema=_SCHEMA_GET_ASYNC_INVOKE_INPUT,
+    output_schema=_SCHEMA_GET_ASYNC_INVOKE_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )
+
 
 class SortAsyncInvocationBy(StrEnum):
     SUBMISSION_TIME = "SubmissionTime"
 
+
 class SortOrder(StrEnum):
     ASCENDING = "Ascending"
     DESCENDING = "Descending"
+
 
 @dataclass(kw_only=True)
 class ListAsyncInvokesInput:
@@ -711,31 +839,46 @@ class ListAsyncInvokesInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["submit_time_after"] = de.read_timestamp(_SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["submitTimeAfter"])
+                    kwargs["submit_time_after"] = de.read_timestamp(
+                        _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["submitTimeAfter"]
+                    )
 
                 case 1:
-                    kwargs["submit_time_before"] = de.read_timestamp(_SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["submitTimeBefore"])
+                    kwargs["submit_time_before"] = de.read_timestamp(
+                        _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["submitTimeBefore"]
+                    )
 
                 case 2:
-                    kwargs["status_equals"] = de.read_string(_SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["statusEquals"])
+                    kwargs["status_equals"] = de.read_string(
+                        _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["statusEquals"]
+                    )
 
                 case 3:
-                    kwargs["max_results"] = de.read_integer(_SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["maxResults"])
+                    kwargs["max_results"] = de.read_integer(
+                        _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["maxResults"]
+                    )
 
                 case 4:
-                    kwargs["next_token"] = de.read_string(_SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["nextToken"])
+                    kwargs["next_token"] = de.read_string(
+                        _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["nextToken"]
+                    )
 
                 case 5:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["sortBy"])
+                    kwargs["sort_by"] = de.read_string(
+                        _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["sortBy"]
+                    )
 
                 case 6:
-                    kwargs["sort_order"] = de.read_string(_SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["sortOrder"])
+                    kwargs["sort_order"] = de.read_string(
+                        _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["sortOrder"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_LIST_ASYNC_INVOKES_INPUT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class AsyncInvokeSummary:
@@ -789,25 +932,47 @@ class AsyncInvokeSummary:
         serializer.write_struct(_SCHEMA_ASYNC_INVOKE_SUMMARY, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["invocationArn"], self.invocation_arn)
-        serializer.write_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["modelArn"], self.model_arn)
+        serializer.write_string(
+            _SCHEMA_ASYNC_INVOKE_SUMMARY.members["invocationArn"], self.invocation_arn
+        )
+        serializer.write_string(
+            _SCHEMA_ASYNC_INVOKE_SUMMARY.members["modelArn"], self.model_arn
+        )
         if self.client_request_token is not None:
-            serializer.write_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["clientRequestToken"], self.client_request_token)
+            serializer.write_string(
+                _SCHEMA_ASYNC_INVOKE_SUMMARY.members["clientRequestToken"],
+                self.client_request_token,
+            )
 
         if self.status is not None:
-            serializer.write_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["status"], self.status)
+            serializer.write_string(
+                _SCHEMA_ASYNC_INVOKE_SUMMARY.members["status"], self.status
+            )
 
         if self.failure_message is not None:
-            serializer.write_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["failureMessage"], self.failure_message)
+            serializer.write_string(
+                _SCHEMA_ASYNC_INVOKE_SUMMARY.members["failureMessage"],
+                self.failure_message,
+            )
 
-        serializer.write_timestamp(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["submitTime"], self.submit_time)
+        serializer.write_timestamp(
+            _SCHEMA_ASYNC_INVOKE_SUMMARY.members["submitTime"], self.submit_time
+        )
         if self.last_modified_time is not None:
-            serializer.write_timestamp(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["lastModifiedTime"], self.last_modified_time)
+            serializer.write_timestamp(
+                _SCHEMA_ASYNC_INVOKE_SUMMARY.members["lastModifiedTime"],
+                self.last_modified_time,
+            )
 
         if self.end_time is not None:
-            serializer.write_timestamp(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["endTime"], self.end_time)
+            serializer.write_timestamp(
+                _SCHEMA_ASYNC_INVOKE_SUMMARY.members["endTime"], self.end_time
+            )
 
-        serializer.write_struct(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["outputDataConfig"], self.output_data_config)
+        serializer.write_struct(
+            _SCHEMA_ASYNC_INVOKE_SUMMARY.members["outputDataConfig"],
+            self.output_data_config,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -820,31 +985,49 @@ class AsyncInvokeSummary:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["invocation_arn"] = de.read_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["invocationArn"])
+                    kwargs["invocation_arn"] = de.read_string(
+                        _SCHEMA_ASYNC_INVOKE_SUMMARY.members["invocationArn"]
+                    )
 
                 case 1:
-                    kwargs["model_arn"] = de.read_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["modelArn"])
+                    kwargs["model_arn"] = de.read_string(
+                        _SCHEMA_ASYNC_INVOKE_SUMMARY.members["modelArn"]
+                    )
 
                 case 2:
-                    kwargs["client_request_token"] = de.read_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["clientRequestToken"])
+                    kwargs["client_request_token"] = de.read_string(
+                        _SCHEMA_ASYNC_INVOKE_SUMMARY.members["clientRequestToken"]
+                    )
 
                 case 3:
-                    kwargs["status"] = de.read_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["status"])
+                    kwargs["status"] = de.read_string(
+                        _SCHEMA_ASYNC_INVOKE_SUMMARY.members["status"]
+                    )
 
                 case 4:
-                    kwargs["failure_message"] = de.read_string(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["failureMessage"])
+                    kwargs["failure_message"] = de.read_string(
+                        _SCHEMA_ASYNC_INVOKE_SUMMARY.members["failureMessage"]
+                    )
 
                 case 5:
-                    kwargs["submit_time"] = de.read_timestamp(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["submitTime"])
+                    kwargs["submit_time"] = de.read_timestamp(
+                        _SCHEMA_ASYNC_INVOKE_SUMMARY.members["submitTime"]
+                    )
 
                 case 6:
-                    kwargs["last_modified_time"] = de.read_timestamp(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["lastModifiedTime"])
+                    kwargs["last_modified_time"] = de.read_timestamp(
+                        _SCHEMA_ASYNC_INVOKE_SUMMARY.members["lastModifiedTime"]
+                    )
 
                 case 7:
-                    kwargs["end_time"] = de.read_timestamp(_SCHEMA_ASYNC_INVOKE_SUMMARY.members["endTime"])
+                    kwargs["end_time"] = de.read_timestamp(
+                        _SCHEMA_ASYNC_INVOKE_SUMMARY.members["endTime"]
+                    )
 
                 case 8:
-                    kwargs["output_data_config"] = _AsyncInvokeOutputDataConfigDeserializer().deserialize(de)
+                    kwargs["output_data_config"] = (
+                        _AsyncInvokeOutputDataConfigDeserializer().deserialize(de)
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -852,22 +1035,31 @@ class AsyncInvokeSummary:
         deserializer.read_struct(_SCHEMA_ASYNC_INVOKE_SUMMARY, consumer=_consumer)
         return kwargs
 
-def _serialize_async_invoke_summaries(serializer: ShapeSerializer, schema: Schema, value: list[AsyncInvokeSummary]) -> None:
+
+def _serialize_async_invoke_summaries(
+    serializer: ShapeSerializer, schema: Schema, value: list[AsyncInvokeSummary]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_async_invoke_summaries(deserializer: ShapeDeserializer, schema: Schema) -> list[AsyncInvokeSummary]:
+
+def _deserialize_async_invoke_summaries(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[AsyncInvokeSummary]:
     result: list[AsyncInvokeSummary] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(AsyncInvokeSummary.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class ListAsyncInvokesOutput:
@@ -890,10 +1082,16 @@ class ListAsyncInvokesOutput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.next_token is not None:
-            serializer.write_string(_SCHEMA_LIST_ASYNC_INVOKES_OUTPUT.members["nextToken"], self.next_token)
+            serializer.write_string(
+                _SCHEMA_LIST_ASYNC_INVOKES_OUTPUT.members["nextToken"], self.next_token
+            )
 
         if self.async_invoke_summaries is not None:
-            _serialize_async_invoke_summaries(serializer, _SCHEMA_LIST_ASYNC_INVOKES_OUTPUT.members["asyncInvokeSummaries"], self.async_invoke_summaries)
+            _serialize_async_invoke_summaries(
+                serializer,
+                _SCHEMA_LIST_ASYNC_INVOKES_OUTPUT.members["asyncInvokeSummaries"],
+                self.async_invoke_summaries,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -906,10 +1104,19 @@ class ListAsyncInvokesOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["next_token"] = de.read_string(_SCHEMA_LIST_ASYNC_INVOKES_OUTPUT.members["nextToken"])
+                    kwargs["next_token"] = de.read_string(
+                        _SCHEMA_LIST_ASYNC_INVOKES_OUTPUT.members["nextToken"]
+                    )
 
                 case 1:
-                    kwargs["async_invoke_summaries"] = _deserialize_async_invoke_summaries(de, _SCHEMA_LIST_ASYNC_INVOKES_OUTPUT.members["asyncInvokeSummaries"])
+                    kwargs["async_invoke_summaries"] = (
+                        _deserialize_async_invoke_summaries(
+                            de,
+                            _SCHEMA_LIST_ASYNC_INVOKES_OUTPUT.members[
+                                "asyncInvokeSummaries"
+                            ],
+                        )
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -917,22 +1124,32 @@ class ListAsyncInvokesOutput:
         deserializer.read_struct(_SCHEMA_LIST_ASYNC_INVOKES_OUTPUT, consumer=_consumer)
         return kwargs
 
+
 LIST_ASYNC_INVOKES = APIOperation(
-        input = ListAsyncInvokesInput,
-        output = ListAsyncInvokesOutput,
-        schema = _SCHEMA_LIST_ASYNC_INVOKES,
-        input_schema = _SCHEMA_LIST_ASYNC_INVOKES_INPUT,
-        output_schema = _SCHEMA_LIST_ASYNC_INVOKES_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=ListAsyncInvokesInput,
+    output=ListAsyncInvokesOutput,
+    schema=_SCHEMA_LIST_ASYNC_INVOKES,
+    input_schema=_SCHEMA_LIST_ASYNC_INVOKES_INPUT,
+    output_schema=_SCHEMA_LIST_ASYNC_INVOKES_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )
+
 
 @dataclass(kw_only=True)
 class ConflictException(ApiError):
@@ -953,7 +1170,9 @@ class ConflictException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_CONFLICT_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_CONFLICT_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -966,13 +1185,16 @@ class ConflictException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_CONFLICT_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_CONFLICT_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONFLICT_EXCEPTION, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ResourceNotFoundException(ApiError):
@@ -995,7 +1217,9 @@ class ResourceNotFoundException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1008,13 +1232,18 @@ class ResourceNotFoundException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ServiceQuotaExceededException(ApiError):
@@ -1037,7 +1266,10 @@ class ServiceQuotaExceededException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION.members["message"],
+                self.message,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1050,13 +1282,18 @@ class ServiceQuotaExceededException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ServiceUnavailableException(ApiError):
@@ -1079,7 +1316,9 @@ class ServiceUnavailableException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_SERVICE_UNAVAILABLE_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_SERVICE_UNAVAILABLE_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1092,13 +1331,18 @@ class ServiceUnavailableException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_SERVICE_UNAVAILABLE_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_SERVICE_UNAVAILABLE_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_SERVICE_UNAVAILABLE_EXCEPTION, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_SERVICE_UNAVAILABLE_EXCEPTION, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class Tag:
@@ -1146,22 +1390,29 @@ class Tag:
         deserializer.read_struct(_SCHEMA_TAG, consumer=_consumer)
         return kwargs
 
-def _serialize_tag_list(serializer: ShapeSerializer, schema: Schema, value: list[Tag]) -> None:
+
+def _serialize_tag_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[Tag]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
+
 def _deserialize_tag_list(deserializer: ShapeDeserializer, schema: Schema) -> list[Tag]:
     result: list[Tag] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(Tag.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class StartAsyncInvokeInput:
@@ -1195,19 +1446,31 @@ class StartAsyncInvokeInput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.client_request_token is not None:
-            serializer.write_string(_SCHEMA_START_ASYNC_INVOKE_INPUT.members["clientRequestToken"], self.client_request_token)
+            serializer.write_string(
+                _SCHEMA_START_ASYNC_INVOKE_INPUT.members["clientRequestToken"],
+                self.client_request_token,
+            )
 
         if self.model_id is not None:
-            serializer.write_string(_SCHEMA_START_ASYNC_INVOKE_INPUT.members["modelId"], self.model_id)
+            serializer.write_string(
+                _SCHEMA_START_ASYNC_INVOKE_INPUT.members["modelId"], self.model_id
+            )
 
         if self.model_input is not None:
-            serializer.write_document(_SCHEMA_START_ASYNC_INVOKE_INPUT.members["modelInput"], self.model_input)
+            serializer.write_document(
+                _SCHEMA_START_ASYNC_INVOKE_INPUT.members["modelInput"], self.model_input
+            )
 
         if self.output_data_config is not None:
-            serializer.write_struct(_SCHEMA_START_ASYNC_INVOKE_INPUT.members["outputDataConfig"], self.output_data_config)
+            serializer.write_struct(
+                _SCHEMA_START_ASYNC_INVOKE_INPUT.members["outputDataConfig"],
+                self.output_data_config,
+            )
 
         if self.tags is not None:
-            _serialize_tag_list(serializer, _SCHEMA_START_ASYNC_INVOKE_INPUT.members["tags"], self.tags)
+            _serialize_tag_list(
+                serializer, _SCHEMA_START_ASYNC_INVOKE_INPUT.members["tags"], self.tags
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1220,25 +1483,36 @@ class StartAsyncInvokeInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["client_request_token"] = de.read_string(_SCHEMA_START_ASYNC_INVOKE_INPUT.members["clientRequestToken"])
+                    kwargs["client_request_token"] = de.read_string(
+                        _SCHEMA_START_ASYNC_INVOKE_INPUT.members["clientRequestToken"]
+                    )
 
                 case 1:
-                    kwargs["model_id"] = de.read_string(_SCHEMA_START_ASYNC_INVOKE_INPUT.members["modelId"])
+                    kwargs["model_id"] = de.read_string(
+                        _SCHEMA_START_ASYNC_INVOKE_INPUT.members["modelId"]
+                    )
 
                 case 2:
-                    kwargs["model_input"] = de.read_document(_SCHEMA_START_ASYNC_INVOKE_INPUT.members["modelInput"])
+                    kwargs["model_input"] = de.read_document(
+                        _SCHEMA_START_ASYNC_INVOKE_INPUT.members["modelInput"]
+                    )
 
                 case 3:
-                    kwargs["output_data_config"] = _AsyncInvokeOutputDataConfigDeserializer().deserialize(de)
+                    kwargs["output_data_config"] = (
+                        _AsyncInvokeOutputDataConfigDeserializer().deserialize(de)
+                    )
 
                 case 4:
-                    kwargs["tags"] = _deserialize_tag_list(de, _SCHEMA_START_ASYNC_INVOKE_INPUT.members["tags"])
+                    kwargs["tags"] = _deserialize_tag_list(
+                        de, _SCHEMA_START_ASYNC_INVOKE_INPUT.members["tags"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_START_ASYNC_INVOKE_INPUT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class StartAsyncInvokeOutput:
@@ -1255,7 +1529,10 @@ class StartAsyncInvokeOutput:
         serializer.write_struct(_SCHEMA_START_ASYNC_INVOKE_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_START_ASYNC_INVOKE_OUTPUT.members["invocationArn"], self.invocation_arn)
+        serializer.write_string(
+            _SCHEMA_START_ASYNC_INVOKE_OUTPUT.members["invocationArn"],
+            self.invocation_arn,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1268,7 +1545,9 @@ class StartAsyncInvokeOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["invocation_arn"] = de.read_string(_SCHEMA_START_ASYNC_INVOKE_OUTPUT.members["invocationArn"])
+                    kwargs["invocation_arn"] = de.read_string(
+                        _SCHEMA_START_ASYNC_INVOKE_OUTPUT.members["invocationArn"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -1276,30 +1555,49 @@ class StartAsyncInvokeOutput:
         deserializer.read_struct(_SCHEMA_START_ASYNC_INVOKE_OUTPUT, consumer=_consumer)
         return kwargs
 
+
 START_ASYNC_INVOKE = APIOperation(
-        input = StartAsyncInvokeInput,
-        output = StartAsyncInvokeOutput,
-        schema = _SCHEMA_START_ASYNC_INVOKE,
-        input_schema = _SCHEMA_START_ASYNC_INVOKE_INPUT,
-        output_schema = _SCHEMA_START_ASYNC_INVOKE_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#ConflictException"): ConflictException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ResourceNotFoundException"): ResourceNotFoundException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceQuotaExceededException"): ServiceQuotaExceededException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceUnavailableException"): ServiceUnavailableException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=StartAsyncInvokeInput,
+    output=StartAsyncInvokeOutput,
+    schema=_SCHEMA_START_ASYNC_INVOKE,
+    input_schema=_SCHEMA_START_ASYNC_INVOKE_INPUT,
+    output_schema=_SCHEMA_START_ASYNC_INVOKE_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ConflictException"
+            ): ConflictException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceQuotaExceededException"
+            ): ServiceQuotaExceededException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceUnavailableException"
+            ): ServiceUnavailableException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )
+
 
 class GuardrailImageFormat(StrEnum):
     PNG = "png"
     JPEG = "jpeg"
+
 
 @dataclass
 class GuardrailImageSourceBytes:
@@ -1314,11 +1612,18 @@ class GuardrailImageSourceBytes:
         serializer.write_struct(_SCHEMA_GUARDRAIL_IMAGE_SOURCE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_blob(_SCHEMA_GUARDRAIL_IMAGE_SOURCE.members["bytes"], self.value)
+        serializer.write_blob(
+            _SCHEMA_GUARDRAIL_IMAGE_SOURCE.members["bytes"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_blob(_SCHEMA_GUARDRAIL_IMAGE_SOURCE.members["bytes"]))
+        return cls(
+            value=deserializer.read_blob(
+                _SCHEMA_GUARDRAIL_IMAGE_SOURCE.members["bytes"]
+            )
+        )
+
 
 @dataclass
 class GuardrailImageSourceUnknown:
@@ -1342,6 +1647,7 @@ class GuardrailImageSourceUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 GuardrailImageSource = Union[GuardrailImageSourceBytes | GuardrailImageSourceUnknown]
 
 """
@@ -1349,6 +1655,8 @@ The image source (image bytes) of the guardrail image source. Object used in
 independent api.
 
 """
+
+
 class _GuardrailImageSourceDeserializer:
     _result: GuardrailImageSource | None = None
 
@@ -1371,8 +1679,11 @@ class _GuardrailImageSourceDeserializer:
 
     def _set_result(self, value: GuardrailImageSource) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class GuardrailImageBlock:
@@ -1396,8 +1707,12 @@ class GuardrailImageBlock:
         serializer.write_struct(_SCHEMA_GUARDRAIL_IMAGE_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_IMAGE_BLOCK.members["format"], self.format)
-        serializer.write_struct(_SCHEMA_GUARDRAIL_IMAGE_BLOCK.members["source"], self.source)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_IMAGE_BLOCK.members["format"], self.format
+        )
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_IMAGE_BLOCK.members["source"], self.source
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1410,10 +1725,14 @@ class GuardrailImageBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["format"] = de.read_string(_SCHEMA_GUARDRAIL_IMAGE_BLOCK.members["format"])
+                    kwargs["format"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_IMAGE_BLOCK.members["format"]
+                    )
 
                 case 1:
-                    kwargs["source"] = _GuardrailImageSourceDeserializer().deserialize(de)
+                    kwargs["source"] = _GuardrailImageSourceDeserializer().deserialize(
+                        de
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -1421,28 +1740,38 @@ class GuardrailImageBlock:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_IMAGE_BLOCK, consumer=_consumer)
         return kwargs
 
+
 class GuardrailContentQualifier(StrEnum):
     GROUNDING_SOURCE = "grounding_source"
     QUERY = "query"
     GUARD_CONTENT = "guard_content"
 
-def _serialize_guardrail_content_qualifier_list(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+
+def _serialize_guardrail_content_qualifier_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_string(member_schema, e)
 
-def _deserialize_guardrail_content_qualifier_list(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+
+def _deserialize_guardrail_content_qualifier_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
     result: list[str] = []
     member_schema = schema.members["member"]
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(d.read_string(member_schema))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailTextBlock:
@@ -1467,7 +1796,11 @@ class GuardrailTextBlock:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_GUARDRAIL_TEXT_BLOCK.members["text"], self.text)
         if self.qualifiers is not None:
-            _serialize_guardrail_content_qualifier_list(serializer, _SCHEMA_GUARDRAIL_TEXT_BLOCK.members["qualifiers"], self.qualifiers)
+            _serialize_guardrail_content_qualifier_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_TEXT_BLOCK.members["qualifiers"],
+                self.qualifiers,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1480,16 +1813,23 @@ class GuardrailTextBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["text"] = de.read_string(_SCHEMA_GUARDRAIL_TEXT_BLOCK.members["text"])
+                    kwargs["text"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_TEXT_BLOCK.members["text"]
+                    )
 
                 case 1:
-                    kwargs["qualifiers"] = _deserialize_guardrail_content_qualifier_list(de, _SCHEMA_GUARDRAIL_TEXT_BLOCK.members["qualifiers"])
+                    kwargs["qualifiers"] = (
+                        _deserialize_guardrail_content_qualifier_list(
+                            de, _SCHEMA_GUARDRAIL_TEXT_BLOCK.members["qualifiers"]
+                        )
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_GUARDRAIL_TEXT_BLOCK, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class GuardrailContentBlockText:
@@ -1504,11 +1844,14 @@ class GuardrailContentBlockText:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_BLOCK.members["text"], self.value)
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_CONTENT_BLOCK.members["text"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=GuardrailTextBlock.deserialize(deserializer))
+
 
 @dataclass
 class GuardrailContentBlockImage:
@@ -1523,11 +1866,14 @@ class GuardrailContentBlockImage:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_BLOCK.members["image"], self.value)
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_CONTENT_BLOCK.members["image"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=GuardrailImageBlock.deserialize(deserializer))
+
 
 @dataclass
 class GuardrailContentBlockUnknown:
@@ -1551,12 +1897,19 @@ class GuardrailContentBlockUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-GuardrailContentBlock = Union[GuardrailContentBlockText | GuardrailContentBlockImage | GuardrailContentBlockUnknown]
+
+GuardrailContentBlock = Union[
+    GuardrailContentBlockText
+    | GuardrailContentBlockImage
+    | GuardrailContentBlockUnknown
+]
 
 """
 The content block to be evaluated by the guardrail.
 
 """
+
+
 class _GuardrailContentBlockDeserializer:
     _result: GuardrailContentBlock | None = None
 
@@ -1582,29 +1935,41 @@ class _GuardrailContentBlockDeserializer:
 
     def _set_result(self, value: GuardrailContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
 
-def _serialize_guardrail_content_block_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailContentBlock]) -> None:
+
+def _serialize_guardrail_content_block_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailContentBlock]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_content_block_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailContentBlock]:
+
+def _deserialize_guardrail_content_block_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailContentBlock]:
     result: list[GuardrailContentBlock] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(_GuardrailContentBlockDeserializer().deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 class GuardrailContentSource(StrEnum):
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
+
 
 @dataclass(kw_only=True)
 class ApplyGuardrailInput:
@@ -1634,10 +1999,16 @@ class ApplyGuardrailInput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.source is not None:
-            serializer.write_string(_SCHEMA_APPLY_GUARDRAIL_INPUT.members["source"], self.source)
+            serializer.write_string(
+                _SCHEMA_APPLY_GUARDRAIL_INPUT.members["source"], self.source
+            )
 
         if self.content is not None:
-            _serialize_guardrail_content_block_list(serializer, _SCHEMA_APPLY_GUARDRAIL_INPUT.members["content"], self.content)
+            _serialize_guardrail_content_block_list(
+                serializer,
+                _SCHEMA_APPLY_GUARDRAIL_INPUT.members["content"],
+                self.content,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1650,16 +2021,24 @@ class ApplyGuardrailInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["guardrail_identifier"] = de.read_string(_SCHEMA_APPLY_GUARDRAIL_INPUT.members["guardrailIdentifier"])
+                    kwargs["guardrail_identifier"] = de.read_string(
+                        _SCHEMA_APPLY_GUARDRAIL_INPUT.members["guardrailIdentifier"]
+                    )
 
                 case 1:
-                    kwargs["guardrail_version"] = de.read_string(_SCHEMA_APPLY_GUARDRAIL_INPUT.members["guardrailVersion"])
+                    kwargs["guardrail_version"] = de.read_string(
+                        _SCHEMA_APPLY_GUARDRAIL_INPUT.members["guardrailVersion"]
+                    )
 
                 case 2:
-                    kwargs["source"] = de.read_string(_SCHEMA_APPLY_GUARDRAIL_INPUT.members["source"])
+                    kwargs["source"] = de.read_string(
+                        _SCHEMA_APPLY_GUARDRAIL_INPUT.members["source"]
+                    )
 
                 case 3:
-                    kwargs["content"] = _deserialize_guardrail_content_block_list(de, _SCHEMA_APPLY_GUARDRAIL_INPUT.members["content"])
+                    kwargs["content"] = _deserialize_guardrail_content_block_list(
+                        de, _SCHEMA_APPLY_GUARDRAIL_INPUT.members["content"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -1667,12 +2046,15 @@ class ApplyGuardrailInput:
         deserializer.read_struct(_SCHEMA_APPLY_GUARDRAIL_INPUT, consumer=_consumer)
         return kwargs
 
+
 class GuardrailAction(StrEnum):
     NONE = "NONE"
     GUARDRAIL_INTERVENED = "GUARDRAIL_INTERVENED"
 
+
 class GuardrailContentPolicyAction(StrEnum):
     BLOCKED = "BLOCKED"
+
 
 class GuardrailContentFilterConfidence(StrEnum):
     NONE = "NONE"
@@ -1680,11 +2062,13 @@ class GuardrailContentFilterConfidence(StrEnum):
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
 
+
 class GuardrailContentFilterStrength(StrEnum):
     NONE = "NONE"
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
+
 
 class GuardrailContentFilterType(StrEnum):
     INSULTS = "INSULTS"
@@ -1693,6 +2077,7 @@ class GuardrailContentFilterType(StrEnum):
     VIOLENCE = "VIOLENCE"
     MISCONDUCT = "MISCONDUCT"
     PROMPT_ATTACK = "PROMPT_ATTACK"
+
 
 @dataclass(kw_only=True)
 class GuardrailContentFilter:
@@ -1725,12 +2110,21 @@ class GuardrailContentFilter:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_FILTER, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONTENT_FILTER.members["type"], self.type)
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONTENT_FILTER.members["confidence"], self.confidence)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["type"], self.type
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["confidence"], self.confidence
+        )
         if self.filter_strength is not None:
-            serializer.write_string(_SCHEMA_GUARDRAIL_CONTENT_FILTER.members["filterStrength"], self.filter_strength)
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["filterStrength"],
+                self.filter_strength,
+            )
 
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONTENT_FILTER.members["action"], self.action)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["action"], self.action
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1743,16 +2137,24 @@ class GuardrailContentFilter:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["type"] = de.read_string(_SCHEMA_GUARDRAIL_CONTENT_FILTER.members["type"])
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["type"]
+                    )
 
                 case 1:
-                    kwargs["confidence"] = de.read_string(_SCHEMA_GUARDRAIL_CONTENT_FILTER.members["confidence"])
+                    kwargs["confidence"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["confidence"]
+                    )
 
                 case 2:
-                    kwargs["filter_strength"] = de.read_string(_SCHEMA_GUARDRAIL_CONTENT_FILTER.members["filterStrength"])
+                    kwargs["filter_strength"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["filterStrength"]
+                    )
 
                 case 3:
-                    kwargs["action"] = de.read_string(_SCHEMA_GUARDRAIL_CONTENT_FILTER.members["action"])
+                    kwargs["action"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["action"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -1760,22 +2162,31 @@ class GuardrailContentFilter:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_CONTENT_FILTER, consumer=_consumer)
         return kwargs
 
-def _serialize_guardrail_content_filter_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailContentFilter]) -> None:
+
+def _serialize_guardrail_content_filter_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailContentFilter]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_content_filter_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailContentFilter]:
+
+def _deserialize_guardrail_content_filter_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailContentFilter]:
     result: list[GuardrailContentFilter] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailContentFilter.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailContentPolicyAssessment:
@@ -1793,7 +2204,11 @@ class GuardrailContentPolicyAssessment:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        _serialize_guardrail_content_filter_list(serializer, _SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT.members["filters"], self.filters)
+        _serialize_guardrail_content_filter_list(
+            serializer,
+            _SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT.members["filters"],
+            self.filters,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1806,21 +2221,29 @@ class GuardrailContentPolicyAssessment:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["filters"] = _deserialize_guardrail_content_filter_list(de, _SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT.members["filters"])
+                    kwargs["filters"] = _deserialize_guardrail_content_filter_list(
+                        de,
+                        _SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT.members["filters"],
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT, consumer=_consumer
+        )
         return kwargs
+
 
 class GuardrailContextualGroundingPolicyAction(StrEnum):
     BLOCKED = "BLOCKED"
     NONE = "NONE"
 
+
 class GuardrailContextualGroundingFilterType(StrEnum):
     GROUNDING = "GROUNDING"
     RELEVANCE = "RELEVANCE"
+
 
 @dataclass(kw_only=True)
 class GuardrailContextualGroundingFilter:
@@ -1854,10 +2277,19 @@ class GuardrailContextualGroundingFilter:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["type"], self.type)
-        serializer.write_double(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["threshold"], self.threshold)
-        serializer.write_double(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["score"], self.score)
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["action"], self.action)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["type"], self.type
+        )
+        serializer.write_double(
+            _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["threshold"],
+            self.threshold,
+        )
+        serializer.write_double(
+            _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["score"], self.score
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["action"], self.action
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1870,39 +2302,62 @@ class GuardrailContextualGroundingFilter:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["type"] = de.read_string(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["type"])
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["type"]
+                    )
 
                 case 1:
-                    kwargs["threshold"] = de.read_double(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["threshold"])
+                    kwargs["threshold"] = de.read_double(
+                        _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members[
+                            "threshold"
+                        ]
+                    )
 
                 case 2:
-                    kwargs["score"] = de.read_double(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["score"])
+                    kwargs["score"] = de.read_double(
+                        _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["score"]
+                    )
 
                 case 3:
-                    kwargs["action"] = de.read_string(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["action"])
+                    kwargs["action"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["action"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER, consumer=_consumer
+        )
         return kwargs
 
-def _serialize_guardrail_contextual_grounding_filters(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailContextualGroundingFilter]) -> None:
+
+def _serialize_guardrail_contextual_grounding_filters(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[GuardrailContextualGroundingFilter],
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_contextual_grounding_filters(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailContextualGroundingFilter]:
+
+def _deserialize_guardrail_contextual_grounding_filters(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailContextualGroundingFilter]:
     result: list[GuardrailContextualGroundingFilter] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailContextualGroundingFilter.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailContextualGroundingPolicyAssessment:
@@ -1917,11 +2372,19 @@ class GuardrailContextualGroundingPolicyAssessment:
     filters: list[GuardrailContextualGroundingFilter] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_POLICY_ASSESSMENT, self)
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_POLICY_ASSESSMENT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.filters is not None:
-            _serialize_guardrail_contextual_grounding_filters(serializer, _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_POLICY_ASSESSMENT.members["filters"], self.filters)
+            _serialize_guardrail_contextual_grounding_filters(
+                serializer,
+                _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_POLICY_ASSESSMENT.members[
+                    "filters"
+                ],
+                self.filters,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1934,13 +2397,23 @@ class GuardrailContextualGroundingPolicyAssessment:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["filters"] = _deserialize_guardrail_contextual_grounding_filters(de, _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_POLICY_ASSESSMENT.members["filters"])
+                    kwargs["filters"] = (
+                        _deserialize_guardrail_contextual_grounding_filters(
+                            de,
+                            _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_POLICY_ASSESSMENT.members[
+                                "filters"
+                            ],
+                        )
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_POLICY_ASSESSMENT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_POLICY_ASSESSMENT, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class GuardrailImageCoverage:
@@ -1964,10 +2437,14 @@ class GuardrailImageCoverage:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.guarded is not None:
-            serializer.write_integer(_SCHEMA_GUARDRAIL_IMAGE_COVERAGE.members["guarded"], self.guarded)
+            serializer.write_integer(
+                _SCHEMA_GUARDRAIL_IMAGE_COVERAGE.members["guarded"], self.guarded
+            )
 
         if self.total is not None:
-            serializer.write_integer(_SCHEMA_GUARDRAIL_IMAGE_COVERAGE.members["total"], self.total)
+            serializer.write_integer(
+                _SCHEMA_GUARDRAIL_IMAGE_COVERAGE.members["total"], self.total
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1980,16 +2457,21 @@ class GuardrailImageCoverage:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["guarded"] = de.read_integer(_SCHEMA_GUARDRAIL_IMAGE_COVERAGE.members["guarded"])
+                    kwargs["guarded"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_IMAGE_COVERAGE.members["guarded"]
+                    )
 
                 case 1:
-                    kwargs["total"] = de.read_integer(_SCHEMA_GUARDRAIL_IMAGE_COVERAGE.members["total"])
+                    kwargs["total"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_IMAGE_COVERAGE.members["total"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_GUARDRAIL_IMAGE_COVERAGE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class GuardrailTextCharactersCoverage:
@@ -2012,10 +2494,15 @@ class GuardrailTextCharactersCoverage:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.guarded is not None:
-            serializer.write_integer(_SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE.members["guarded"], self.guarded)
+            serializer.write_integer(
+                _SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE.members["guarded"],
+                self.guarded,
+            )
 
         if self.total is not None:
-            serializer.write_integer(_SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE.members["total"], self.total)
+            serializer.write_integer(
+                _SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE.members["total"], self.total
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2028,16 +2515,23 @@ class GuardrailTextCharactersCoverage:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["guarded"] = de.read_integer(_SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE.members["guarded"])
+                    kwargs["guarded"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE.members["guarded"]
+                    )
 
                 case 1:
-                    kwargs["total"] = de.read_integer(_SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE.members["total"])
+                    kwargs["total"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE.members["total"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class GuardrailCoverage:
@@ -2061,10 +2555,15 @@ class GuardrailCoverage:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.text_characters is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_COVERAGE.members["textCharacters"], self.text_characters)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_COVERAGE.members["textCharacters"],
+                self.text_characters,
+            )
 
         if self.images is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_COVERAGE.members["images"], self.images)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_COVERAGE.members["images"], self.images
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2077,7 +2576,9 @@ class GuardrailCoverage:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["text_characters"] = GuardrailTextCharactersCoverage.deserialize(de)
+                    kwargs["text_characters"] = (
+                        GuardrailTextCharactersCoverage.deserialize(de)
+                    )
 
                 case 1:
                     kwargs["images"] = GuardrailImageCoverage.deserialize(de)
@@ -2087,6 +2588,7 @@ class GuardrailCoverage:
 
         deserializer.read_struct(_SCHEMA_GUARDRAIL_COVERAGE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class GuardrailUsage:
@@ -2129,12 +2631,28 @@ class GuardrailUsage:
         serializer.write_struct(_SCHEMA_GUARDRAIL_USAGE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_integer(_SCHEMA_GUARDRAIL_USAGE.members["topicPolicyUnits"], self.topic_policy_units)
-        serializer.write_integer(_SCHEMA_GUARDRAIL_USAGE.members["contentPolicyUnits"], self.content_policy_units)
-        serializer.write_integer(_SCHEMA_GUARDRAIL_USAGE.members["wordPolicyUnits"], self.word_policy_units)
-        serializer.write_integer(_SCHEMA_GUARDRAIL_USAGE.members["sensitiveInformationPolicyUnits"], self.sensitive_information_policy_units)
-        serializer.write_integer(_SCHEMA_GUARDRAIL_USAGE.members["sensitiveInformationPolicyFreeUnits"], self.sensitive_information_policy_free_units)
-        serializer.write_integer(_SCHEMA_GUARDRAIL_USAGE.members["contextualGroundingPolicyUnits"], self.contextual_grounding_policy_units)
+        serializer.write_integer(
+            _SCHEMA_GUARDRAIL_USAGE.members["topicPolicyUnits"], self.topic_policy_units
+        )
+        serializer.write_integer(
+            _SCHEMA_GUARDRAIL_USAGE.members["contentPolicyUnits"],
+            self.content_policy_units,
+        )
+        serializer.write_integer(
+            _SCHEMA_GUARDRAIL_USAGE.members["wordPolicyUnits"], self.word_policy_units
+        )
+        serializer.write_integer(
+            _SCHEMA_GUARDRAIL_USAGE.members["sensitiveInformationPolicyUnits"],
+            self.sensitive_information_policy_units,
+        )
+        serializer.write_integer(
+            _SCHEMA_GUARDRAIL_USAGE.members["sensitiveInformationPolicyFreeUnits"],
+            self.sensitive_information_policy_free_units,
+        )
+        serializer.write_integer(
+            _SCHEMA_GUARDRAIL_USAGE.members["contextualGroundingPolicyUnits"],
+            self.contextual_grounding_policy_units,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2147,28 +2665,47 @@ class GuardrailUsage:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["topic_policy_units"] = de.read_integer(_SCHEMA_GUARDRAIL_USAGE.members["topicPolicyUnits"])
+                    kwargs["topic_policy_units"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members["topicPolicyUnits"]
+                    )
 
                 case 1:
-                    kwargs["content_policy_units"] = de.read_integer(_SCHEMA_GUARDRAIL_USAGE.members["contentPolicyUnits"])
+                    kwargs["content_policy_units"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members["contentPolicyUnits"]
+                    )
 
                 case 2:
-                    kwargs["word_policy_units"] = de.read_integer(_SCHEMA_GUARDRAIL_USAGE.members["wordPolicyUnits"])
+                    kwargs["word_policy_units"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members["wordPolicyUnits"]
+                    )
 
                 case 3:
-                    kwargs["sensitive_information_policy_units"] = de.read_integer(_SCHEMA_GUARDRAIL_USAGE.members["sensitiveInformationPolicyUnits"])
+                    kwargs["sensitive_information_policy_units"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members[
+                            "sensitiveInformationPolicyUnits"
+                        ]
+                    )
 
                 case 4:
-                    kwargs["sensitive_information_policy_free_units"] = de.read_integer(_SCHEMA_GUARDRAIL_USAGE.members["sensitiveInformationPolicyFreeUnits"])
+                    kwargs["sensitive_information_policy_free_units"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members[
+                            "sensitiveInformationPolicyFreeUnits"
+                        ]
+                    )
 
                 case 5:
-                    kwargs["contextual_grounding_policy_units"] = de.read_integer(_SCHEMA_GUARDRAIL_USAGE.members["contextualGroundingPolicyUnits"])
+                    kwargs["contextual_grounding_policy_units"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members[
+                            "contextualGroundingPolicyUnits"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_GUARDRAIL_USAGE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class GuardrailInvocationMetrics:
@@ -2195,13 +2732,23 @@ class GuardrailInvocationMetrics:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.guardrail_processing_latency is not None:
-            serializer.write_long(_SCHEMA_GUARDRAIL_INVOCATION_METRICS.members["guardrailProcessingLatency"], self.guardrail_processing_latency)
+            serializer.write_long(
+                _SCHEMA_GUARDRAIL_INVOCATION_METRICS.members[
+                    "guardrailProcessingLatency"
+                ],
+                self.guardrail_processing_latency,
+            )
 
         if self.usage is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_INVOCATION_METRICS.members["usage"], self.usage)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_INVOCATION_METRICS.members["usage"], self.usage
+            )
 
         if self.guardrail_coverage is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_INVOCATION_METRICS.members["guardrailCoverage"], self.guardrail_coverage)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_INVOCATION_METRICS.members["guardrailCoverage"],
+                self.guardrail_coverage,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2214,7 +2761,11 @@ class GuardrailInvocationMetrics:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["guardrail_processing_latency"] = de.read_long(_SCHEMA_GUARDRAIL_INVOCATION_METRICS.members["guardrailProcessingLatency"])
+                    kwargs["guardrail_processing_latency"] = de.read_long(
+                        _SCHEMA_GUARDRAIL_INVOCATION_METRICS.members[
+                            "guardrailProcessingLatency"
+                        ]
+                    )
 
                 case 1:
                     kwargs["usage"] = GuardrailUsage.deserialize(de)
@@ -2225,12 +2776,16 @@ class GuardrailInvocationMetrics:
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_INVOCATION_METRICS, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_INVOCATION_METRICS, consumer=_consumer
+        )
         return kwargs
+
 
 class GuardrailSensitiveInformationPolicyAction(StrEnum):
     ANONYMIZED = "ANONYMIZED"
     BLOCKED = "BLOCKED"
+
 
 class GuardrailPiiEntityType(StrEnum):
     ADDRESS = "ADDRESS"
@@ -2265,6 +2820,7 @@ class GuardrailPiiEntityType(StrEnum):
     US_SOCIAL_SECURITY_NUMBER = "US_SOCIAL_SECURITY_NUMBER"
     VEHICLE_IDENTIFICATION_NUMBER = "VEHICLE_IDENTIFICATION_NUMBER"
 
+
 @dataclass(kw_only=True)
 class GuardrailPiiEntityFilter:
     """
@@ -2291,9 +2847,15 @@ class GuardrailPiiEntityFilter:
         serializer.write_struct(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["match"], self.match)
-        serializer.write_string(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["type"], self.type)
-        serializer.write_string(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["action"], self.action)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["match"], self.match
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["type"], self.type
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["action"], self.action
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2306,36 +2868,53 @@ class GuardrailPiiEntityFilter:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["match"] = de.read_string(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["match"])
+                    kwargs["match"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["match"]
+                    )
 
                 case 1:
-                    kwargs["type"] = de.read_string(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["type"])
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["type"]
+                    )
 
                 case 2:
-                    kwargs["action"] = de.read_string(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["action"])
+                    kwargs["action"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["action"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER, consumer=_consumer
+        )
         return kwargs
 
-def _serialize_guardrail_pii_entity_filter_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailPiiEntityFilter]) -> None:
+
+def _serialize_guardrail_pii_entity_filter_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailPiiEntityFilter]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_pii_entity_filter_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailPiiEntityFilter]:
+
+def _deserialize_guardrail_pii_entity_filter_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailPiiEntityFilter]:
     result: list[GuardrailPiiEntityFilter] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailPiiEntityFilter.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailRegexFilter:
@@ -2367,15 +2946,23 @@ class GuardrailRegexFilter:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.name is not None:
-            serializer.write_string(_SCHEMA_GUARDRAIL_REGEX_FILTER.members["name"], self.name)
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_REGEX_FILTER.members["name"], self.name
+            )
 
         if self.match is not None:
-            serializer.write_string(_SCHEMA_GUARDRAIL_REGEX_FILTER.members["match"], self.match)
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_REGEX_FILTER.members["match"], self.match
+            )
 
         if self.regex is not None:
-            serializer.write_string(_SCHEMA_GUARDRAIL_REGEX_FILTER.members["regex"], self.regex)
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_REGEX_FILTER.members["regex"], self.regex
+            )
 
-        serializer.write_string(_SCHEMA_GUARDRAIL_REGEX_FILTER.members["action"], self.action)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_REGEX_FILTER.members["action"], self.action
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2388,16 +2975,24 @@ class GuardrailRegexFilter:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["name"] = de.read_string(_SCHEMA_GUARDRAIL_REGEX_FILTER.members["name"])
+                    kwargs["name"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_REGEX_FILTER.members["name"]
+                    )
 
                 case 1:
-                    kwargs["match"] = de.read_string(_SCHEMA_GUARDRAIL_REGEX_FILTER.members["match"])
+                    kwargs["match"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_REGEX_FILTER.members["match"]
+                    )
 
                 case 2:
-                    kwargs["regex"] = de.read_string(_SCHEMA_GUARDRAIL_REGEX_FILTER.members["regex"])
+                    kwargs["regex"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_REGEX_FILTER.members["regex"]
+                    )
 
                 case 3:
-                    kwargs["action"] = de.read_string(_SCHEMA_GUARDRAIL_REGEX_FILTER.members["action"])
+                    kwargs["action"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_REGEX_FILTER.members["action"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2405,22 +3000,31 @@ class GuardrailRegexFilter:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_REGEX_FILTER, consumer=_consumer)
         return kwargs
 
-def _serialize_guardrail_regex_filter_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailRegexFilter]) -> None:
+
+def _serialize_guardrail_regex_filter_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailRegexFilter]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_regex_filter_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailRegexFilter]:
+
+def _deserialize_guardrail_regex_filter_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailRegexFilter]:
     result: list[GuardrailRegexFilter] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailRegexFilter.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailSensitiveInformationPolicyAssessment:
@@ -2440,11 +3044,25 @@ class GuardrailSensitiveInformationPolicyAssessment:
     regexes: list[GuardrailRegexFilter]
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT, self)
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        _serialize_guardrail_pii_entity_filter_list(serializer, _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT.members["piiEntities"], self.pii_entities)
-        _serialize_guardrail_regex_filter_list(serializer, _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT.members["regexes"], self.regexes)
+        _serialize_guardrail_pii_entity_filter_list(
+            serializer,
+            _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT.members[
+                "piiEntities"
+            ],
+            self.pii_entities,
+        )
+        _serialize_guardrail_regex_filter_list(
+            serializer,
+            _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT.members[
+                "regexes"
+            ],
+            self.regexes,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2457,22 +3075,40 @@ class GuardrailSensitiveInformationPolicyAssessment:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["pii_entities"] = _deserialize_guardrail_pii_entity_filter_list(de, _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT.members["piiEntities"])
+                    kwargs["pii_entities"] = (
+                        _deserialize_guardrail_pii_entity_filter_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT.members[
+                                "piiEntities"
+                            ],
+                        )
+                    )
 
                 case 1:
-                    kwargs["regexes"] = _deserialize_guardrail_regex_filter_list(de, _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT.members["regexes"])
+                    kwargs["regexes"] = _deserialize_guardrail_regex_filter_list(
+                        de,
+                        _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT.members[
+                            "regexes"
+                        ],
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ASSESSMENT,
+            consumer=_consumer,
+        )
         return kwargs
+
 
 class GuardrailTopicPolicyAction(StrEnum):
     BLOCKED = "BLOCKED"
 
+
 class GuardrailTopicType(StrEnum):
     DENY = "DENY"
+
 
 @dataclass(kw_only=True)
 class GuardrailTopic:
@@ -2516,13 +3152,19 @@ class GuardrailTopic:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["name"] = de.read_string(_SCHEMA_GUARDRAIL_TOPIC.members["name"])
+                    kwargs["name"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_TOPIC.members["name"]
+                    )
 
                 case 1:
-                    kwargs["type"] = de.read_string(_SCHEMA_GUARDRAIL_TOPIC.members["type"])
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_TOPIC.members["type"]
+                    )
 
                 case 2:
-                    kwargs["action"] = de.read_string(_SCHEMA_GUARDRAIL_TOPIC.members["action"])
+                    kwargs["action"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_TOPIC.members["action"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2530,22 +3172,31 @@ class GuardrailTopic:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_TOPIC, consumer=_consumer)
         return kwargs
 
-def _serialize_guardrail_topic_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailTopic]) -> None:
+
+def _serialize_guardrail_topic_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailTopic]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_topic_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailTopic]:
+
+def _deserialize_guardrail_topic_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailTopic]:
     result: list[GuardrailTopic] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailTopic.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailTopicPolicyAssessment:
@@ -2563,7 +3214,11 @@ class GuardrailTopicPolicyAssessment:
         serializer.write_struct(_SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        _serialize_guardrail_topic_list(serializer, _SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT.members["topics"], self.topics)
+        _serialize_guardrail_topic_list(
+            serializer,
+            _SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT.members["topics"],
+            self.topics,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2576,16 +3231,22 @@ class GuardrailTopicPolicyAssessment:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["topics"] = _deserialize_guardrail_topic_list(de, _SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT.members["topics"])
+                    kwargs["topics"] = _deserialize_guardrail_topic_list(
+                        de, _SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT.members["topics"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT, consumer=_consumer
+        )
         return kwargs
+
 
 class GuardrailWordPolicyAction(StrEnum):
     BLOCKED = "BLOCKED"
+
 
 @dataclass(kw_only=True)
 class GuardrailCustomWord:
@@ -2608,8 +3269,12 @@ class GuardrailCustomWord:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CUSTOM_WORD, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_CUSTOM_WORD.members["match"], self.match)
-        serializer.write_string(_SCHEMA_GUARDRAIL_CUSTOM_WORD.members["action"], self.action)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CUSTOM_WORD.members["match"], self.match
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CUSTOM_WORD.members["action"], self.action
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2622,10 +3287,14 @@ class GuardrailCustomWord:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["match"] = de.read_string(_SCHEMA_GUARDRAIL_CUSTOM_WORD.members["match"])
+                    kwargs["match"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CUSTOM_WORD.members["match"]
+                    )
 
                 case 1:
-                    kwargs["action"] = de.read_string(_SCHEMA_GUARDRAIL_CUSTOM_WORD.members["action"])
+                    kwargs["action"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CUSTOM_WORD.members["action"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2633,25 +3302,35 @@ class GuardrailCustomWord:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_CUSTOM_WORD, consumer=_consumer)
         return kwargs
 
-def _serialize_guardrail_custom_word_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailCustomWord]) -> None:
+
+def _serialize_guardrail_custom_word_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailCustomWord]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_custom_word_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailCustomWord]:
+
+def _deserialize_guardrail_custom_word_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailCustomWord]:
     result: list[GuardrailCustomWord] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailCustomWord.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
 
+
 class GuardrailManagedWordType(StrEnum):
     PROFANITY = "PROFANITY"
+
 
 @dataclass(kw_only=True)
 class GuardrailManagedWord:
@@ -2679,9 +3358,15 @@ class GuardrailManagedWord:
         serializer.write_struct(_SCHEMA_GUARDRAIL_MANAGED_WORD, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_MANAGED_WORD.members["match"], self.match)
-        serializer.write_string(_SCHEMA_GUARDRAIL_MANAGED_WORD.members["type"], self.type)
-        serializer.write_string(_SCHEMA_GUARDRAIL_MANAGED_WORD.members["action"], self.action)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_MANAGED_WORD.members["match"], self.match
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_MANAGED_WORD.members["type"], self.type
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_MANAGED_WORD.members["action"], self.action
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2694,13 +3379,19 @@ class GuardrailManagedWord:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["match"] = de.read_string(_SCHEMA_GUARDRAIL_MANAGED_WORD.members["match"])
+                    kwargs["match"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_MANAGED_WORD.members["match"]
+                    )
 
                 case 1:
-                    kwargs["type"] = de.read_string(_SCHEMA_GUARDRAIL_MANAGED_WORD.members["type"])
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_MANAGED_WORD.members["type"]
+                    )
 
                 case 2:
-                    kwargs["action"] = de.read_string(_SCHEMA_GUARDRAIL_MANAGED_WORD.members["action"])
+                    kwargs["action"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_MANAGED_WORD.members["action"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2708,22 +3399,31 @@ class GuardrailManagedWord:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_MANAGED_WORD, consumer=_consumer)
         return kwargs
 
-def _serialize_guardrail_managed_word_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailManagedWord]) -> None:
+
+def _serialize_guardrail_managed_word_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailManagedWord]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_managed_word_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailManagedWord]:
+
+def _deserialize_guardrail_managed_word_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailManagedWord]:
     result: list[GuardrailManagedWord] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailManagedWord.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailWordPolicyAssessment:
@@ -2746,8 +3446,16 @@ class GuardrailWordPolicyAssessment:
         serializer.write_struct(_SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        _serialize_guardrail_custom_word_list(serializer, _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT.members["customWords"], self.custom_words)
-        _serialize_guardrail_managed_word_list(serializer, _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT.members["managedWordLists"], self.managed_word_lists)
+        _serialize_guardrail_custom_word_list(
+            serializer,
+            _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT.members["customWords"],
+            self.custom_words,
+        )
+        _serialize_guardrail_managed_word_list(
+            serializer,
+            _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT.members["managedWordLists"],
+            self.managed_word_lists,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2760,16 +3468,29 @@ class GuardrailWordPolicyAssessment:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["custom_words"] = _deserialize_guardrail_custom_word_list(de, _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT.members["customWords"])
+                    kwargs["custom_words"] = _deserialize_guardrail_custom_word_list(
+                        de,
+                        _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT.members["customWords"],
+                    )
 
                 case 1:
-                    kwargs["managed_word_lists"] = _deserialize_guardrail_managed_word_list(de, _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT.members["managedWordLists"])
+                    kwargs["managed_word_lists"] = (
+                        _deserialize_guardrail_managed_word_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT.members[
+                                "managedWordLists"
+                            ],
+                        )
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class GuardrailAssessment:
@@ -2800,8 +3521,12 @@ class GuardrailAssessment:
     topic_policy: GuardrailTopicPolicyAssessment | None = None
     content_policy: GuardrailContentPolicyAssessment | None = None
     word_policy: GuardrailWordPolicyAssessment | None = None
-    sensitive_information_policy: GuardrailSensitiveInformationPolicyAssessment | None = None
-    contextual_grounding_policy: GuardrailContextualGroundingPolicyAssessment | None = None
+    sensitive_information_policy: (
+        GuardrailSensitiveInformationPolicyAssessment | None
+    ) = None
+    contextual_grounding_policy: GuardrailContextualGroundingPolicyAssessment | None = (
+        None
+    )
     invocation_metrics: GuardrailInvocationMetrics | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2809,22 +3534,38 @@ class GuardrailAssessment:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.topic_policy is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_ASSESSMENT.members["topicPolicy"], self.topic_policy)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_ASSESSMENT.members["topicPolicy"], self.topic_policy
+            )
 
         if self.content_policy is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_ASSESSMENT.members["contentPolicy"], self.content_policy)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_ASSESSMENT.members["contentPolicy"],
+                self.content_policy,
+            )
 
         if self.word_policy is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_ASSESSMENT.members["wordPolicy"], self.word_policy)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_ASSESSMENT.members["wordPolicy"], self.word_policy
+            )
 
         if self.sensitive_information_policy is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_ASSESSMENT.members["sensitiveInformationPolicy"], self.sensitive_information_policy)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_ASSESSMENT.members["sensitiveInformationPolicy"],
+                self.sensitive_information_policy,
+            )
 
         if self.contextual_grounding_policy is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_ASSESSMENT.members["contextualGroundingPolicy"], self.contextual_grounding_policy)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_ASSESSMENT.members["contextualGroundingPolicy"],
+                self.contextual_grounding_policy,
+            )
 
         if self.invocation_metrics is not None:
-            serializer.write_struct(_SCHEMA_GUARDRAIL_ASSESSMENT.members["invocationMetrics"], self.invocation_metrics)
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_ASSESSMENT.members["invocationMetrics"],
+                self.invocation_metrics,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2837,22 +3578,34 @@ class GuardrailAssessment:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["topic_policy"] = GuardrailTopicPolicyAssessment.deserialize(de)
+                    kwargs["topic_policy"] = GuardrailTopicPolicyAssessment.deserialize(
+                        de
+                    )
 
                 case 1:
-                    kwargs["content_policy"] = GuardrailContentPolicyAssessment.deserialize(de)
+                    kwargs["content_policy"] = (
+                        GuardrailContentPolicyAssessment.deserialize(de)
+                    )
 
                 case 2:
-                    kwargs["word_policy"] = GuardrailWordPolicyAssessment.deserialize(de)
+                    kwargs["word_policy"] = GuardrailWordPolicyAssessment.deserialize(
+                        de
+                    )
 
                 case 3:
-                    kwargs["sensitive_information_policy"] = GuardrailSensitiveInformationPolicyAssessment.deserialize(de)
+                    kwargs["sensitive_information_policy"] = (
+                        GuardrailSensitiveInformationPolicyAssessment.deserialize(de)
+                    )
 
                 case 4:
-                    kwargs["contextual_grounding_policy"] = GuardrailContextualGroundingPolicyAssessment.deserialize(de)
+                    kwargs["contextual_grounding_policy"] = (
+                        GuardrailContextualGroundingPolicyAssessment.deserialize(de)
+                    )
 
                 case 5:
-                    kwargs["invocation_metrics"] = GuardrailInvocationMetrics.deserialize(de)
+                    kwargs["invocation_metrics"] = (
+                        GuardrailInvocationMetrics.deserialize(de)
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2860,22 +3613,31 @@ class GuardrailAssessment:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_ASSESSMENT, consumer=_consumer)
         return kwargs
 
-def _serialize_guardrail_assessment_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailAssessment]) -> None:
+
+def _serialize_guardrail_assessment_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailAssessment]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_assessment_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailAssessment]:
+
+def _deserialize_guardrail_assessment_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailAssessment]:
     result: list[GuardrailAssessment] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailAssessment.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailOutputContent:
@@ -2894,7 +3656,9 @@ class GuardrailOutputContent:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.text is not None:
-            serializer.write_string(_SCHEMA_GUARDRAIL_OUTPUT_CONTENT.members["text"], self.text)
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_OUTPUT_CONTENT.members["text"], self.text
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2907,7 +3671,9 @@ class GuardrailOutputContent:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["text"] = de.read_string(_SCHEMA_GUARDRAIL_OUTPUT_CONTENT.members["text"])
+                    kwargs["text"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_OUTPUT_CONTENT.members["text"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2915,22 +3681,31 @@ class GuardrailOutputContent:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_OUTPUT_CONTENT, consumer=_consumer)
         return kwargs
 
-def _serialize_guardrail_output_content_list(serializer: ShapeSerializer, schema: Schema, value: list[GuardrailOutputContent]) -> None:
+
+def _serialize_guardrail_output_content_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[GuardrailOutputContent]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_guardrail_output_content_list(deserializer: ShapeDeserializer, schema: Schema) -> list[GuardrailOutputContent]:
+
+def _deserialize_guardrail_output_content_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailOutputContent]:
     result: list[GuardrailOutputContent] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(GuardrailOutputContent.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class ApplyGuardrailOutput:
@@ -2967,12 +3742,25 @@ class ApplyGuardrailOutput:
         serializer.write_struct(_SCHEMA_APPLY_GUARDRAIL_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["usage"], self.usage)
-        serializer.write_string(_SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["action"], self.action)
-        _serialize_guardrail_output_content_list(serializer, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["outputs"], self.outputs)
-        _serialize_guardrail_assessment_list(serializer, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["assessments"], self.assessments)
+        serializer.write_struct(
+            _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["usage"], self.usage
+        )
+        serializer.write_string(
+            _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["action"], self.action
+        )
+        _serialize_guardrail_output_content_list(
+            serializer, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["outputs"], self.outputs
+        )
+        _serialize_guardrail_assessment_list(
+            serializer,
+            _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["assessments"],
+            self.assessments,
+        )
         if self.guardrail_coverage is not None:
-            serializer.write_struct(_SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["guardrailCoverage"], self.guardrail_coverage)
+            serializer.write_struct(
+                _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["guardrailCoverage"],
+                self.guardrail_coverage,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2988,13 +3776,19 @@ class ApplyGuardrailOutput:
                     kwargs["usage"] = GuardrailUsage.deserialize(de)
 
                 case 1:
-                    kwargs["action"] = de.read_string(_SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["action"])
+                    kwargs["action"] = de.read_string(
+                        _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["action"]
+                    )
 
                 case 2:
-                    kwargs["outputs"] = _deserialize_guardrail_output_content_list(de, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["outputs"])
+                    kwargs["outputs"] = _deserialize_guardrail_output_content_list(
+                        de, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["outputs"]
+                    )
 
                 case 3:
-                    kwargs["assessments"] = _deserialize_guardrail_assessment_list(de, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["assessments"])
+                    kwargs["assessments"] = _deserialize_guardrail_assessment_list(
+                        de, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["assessments"]
+                    )
 
                 case 4:
                     kwargs["guardrail_coverage"] = GuardrailCoverage.deserialize(de)
@@ -3005,28 +3799,43 @@ class ApplyGuardrailOutput:
         deserializer.read_struct(_SCHEMA_APPLY_GUARDRAIL_OUTPUT, consumer=_consumer)
         return kwargs
 
+
 APPLY_GUARDRAIL = APIOperation(
-        input = ApplyGuardrailInput,
-        output = ApplyGuardrailOutput,
-        schema = _SCHEMA_APPLY_GUARDRAIL,
-        input_schema = _SCHEMA_APPLY_GUARDRAIL_INPUT,
-        output_schema = _SCHEMA_APPLY_GUARDRAIL_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ResourceNotFoundException"): ResourceNotFoundException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceQuotaExceededException"): ServiceQuotaExceededException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=ApplyGuardrailInput,
+    output=ApplyGuardrailOutput,
+    schema=_SCHEMA_APPLY_GUARDRAIL,
+    input_schema=_SCHEMA_APPLY_GUARDRAIL_INPUT,
+    output_schema=_SCHEMA_APPLY_GUARDRAIL_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceQuotaExceededException"
+            ): ServiceQuotaExceededException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )
+
 
 class GuardrailTrace(StrEnum):
     ENABLED = "enabled"
     DISABLED = "disabled"
+
 
 @dataclass(kw_only=True)
 class GuardrailConfiguration:
@@ -3055,9 +3864,17 @@ class GuardrailConfiguration:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONFIGURATION, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONFIGURATION.members["guardrailIdentifier"], self.guardrail_identifier)
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONFIGURATION.members["guardrailVersion"], self.guardrail_version)
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONFIGURATION.members["trace"], self.trace)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONFIGURATION.members["guardrailIdentifier"],
+            self.guardrail_identifier,
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONFIGURATION.members["guardrailVersion"],
+            self.guardrail_version,
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONFIGURATION.members["trace"], self.trace
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3070,13 +3887,19 @@ class GuardrailConfiguration:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["guardrail_identifier"] = de.read_string(_SCHEMA_GUARDRAIL_CONFIGURATION.members["guardrailIdentifier"])
+                    kwargs["guardrail_identifier"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONFIGURATION.members["guardrailIdentifier"]
+                    )
 
                 case 1:
-                    kwargs["guardrail_version"] = de.read_string(_SCHEMA_GUARDRAIL_CONFIGURATION.members["guardrailVersion"])
+                    kwargs["guardrail_version"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONFIGURATION.members["guardrailVersion"]
+                    )
 
                 case 2:
-                    kwargs["trace"] = de.read_string(_SCHEMA_GUARDRAIL_CONFIGURATION.members["trace"])
+                    kwargs["trace"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONFIGURATION.members["trace"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -3084,23 +3907,32 @@ class GuardrailConfiguration:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_CONFIGURATION, consumer=_consumer)
         return kwargs
 
-def _serialize_non_empty_string_list(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+
+def _serialize_non_empty_string_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_string(member_schema, e)
 
-def _deserialize_non_empty_string_list(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+
+def _deserialize_non_empty_string_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
     result: list[str] = []
     member_schema = schema.members["member"]
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(d.read_string(member_schema))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class InferenceConfiguration:
@@ -3153,16 +3985,26 @@ class InferenceConfiguration:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.max_tokens is not None:
-            serializer.write_integer(_SCHEMA_INFERENCE_CONFIGURATION.members["maxTokens"], self.max_tokens)
+            serializer.write_integer(
+                _SCHEMA_INFERENCE_CONFIGURATION.members["maxTokens"], self.max_tokens
+            )
 
         if self.temperature is not None:
-            serializer.write_float(_SCHEMA_INFERENCE_CONFIGURATION.members["temperature"], self.temperature)
+            serializer.write_float(
+                _SCHEMA_INFERENCE_CONFIGURATION.members["temperature"], self.temperature
+            )
 
         if self.top_p is not None:
-            serializer.write_float(_SCHEMA_INFERENCE_CONFIGURATION.members["topP"], self.top_p)
+            serializer.write_float(
+                _SCHEMA_INFERENCE_CONFIGURATION.members["topP"], self.top_p
+            )
 
         if self.stop_sequences is not None:
-            _serialize_non_empty_string_list(serializer, _SCHEMA_INFERENCE_CONFIGURATION.members["stopSequences"], self.stop_sequences)
+            _serialize_non_empty_string_list(
+                serializer,
+                _SCHEMA_INFERENCE_CONFIGURATION.members["stopSequences"],
+                self.stop_sequences,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3175,22 +4017,31 @@ class InferenceConfiguration:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["max_tokens"] = de.read_integer(_SCHEMA_INFERENCE_CONFIGURATION.members["maxTokens"])
+                    kwargs["max_tokens"] = de.read_integer(
+                        _SCHEMA_INFERENCE_CONFIGURATION.members["maxTokens"]
+                    )
 
                 case 1:
-                    kwargs["temperature"] = de.read_float(_SCHEMA_INFERENCE_CONFIGURATION.members["temperature"])
+                    kwargs["temperature"] = de.read_float(
+                        _SCHEMA_INFERENCE_CONFIGURATION.members["temperature"]
+                    )
 
                 case 2:
-                    kwargs["top_p"] = de.read_float(_SCHEMA_INFERENCE_CONFIGURATION.members["topP"])
+                    kwargs["top_p"] = de.read_float(
+                        _SCHEMA_INFERENCE_CONFIGURATION.members["topP"]
+                    )
 
                 case 3:
-                    kwargs["stop_sequences"] = _deserialize_non_empty_string_list(de, _SCHEMA_INFERENCE_CONFIGURATION.members["stopSequences"])
+                    kwargs["stop_sequences"] = _deserialize_non_empty_string_list(
+                        de, _SCHEMA_INFERENCE_CONFIGURATION.members["stopSequences"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_INFERENCE_CONFIGURATION, consumer=_consumer)
         return kwargs
+
 
 class DocumentFormat(StrEnum):
     PDF = "pdf"
@@ -3202,6 +4053,7 @@ class DocumentFormat(StrEnum):
     HTML = "html"
     TXT = "txt"
     MD = "md"
+
 
 @dataclass
 class DocumentSourceBytes:
@@ -3221,7 +4073,10 @@ class DocumentSourceBytes:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_blob(_SCHEMA_DOCUMENT_SOURCE.members["bytes"]))
+        return cls(
+            value=deserializer.read_blob(_SCHEMA_DOCUMENT_SOURCE.members["bytes"])
+        )
+
 
 @dataclass
 class DocumentSourceUnknown:
@@ -3245,12 +4100,15 @@ class DocumentSourceUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 DocumentSource = Union[DocumentSourceBytes | DocumentSourceUnknown]
 
 """
 Contains the content of a document.
 
 """
+
+
 class _DocumentSourceDeserializer:
     _result: DocumentSource | None = None
 
@@ -3273,8 +4131,11 @@ class _DocumentSourceDeserializer:
 
     def _set_result(self, value: DocumentSource) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class DocumentBlock:
@@ -3328,10 +4189,14 @@ class DocumentBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["format"] = de.read_string(_SCHEMA_DOCUMENT_BLOCK.members["format"])
+                    kwargs["format"] = de.read_string(
+                        _SCHEMA_DOCUMENT_BLOCK.members["format"]
+                    )
 
                 case 1:
-                    kwargs["name"] = de.read_string(_SCHEMA_DOCUMENT_BLOCK.members["name"])
+                    kwargs["name"] = de.read_string(
+                        _SCHEMA_DOCUMENT_BLOCK.members["name"]
+                    )
 
                 case 2:
                     kwargs["source"] = _DocumentSourceDeserializer().deserialize(de)
@@ -3342,9 +4207,11 @@ class DocumentBlock:
         deserializer.read_struct(_SCHEMA_DOCUMENT_BLOCK, consumer=_consumer)
         return kwargs
 
+
 class GuardrailConverseImageFormat(StrEnum):
     PNG = "png"
     JPEG = "jpeg"
+
 
 @dataclass
 class GuardrailConverseImageSourceBytes:
@@ -3359,11 +4226,18 @@ class GuardrailConverseImageSourceBytes:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_SOURCE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_blob(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_SOURCE.members["bytes"], self.value)
+        serializer.write_blob(
+            _SCHEMA_GUARDRAIL_CONVERSE_IMAGE_SOURCE.members["bytes"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_blob(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_SOURCE.members["bytes"]))
+        return cls(
+            value=deserializer.read_blob(
+                _SCHEMA_GUARDRAIL_CONVERSE_IMAGE_SOURCE.members["bytes"]
+            )
+        )
+
 
 @dataclass
 class GuardrailConverseImageSourceUnknown:
@@ -3387,18 +4261,27 @@ class GuardrailConverseImageSourceUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-GuardrailConverseImageSource = Union[GuardrailConverseImageSourceBytes | GuardrailConverseImageSourceUnknown]
+
+GuardrailConverseImageSource = Union[
+    GuardrailConverseImageSourceBytes | GuardrailConverseImageSourceUnknown
+]
 
 """
 The image source (image bytes) of the guardrail converse image source.
 
 """
+
+
 class _GuardrailConverseImageSourceDeserializer:
     _result: GuardrailConverseImageSource | None = None
 
-    def deserialize(self, deserializer: ShapeDeserializer) -> GuardrailConverseImageSource:
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> GuardrailConverseImageSource:
         self._result = None
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_SOURCE, self._consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_CONVERSE_IMAGE_SOURCE, self._consumer
+        )
 
         if self._result is None:
             raise SmithyException("Unions must have exactly one value, but found none.")
@@ -3415,8 +4298,11 @@ class _GuardrailConverseImageSourceDeserializer:
 
     def _set_result(self, value: GuardrailConverseImageSource) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class GuardrailConverseImageBlock:
@@ -3439,8 +4325,12 @@ class GuardrailConverseImageBlock:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK.members["format"], self.format)
-        serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK.members["source"], self.source)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK.members["format"], self.format
+        )
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK.members["source"], self.source
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3453,39 +4343,55 @@ class GuardrailConverseImageBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["format"] = de.read_string(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK.members["format"])
+                    kwargs["format"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK.members["format"]
+                    )
 
                 case 1:
-                    kwargs["source"] = _GuardrailConverseImageSourceDeserializer().deserialize(de)
+                    kwargs["source"] = (
+                        _GuardrailConverseImageSourceDeserializer().deserialize(de)
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK, consumer=_consumer
+        )
         return kwargs
+
 
 class GuardrailConverseContentQualifier(StrEnum):
     GROUNDING_SOURCE = "grounding_source"
     QUERY = "query"
     GUARD_CONTENT = "guard_content"
 
-def _serialize_guardrail_converse_content_qualifier_list(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+
+def _serialize_guardrail_converse_content_qualifier_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_string(member_schema, e)
 
-def _deserialize_guardrail_converse_content_qualifier_list(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+
+def _deserialize_guardrail_converse_content_qualifier_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
     result: list[str] = []
     member_schema = schema.members["member"]
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(d.read_string(member_schema))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailConverseTextBlock:
@@ -3509,9 +4415,15 @@ class GuardrailConverseTextBlock:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK.members["text"], self.text)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK.members["text"], self.text
+        )
         if self.qualifiers is not None:
-            _serialize_guardrail_converse_content_qualifier_list(serializer, _SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK.members["qualifiers"], self.qualifiers)
+            _serialize_guardrail_converse_content_qualifier_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK.members["qualifiers"],
+                self.qualifiers,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3524,16 +4436,26 @@ class GuardrailConverseTextBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["text"] = de.read_string(_SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK.members["text"])
+                    kwargs["text"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK.members["text"]
+                    )
 
                 case 1:
-                    kwargs["qualifiers"] = _deserialize_guardrail_converse_content_qualifier_list(de, _SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK.members["qualifiers"])
+                    kwargs["qualifiers"] = (
+                        _deserialize_guardrail_converse_content_qualifier_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK.members["qualifiers"],
+                        )
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass
 class GuardrailConverseContentBlockText:
@@ -3548,11 +4470,14 @@ class GuardrailConverseContentBlockText:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_CONTENT_BLOCK.members["text"], self.value)
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_CONVERSE_CONTENT_BLOCK.members["text"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=GuardrailConverseTextBlock.deserialize(deserializer))
+
 
 @dataclass
 class GuardrailConverseContentBlockImage:
@@ -3567,11 +4492,14 @@ class GuardrailConverseContentBlockImage:
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_CONTENT_BLOCK.members["image"], self.value)
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_CONVERSE_CONTENT_BLOCK.members["image"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=GuardrailConverseImageBlock.deserialize(deserializer))
+
 
 @dataclass
 class GuardrailConverseContentBlockUnknown:
@@ -3595,7 +4523,12 @@ class GuardrailConverseContentBlockUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-GuardrailConverseContentBlock = Union[GuardrailConverseContentBlockText | GuardrailConverseContentBlockImage | GuardrailConverseContentBlockUnknown]
+
+GuardrailConverseContentBlock = Union[
+    GuardrailConverseContentBlockText
+    | GuardrailConverseContentBlockImage
+    | GuardrailConverseContentBlockUnknown
+]
 
 """
 
@@ -3604,12 +4537,18 @@ or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_
 API operations.
 
 """
+
+
 class _GuardrailConverseContentBlockDeserializer:
     _result: GuardrailConverseContentBlock | None = None
 
-    def deserialize(self, deserializer: ShapeDeserializer) -> GuardrailConverseContentBlock:
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> GuardrailConverseContentBlock:
         self._result = None
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_CONVERSE_CONTENT_BLOCK, self._consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_CONVERSE_CONTENT_BLOCK, self._consumer
+        )
 
         if self._result is None:
             raise SmithyException("Unions must have exactly one value, but found none.")
@@ -3629,14 +4568,18 @@ class _GuardrailConverseContentBlockDeserializer:
 
     def _set_result(self, value: GuardrailConverseContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 class ImageFormat(StrEnum):
     PNG = "png"
     JPEG = "jpeg"
     GIF = "gif"
     WEBP = "webp"
+
 
 @dataclass
 class ImageSourceBytes:
@@ -3657,6 +4600,7 @@ class ImageSourceBytes:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=deserializer.read_blob(_SCHEMA_IMAGE_SOURCE.members["bytes"]))
+
 
 @dataclass
 class ImageSourceUnknown:
@@ -3680,12 +4624,15 @@ class ImageSourceUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 ImageSource = Union[ImageSourceBytes | ImageSourceUnknown]
 
 """
 The source for an image.
 
 """
+
+
 class _ImageSourceDeserializer:
     _result: ImageSource | None = None
 
@@ -3708,8 +4655,11 @@ class _ImageSourceDeserializer:
 
     def _set_result(self, value: ImageSource) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class ImageBlock:
@@ -3746,7 +4696,9 @@ class ImageBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["format"] = de.read_string(_SCHEMA_IMAGE_BLOCK.members["format"])
+                    kwargs["format"] = de.read_string(
+                        _SCHEMA_IMAGE_BLOCK.members["format"]
+                    )
 
                 case 1:
                     kwargs["source"] = _ImageSourceDeserializer().deserialize(de)
@@ -3756,6 +4708,7 @@ class ImageBlock:
 
         deserializer.read_struct(_SCHEMA_IMAGE_BLOCK, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ReasoningTextBlock:
@@ -3782,7 +4735,9 @@ class ReasoningTextBlock:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_REASONING_TEXT_BLOCK.members["text"], self.text)
         if self.signature is not None:
-            serializer.write_string(_SCHEMA_REASONING_TEXT_BLOCK.members["signature"], self.signature)
+            serializer.write_string(
+                _SCHEMA_REASONING_TEXT_BLOCK.members["signature"], self.signature
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3795,16 +4750,21 @@ class ReasoningTextBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["text"] = de.read_string(_SCHEMA_REASONING_TEXT_BLOCK.members["text"])
+                    kwargs["text"] = de.read_string(
+                        _SCHEMA_REASONING_TEXT_BLOCK.members["text"]
+                    )
 
                 case 1:
-                    kwargs["signature"] = de.read_string(_SCHEMA_REASONING_TEXT_BLOCK.members["signature"])
+                    kwargs["signature"] = de.read_string(
+                        _SCHEMA_REASONING_TEXT_BLOCK.members["signature"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_REASONING_TEXT_BLOCK, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ReasoningContentBlockReasoningText:
@@ -3819,11 +4779,14 @@ class ReasoningContentBlockReasoningText:
         serializer.write_struct(_SCHEMA_REASONING_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_REASONING_CONTENT_BLOCK.members["reasoningText"], self.value)
+        serializer.write_struct(
+            _SCHEMA_REASONING_CONTENT_BLOCK.members["reasoningText"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ReasoningTextBlock.deserialize(deserializer))
+
 
 @dataclass
 class ReasoningContentBlockRedactedContent:
@@ -3839,11 +4802,18 @@ class ReasoningContentBlockRedactedContent:
         serializer.write_struct(_SCHEMA_REASONING_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_blob(_SCHEMA_REASONING_CONTENT_BLOCK.members["redactedContent"], self.value)
+        serializer.write_blob(
+            _SCHEMA_REASONING_CONTENT_BLOCK.members["redactedContent"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_blob(_SCHEMA_REASONING_CONTENT_BLOCK.members["redactedContent"]))
+        return cls(
+            value=deserializer.read_blob(
+                _SCHEMA_REASONING_CONTENT_BLOCK.members["redactedContent"]
+            )
+        )
+
 
 @dataclass
 class ReasoningContentBlockUnknown:
@@ -3867,7 +4837,12 @@ class ReasoningContentBlockUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-ReasoningContentBlock = Union[ReasoningContentBlockReasoningText | ReasoningContentBlockRedactedContent | ReasoningContentBlockUnknown]
+
+ReasoningContentBlock = Union[
+    ReasoningContentBlockReasoningText
+    | ReasoningContentBlockRedactedContent
+    | ReasoningContentBlockUnknown
+]
 
 """
 Contains content regarding the reasoning that is carried out by the model with
@@ -3876,6 +4851,8 @@ Thought (CoT) that the model generates to enhance the accuracy of its final
 response.
 
 """
+
+
 class _ReasoningContentBlockDeserializer:
     _result: ReasoningContentBlock | None = None
 
@@ -3901,8 +4878,11 @@ class _ReasoningContentBlockDeserializer:
 
     def _set_result(self, value: ReasoningContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 class VideoFormat(StrEnum):
     MKV = "mkv"
@@ -3914,6 +4894,7 @@ class VideoFormat(StrEnum):
     MPG = "mpg"
     WMV = "wmv"
     THREE_GP = "three_gp"
+
 
 @dataclass(kw_only=True)
 class S3Location:
@@ -3938,7 +4919,9 @@ class S3Location:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_S3_LOCATION.members["uri"], self.uri)
         if self.bucket_owner is not None:
-            serializer.write_string(_SCHEMA_S3_LOCATION.members["bucketOwner"], self.bucket_owner)
+            serializer.write_string(
+                _SCHEMA_S3_LOCATION.members["bucketOwner"], self.bucket_owner
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3954,13 +4937,16 @@ class S3Location:
                     kwargs["uri"] = de.read_string(_SCHEMA_S3_LOCATION.members["uri"])
 
                 case 1:
-                    kwargs["bucket_owner"] = de.read_string(_SCHEMA_S3_LOCATION.members["bucketOwner"])
+                    kwargs["bucket_owner"] = de.read_string(
+                        _SCHEMA_S3_LOCATION.members["bucketOwner"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_S3_LOCATION, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class VideoSourceBytes:
@@ -3981,6 +4967,7 @@ class VideoSourceBytes:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=deserializer.read_blob(_SCHEMA_VIDEO_SOURCE.members["bytes"]))
 
+
 @dataclass
 class VideoSourceS3Location:
     """
@@ -3999,6 +4986,7 @@ class VideoSourceS3Location:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=S3Location.deserialize(deserializer))
+
 
 @dataclass
 class VideoSourceUnknown:
@@ -4022,6 +5010,7 @@ class VideoSourceUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 VideoSource = Union[VideoSourceBytes | VideoSourceS3Location | VideoSourceUnknown]
 
 """
@@ -4030,6 +5019,8 @@ long as the encoded file is less than 25MB. You can also transfer videos up to
 1GB in size from an S3 bucket.
 
 """
+
+
 class _VideoSourceDeserializer:
     _result: VideoSource | None = None
 
@@ -4055,8 +5046,11 @@ class _VideoSourceDeserializer:
 
     def _set_result(self, value: VideoSource) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class VideoBlock:
@@ -4093,7 +5087,9 @@ class VideoBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["format"] = de.read_string(_SCHEMA_VIDEO_BLOCK.members["format"])
+                    kwargs["format"] = de.read_string(
+                        _SCHEMA_VIDEO_BLOCK.members["format"]
+                    )
 
                 case 1:
                     kwargs["source"] = _VideoSourceDeserializer().deserialize(de)
@@ -4103,6 +5099,7 @@ class VideoBlock:
 
         deserializer.read_struct(_SCHEMA_VIDEO_BLOCK, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ToolResultContentBlockJson:
@@ -4117,11 +5114,18 @@ class ToolResultContentBlockJson:
         serializer.write_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_document(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["json"], self.value)
+        serializer.write_document(
+            _SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["json"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_document(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["json"]))
+        return cls(
+            value=deserializer.read_document(
+                _SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["json"]
+            )
+        )
+
 
 @dataclass
 class ToolResultContentBlockText:
@@ -4136,11 +5140,18 @@ class ToolResultContentBlockText:
         serializer.write_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["text"], self.value)
+        serializer.write_string(
+            _SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["text"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["text"]))
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["text"]
+            )
+        )
+
 
 @dataclass
 class ToolResultContentBlockImage:
@@ -4158,11 +5169,14 @@ class ToolResultContentBlockImage:
         serializer.write_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["image"], self.value)
+        serializer.write_struct(
+            _SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["image"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ImageBlock.deserialize(deserializer))
+
 
 @dataclass
 class ToolResultContentBlockDocument:
@@ -4177,11 +5191,14 @@ class ToolResultContentBlockDocument:
         serializer.write_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["document"], self.value)
+        serializer.write_struct(
+            _SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["document"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=DocumentBlock.deserialize(deserializer))
+
 
 @dataclass
 class ToolResultContentBlockVideo:
@@ -4196,11 +5213,14 @@ class ToolResultContentBlockVideo:
         serializer.write_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["video"], self.value)
+        serializer.write_struct(
+            _SCHEMA_TOOL_RESULT_CONTENT_BLOCK.members["video"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=VideoBlock.deserialize(deserializer))
+
 
 @dataclass
 class ToolResultContentBlockUnknown:
@@ -4224,12 +5244,22 @@ class ToolResultContentBlockUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-ToolResultContentBlock = Union[ToolResultContentBlockJson | ToolResultContentBlockText | ToolResultContentBlockImage | ToolResultContentBlockDocument | ToolResultContentBlockVideo | ToolResultContentBlockUnknown]
+
+ToolResultContentBlock = Union[
+    ToolResultContentBlockJson
+    | ToolResultContentBlockText
+    | ToolResultContentBlockImage
+    | ToolResultContentBlockDocument
+    | ToolResultContentBlockVideo
+    | ToolResultContentBlockUnknown
+]
 
 """
 The tool result content block.
 
 """
+
+
 class _ToolResultContentBlockDeserializer:
     _result: ToolResultContentBlock | None = None
 
@@ -4264,29 +5294,41 @@ class _ToolResultContentBlockDeserializer:
 
     def _set_result(self, value: ToolResultContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
 
-def _serialize_tool_result_content_blocks(serializer: ShapeSerializer, schema: Schema, value: list[ToolResultContentBlock]) -> None:
+
+def _serialize_tool_result_content_blocks(
+    serializer: ShapeSerializer, schema: Schema, value: list[ToolResultContentBlock]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_tool_result_content_blocks(deserializer: ShapeDeserializer, schema: Schema) -> list[ToolResultContentBlock]:
+
+def _deserialize_tool_result_content_blocks(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[ToolResultContentBlock]:
     result: list[ToolResultContentBlock] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(_ToolResultContentBlockDeserializer().deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 class ToolResultStatus(StrEnum):
     SUCCESS = "success"
     ERROR = "error"
+
 
 @dataclass(kw_only=True)
 class ToolResultBlock:
@@ -4318,10 +5360,16 @@ class ToolResultBlock:
         serializer.write_struct(_SCHEMA_TOOL_RESULT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_TOOL_RESULT_BLOCK.members["toolUseId"], self.tool_use_id)
-        _serialize_tool_result_content_blocks(serializer, _SCHEMA_TOOL_RESULT_BLOCK.members["content"], self.content)
+        serializer.write_string(
+            _SCHEMA_TOOL_RESULT_BLOCK.members["toolUseId"], self.tool_use_id
+        )
+        _serialize_tool_result_content_blocks(
+            serializer, _SCHEMA_TOOL_RESULT_BLOCK.members["content"], self.content
+        )
         if self.status is not None:
-            serializer.write_string(_SCHEMA_TOOL_RESULT_BLOCK.members["status"], self.status)
+            serializer.write_string(
+                _SCHEMA_TOOL_RESULT_BLOCK.members["status"], self.status
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4334,19 +5382,26 @@ class ToolResultBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["tool_use_id"] = de.read_string(_SCHEMA_TOOL_RESULT_BLOCK.members["toolUseId"])
+                    kwargs["tool_use_id"] = de.read_string(
+                        _SCHEMA_TOOL_RESULT_BLOCK.members["toolUseId"]
+                    )
 
                 case 1:
-                    kwargs["content"] = _deserialize_tool_result_content_blocks(de, _SCHEMA_TOOL_RESULT_BLOCK.members["content"])
+                    kwargs["content"] = _deserialize_tool_result_content_blocks(
+                        de, _SCHEMA_TOOL_RESULT_BLOCK.members["content"]
+                    )
 
                 case 2:
-                    kwargs["status"] = de.read_string(_SCHEMA_TOOL_RESULT_BLOCK.members["status"])
+                    kwargs["status"] = de.read_string(
+                        _SCHEMA_TOOL_RESULT_BLOCK.members["status"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_TOOL_RESULT_BLOCK, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ToolUseBlock:
@@ -4376,7 +5431,9 @@ class ToolUseBlock:
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_TOOL_USE_BLOCK.members["toolUseId"], self.tool_use_id)
+        serializer.write_string(
+            _SCHEMA_TOOL_USE_BLOCK.members["toolUseId"], self.tool_use_id
+        )
         serializer.write_string(_SCHEMA_TOOL_USE_BLOCK.members["name"], self.name)
         serializer.write_document(_SCHEMA_TOOL_USE_BLOCK.members["input"], self.input)
 
@@ -4391,19 +5448,26 @@ class ToolUseBlock:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["tool_use_id"] = de.read_string(_SCHEMA_TOOL_USE_BLOCK.members["toolUseId"])
+                    kwargs["tool_use_id"] = de.read_string(
+                        _SCHEMA_TOOL_USE_BLOCK.members["toolUseId"]
+                    )
 
                 case 1:
-                    kwargs["name"] = de.read_string(_SCHEMA_TOOL_USE_BLOCK.members["name"])
+                    kwargs["name"] = de.read_string(
+                        _SCHEMA_TOOL_USE_BLOCK.members["name"]
+                    )
 
                 case 2:
-                    kwargs["input"] = de.read_document(_SCHEMA_TOOL_USE_BLOCK.members["input"])
+                    kwargs["input"] = de.read_document(
+                        _SCHEMA_TOOL_USE_BLOCK.members["input"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_TOOL_USE_BLOCK, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ContentBlockText:
@@ -4422,7 +5486,10 @@ class ContentBlockText:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_CONTENT_BLOCK.members["text"]))
+        return cls(
+            value=deserializer.read_string(_SCHEMA_CONTENT_BLOCK.members["text"])
+        )
+
 
 @dataclass
 class ContentBlockImage:
@@ -4446,6 +5513,7 @@ class ContentBlockImage:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ImageBlock.deserialize(deserializer))
 
+
 @dataclass
 class ContentBlockDocument:
     """
@@ -4464,6 +5532,7 @@ class ContentBlockDocument:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=DocumentBlock.deserialize(deserializer))
+
 
 @dataclass
 class ContentBlockVideo:
@@ -4484,6 +5553,7 @@ class ContentBlockVideo:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=VideoBlock.deserialize(deserializer))
 
+
 @dataclass
 class ContentBlockToolUse:
     """
@@ -4502,6 +5572,7 @@ class ContentBlockToolUse:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ToolUseBlock.deserialize(deserializer))
+
 
 @dataclass
 class ContentBlockToolResult:
@@ -4522,6 +5593,7 @@ class ContentBlockToolResult:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ToolResultBlock.deserialize(deserializer))
 
+
 @dataclass
 class ContentBlockGuardContent:
     """
@@ -4539,11 +5611,16 @@ class ContentBlockGuardContent:
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTENT_BLOCK.members["guardContent"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK.members["guardContent"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=_GuardrailConverseContentBlockDeserializer().deserialize(deserializer))
+        return cls(
+            value=_GuardrailConverseContentBlockDeserializer().deserialize(deserializer)
+        )
+
 
 @dataclass
 class ContentBlockReasoningContent:
@@ -4560,11 +5637,14 @@ class ContentBlockReasoningContent:
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTENT_BLOCK.members["reasoningContent"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK.members["reasoningContent"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=_ReasoningContentBlockDeserializer().deserialize(deserializer))
+
 
 @dataclass
 class ContentBlockUnknown:
@@ -4588,7 +5668,18 @@ class ContentBlockUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-ContentBlock = Union[ContentBlockText | ContentBlockImage | ContentBlockDocument | ContentBlockVideo | ContentBlockToolUse | ContentBlockToolResult | ContentBlockGuardContent | ContentBlockReasoningContent | ContentBlockUnknown]
+
+ContentBlock = Union[
+    ContentBlockText
+    | ContentBlockImage
+    | ContentBlockDocument
+    | ContentBlockVideo
+    | ContentBlockToolUse
+    | ContentBlockToolResult
+    | ContentBlockGuardContent
+    | ContentBlockReasoningContent
+    | ContentBlockUnknown
+]
 
 """
 A block of content for a message that you pass to, or receive from, a model with
@@ -4597,6 +5688,8 @@ or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_
 API operations.
 
 """
+
+
 class _ContentBlockDeserializer:
     _result: ContentBlock | None = None
 
@@ -4640,29 +5733,41 @@ class _ContentBlockDeserializer:
 
     def _set_result(self, value: ContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
 
-def _serialize_content_blocks(serializer: ShapeSerializer, schema: Schema, value: list[ContentBlock]) -> None:
+
+def _serialize_content_blocks(
+    serializer: ShapeSerializer, schema: Schema, value: list[ContentBlock]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_content_blocks(deserializer: ShapeDeserializer, schema: Schema) -> list[ContentBlock]:
+
+def _deserialize_content_blocks(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[ContentBlock]:
     result: list[ContentBlock] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(_ContentBlockDeserializer().deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 class ConversationRole(StrEnum):
     USER = "user"
     ASSISTANT = "assistant"
+
 
 @dataclass(kw_only=True)
 class Message:
@@ -4696,7 +5801,9 @@ class Message:
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_MESSAGE.members["role"], self.role)
-        _serialize_content_blocks(serializer, _SCHEMA_MESSAGE.members["content"], self.content)
+        _serialize_content_blocks(
+            serializer, _SCHEMA_MESSAGE.members["content"], self.content
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4712,7 +5819,9 @@ class Message:
                     kwargs["role"] = de.read_string(_SCHEMA_MESSAGE.members["role"])
 
                 case 1:
-                    kwargs["content"] = _deserialize_content_blocks(de, _SCHEMA_MESSAGE.members["content"])
+                    kwargs["content"] = _deserialize_content_blocks(
+                        de, _SCHEMA_MESSAGE.members["content"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4720,26 +5829,36 @@ class Message:
         deserializer.read_struct(_SCHEMA_MESSAGE, consumer=_consumer)
         return kwargs
 
-def _serialize_messages(serializer: ShapeSerializer, schema: Schema, value: list[Message]) -> None:
+
+def _serialize_messages(
+    serializer: ShapeSerializer, schema: Schema, value: list[Message]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_messages(deserializer: ShapeDeserializer, schema: Schema) -> list[Message]:
+
+def _deserialize_messages(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[Message]:
     result: list[Message] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(Message.deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 class PerformanceConfigLatency(StrEnum):
     STANDARD = "standard"
     OPTIMIZED = "optimized"
+
 
 @dataclass(kw_only=True)
 class PerformanceConfiguration:
@@ -4757,7 +5876,9 @@ class PerformanceConfiguration:
         serializer.write_struct(_SCHEMA_PERFORMANCE_CONFIGURATION, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_PERFORMANCE_CONFIGURATION.members["latency"], self.latency)
+        serializer.write_string(
+            _SCHEMA_PERFORMANCE_CONFIGURATION.members["latency"], self.latency
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4770,13 +5891,16 @@ class PerformanceConfiguration:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["latency"] = de.read_string(_SCHEMA_PERFORMANCE_CONFIGURATION.members["latency"])
+                    kwargs["latency"] = de.read_string(
+                        _SCHEMA_PERFORMANCE_CONFIGURATION.members["latency"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_PERFORMANCE_CONFIGURATION, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class PromptVariableValuesText:
@@ -4791,11 +5915,18 @@ class PromptVariableValuesText:
         serializer.write_struct(_SCHEMA_PROMPT_VARIABLE_VALUES, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_PROMPT_VARIABLE_VALUES.members["text"], self.value)
+        serializer.write_string(
+            _SCHEMA_PROMPT_VARIABLE_VALUES.members["text"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_PROMPT_VARIABLE_VALUES.members["text"]))
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_PROMPT_VARIABLE_VALUES.members["text"]
+            )
+        )
+
 
 @dataclass
 class PromptVariableValuesUnknown:
@@ -4819,6 +5950,7 @@ class PromptVariableValuesUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 PromptVariableValues = Union[PromptVariableValuesText | PromptVariableValuesUnknown]
 
 """
@@ -4828,6 +5960,8 @@ more information, see `How Prompt management works <https://docs.aws.amazon.com/
 .
 
 """
+
+
 class _PromptVariableValuesDeserializer:
     _result: PromptVariableValues | None = None
 
@@ -4850,44 +5984,63 @@ class _PromptVariableValuesDeserializer:
 
     def _set_result(self, value: PromptVariableValues) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
 
-def _serialize_prompt_variable_map(serializer: ShapeSerializer, schema: Schema, value: dict[str, PromptVariableValues]) -> None:
+
+def _serialize_prompt_variable_map(
+    serializer: ShapeSerializer, schema: Schema, value: dict[str, PromptVariableValues]
+) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
         for k, v in value.items():
             m.entry(k, lambda vs: vs.write_struct(value_schema, v))
 
-def _deserialize_prompt_variable_map(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, PromptVariableValues]:
+
+def _deserialize_prompt_variable_map(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> dict[str, PromptVariableValues]:
     result: dict[str, PromptVariableValues] = {}
     value_schema = schema.members["value"]
+
     def _read_value(k: str, d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result[k] = _PromptVariableValuesDeserializer().deserialize(d)
+
     deserializer.read_map(schema, _read_value)
     return result
 
-def _serialize_request_metadata(serializer: ShapeSerializer, schema: Schema, value: dict[str, str]) -> None:
+
+def _serialize_request_metadata(
+    serializer: ShapeSerializer, schema: Schema, value: dict[str, str]
+) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
         for k, v in value.items():
             m.entry(k, lambda vs: vs.write_string(value_schema, v))
 
-def _deserialize_request_metadata(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, str]:
+
+def _deserialize_request_metadata(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> dict[str, str]:
     result: dict[str, str] = {}
     value_schema = schema.members["value"]
+
     def _read_value(k: str, d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result[k] = d.read_string(value_schema)
+
     deserializer.read_map(schema, _read_value)
     return result
+
 
 @dataclass
 class SystemContentBlockText:
@@ -4902,11 +6055,16 @@ class SystemContentBlockText:
         serializer.write_struct(_SCHEMA_SYSTEM_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_SYSTEM_CONTENT_BLOCK.members["text"], self.value)
+        serializer.write_string(
+            _SCHEMA_SYSTEM_CONTENT_BLOCK.members["text"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_SYSTEM_CONTENT_BLOCK.members["text"]))
+        return cls(
+            value=deserializer.read_string(_SCHEMA_SYSTEM_CONTENT_BLOCK.members["text"])
+        )
+
 
 @dataclass
 class SystemContentBlockGuardContent:
@@ -4925,11 +6083,16 @@ class SystemContentBlockGuardContent:
         serializer.write_struct(_SCHEMA_SYSTEM_CONTENT_BLOCK, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_SYSTEM_CONTENT_BLOCK.members["guardContent"], self.value)
+        serializer.write_struct(
+            _SCHEMA_SYSTEM_CONTENT_BLOCK.members["guardContent"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=_GuardrailConverseContentBlockDeserializer().deserialize(deserializer))
+        return cls(
+            value=_GuardrailConverseContentBlockDeserializer().deserialize(deserializer)
+        )
+
 
 @dataclass
 class SystemContentBlockUnknown:
@@ -4953,12 +6116,17 @@ class SystemContentBlockUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-SystemContentBlock = Union[SystemContentBlockText | SystemContentBlockGuardContent | SystemContentBlockUnknown]
+
+SystemContentBlock = Union[
+    SystemContentBlockText | SystemContentBlockGuardContent | SystemContentBlockUnknown
+]
 
 """
 A system content block.
 
 """
+
+
 class _SystemContentBlockDeserializer:
     _result: SystemContentBlock | None = None
 
@@ -4984,25 +6152,36 @@ class _SystemContentBlockDeserializer:
 
     def _set_result(self, value: SystemContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
 
-def _serialize_system_content_blocks(serializer: ShapeSerializer, schema: Schema, value: list[SystemContentBlock]) -> None:
+
+def _serialize_system_content_blocks(
+    serializer: ShapeSerializer, schema: Schema, value: list[SystemContentBlock]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
-def _deserialize_system_content_blocks(deserializer: ShapeDeserializer, schema: Schema) -> list[SystemContentBlock]:
+
+def _deserialize_system_content_blocks(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[SystemContentBlock]:
     result: list[SystemContentBlock] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(_SystemContentBlockDeserializer().deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class AnyToolChoice:
@@ -5028,12 +6207,12 @@ class AnyToolChoice:
 
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
-
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_ANY_TOOL_CHOICE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class AutoToolChoice:
@@ -5059,12 +6238,12 @@ class AutoToolChoice:
 
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
-
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_AUTO_TOOL_CHOICE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class SpecificToolChoice:
@@ -5099,13 +6278,16 @@ class SpecificToolChoice:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["name"] = de.read_string(_SCHEMA_SPECIFIC_TOOL_CHOICE.members["name"])
+                    kwargs["name"] = de.read_string(
+                        _SCHEMA_SPECIFIC_TOOL_CHOICE.members["name"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_SPECIFIC_TOOL_CHOICE, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ToolChoiceAuto:
@@ -5127,6 +6309,7 @@ class ToolChoiceAuto:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=AutoToolChoice.deserialize(deserializer))
 
+
 @dataclass
 class ToolChoiceAny:
     """
@@ -5145,6 +6328,7 @@ class ToolChoiceAny:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=AnyToolChoice.deserialize(deserializer))
+
 
 @dataclass
 class ToolChoiceTool:
@@ -5165,6 +6349,7 @@ class ToolChoiceTool:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=SpecificToolChoice.deserialize(deserializer))
+
 
 @dataclass
 class ToolChoiceUnknown:
@@ -5188,6 +6373,7 @@ class ToolChoiceUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 ToolChoice = Union[ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool | ToolChoiceUnknown]
 
 """
@@ -5196,6 +6382,8 @@ Determines which tools the model should request in a call to ``Converse`` or
 models and by Mistral AI Mistral Large.
 
 """
+
+
 class _ToolChoiceDeserializer:
     _result: ToolChoice | None = None
 
@@ -5224,8 +6412,11 @@ class _ToolChoiceDeserializer:
 
     def _set_result(self, value: ToolChoice) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass
 class ToolInputSchemaJson:
@@ -5245,7 +6436,10 @@ class ToolInputSchemaJson:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_document(_SCHEMA_TOOL_INPUT_SCHEMA.members["json"]))
+        return cls(
+            value=deserializer.read_document(_SCHEMA_TOOL_INPUT_SCHEMA.members["json"])
+        )
+
 
 @dataclass
 class ToolInputSchemaUnknown:
@@ -5269,12 +6463,15 @@ class ToolInputSchemaUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 ToolInputSchema = Union[ToolInputSchemaJson | ToolInputSchemaUnknown]
 
 """
 The schema for the tool. The top level schema type must be ``object``.
 
 """
+
+
 class _ToolInputSchemaDeserializer:
     _result: ToolInputSchema | None = None
 
@@ -5297,8 +6494,11 @@ class _ToolInputSchemaDeserializer:
 
     def _set_result(self, value: ToolInputSchema) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class ToolSpecification:
@@ -5328,9 +6528,13 @@ class ToolSpecification:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_TOOL_SPECIFICATION.members["name"], self.name)
         if self.description is not None:
-            serializer.write_string(_SCHEMA_TOOL_SPECIFICATION.members["description"], self.description)
+            serializer.write_string(
+                _SCHEMA_TOOL_SPECIFICATION.members["description"], self.description
+            )
 
-        serializer.write_struct(_SCHEMA_TOOL_SPECIFICATION.members["inputSchema"], self.input_schema)
+        serializer.write_struct(
+            _SCHEMA_TOOL_SPECIFICATION.members["inputSchema"], self.input_schema
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5343,19 +6547,26 @@ class ToolSpecification:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["name"] = de.read_string(_SCHEMA_TOOL_SPECIFICATION.members["name"])
+                    kwargs["name"] = de.read_string(
+                        _SCHEMA_TOOL_SPECIFICATION.members["name"]
+                    )
 
                 case 1:
-                    kwargs["description"] = de.read_string(_SCHEMA_TOOL_SPECIFICATION.members["description"])
+                    kwargs["description"] = de.read_string(
+                        _SCHEMA_TOOL_SPECIFICATION.members["description"]
+                    )
 
                 case 2:
-                    kwargs["input_schema"] = _ToolInputSchemaDeserializer().deserialize(de)
+                    kwargs["input_schema"] = _ToolInputSchemaDeserializer().deserialize(
+                        de
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_TOOL_SPECIFICATION, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ToolToolSpec:
@@ -5375,6 +6586,7 @@ class ToolToolSpec:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ToolSpecification.deserialize(deserializer))
+
 
 @dataclass
 class ToolUnknown:
@@ -5398,6 +6610,7 @@ class ToolUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 Tool = Union[ToolToolSpec | ToolUnknown]
 
 """
@@ -5406,6 +6619,8 @@ information, see `Tool use (function calling) <https://docs.aws.amazon.com/bedro
 in the Amazon Bedrock User Guide.
 
 """
+
+
 class _ToolDeserializer:
     _result: Tool | None = None
 
@@ -5428,25 +6643,34 @@ class _ToolDeserializer:
 
     def _set_result(self, value: Tool) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
 
-def _serialize_tools(serializer: ShapeSerializer, schema: Schema, value: list[Tool]) -> None:
+
+def _serialize_tools(
+    serializer: ShapeSerializer, schema: Schema, value: list[Tool]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_struct(member_schema, e)
 
+
 def _deserialize_tools(deserializer: ShapeDeserializer, schema: Schema) -> list[Tool]:
     result: list[Tool] = []
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(_ToolDeserializer().deserialize(d))
+
     deserializer.read_list(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class ToolConfiguration:
@@ -5471,9 +6695,13 @@ class ToolConfiguration:
         serializer.write_struct(_SCHEMA_TOOL_CONFIGURATION, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        _serialize_tools(serializer, _SCHEMA_TOOL_CONFIGURATION.members["tools"], self.tools)
+        _serialize_tools(
+            serializer, _SCHEMA_TOOL_CONFIGURATION.members["tools"], self.tools
+        )
         if self.tool_choice is not None:
-            serializer.write_struct(_SCHEMA_TOOL_CONFIGURATION.members["toolChoice"], self.tool_choice)
+            serializer.write_struct(
+                _SCHEMA_TOOL_CONFIGURATION.members["toolChoice"], self.tool_choice
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5486,7 +6714,9 @@ class ToolConfiguration:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["tools"] = _deserialize_tools(de, _SCHEMA_TOOL_CONFIGURATION.members["tools"])
+                    kwargs["tools"] = _deserialize_tools(
+                        de, _SCHEMA_TOOL_CONFIGURATION.members["tools"]
+                    )
 
                 case 1:
                     kwargs["tool_choice"] = _ToolChoiceDeserializer().deserialize(de)
@@ -5496,6 +6726,7 @@ class ToolConfiguration:
 
         deserializer.read_struct(_SCHEMA_TOOL_CONFIGURATION, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ConverseInput:
@@ -5588,7 +6819,9 @@ class ConverseInput:
     tool_config: ToolConfiguration | None = None
     guardrail_config: GuardrailConfiguration | None = None
     additional_model_request_fields: Document | None = None
-    prompt_variables: dict[str, PromptVariableValues] | None = field(repr=False, default=None)
+    prompt_variables: dict[str, PromptVariableValues] | None = field(
+        repr=False, default=None
+    )
     additional_model_response_field_paths: list[str] | None = None
     request_metadata: dict[str, str] | None = field(repr=False, default=None)
     performance_config: PerformanceConfiguration | None = None
@@ -5598,34 +6831,62 @@ class ConverseInput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.messages is not None:
-            _serialize_messages(serializer, _SCHEMA_CONVERSE_INPUT.members["messages"], self.messages)
+            _serialize_messages(
+                serializer, _SCHEMA_CONVERSE_INPUT.members["messages"], self.messages
+            )
 
         if self.system is not None:
-            _serialize_system_content_blocks(serializer, _SCHEMA_CONVERSE_INPUT.members["system"], self.system)
+            _serialize_system_content_blocks(
+                serializer, _SCHEMA_CONVERSE_INPUT.members["system"], self.system
+            )
 
         if self.inference_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_INPUT.members["inferenceConfig"], self.inference_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_INPUT.members["inferenceConfig"], self.inference_config
+            )
 
         if self.tool_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_INPUT.members["toolConfig"], self.tool_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_INPUT.members["toolConfig"], self.tool_config
+            )
 
         if self.guardrail_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_INPUT.members["guardrailConfig"], self.guardrail_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_INPUT.members["guardrailConfig"], self.guardrail_config
+            )
 
         if self.additional_model_request_fields is not None:
-            serializer.write_document(_SCHEMA_CONVERSE_INPUT.members["additionalModelRequestFields"], self.additional_model_request_fields)
+            serializer.write_document(
+                _SCHEMA_CONVERSE_INPUT.members["additionalModelRequestFields"],
+                self.additional_model_request_fields,
+            )
 
         if self.prompt_variables is not None:
-            _serialize_prompt_variable_map(serializer, _SCHEMA_CONVERSE_INPUT.members["promptVariables"], self.prompt_variables)
+            _serialize_prompt_variable_map(
+                serializer,
+                _SCHEMA_CONVERSE_INPUT.members["promptVariables"],
+                self.prompt_variables,
+            )
 
         if self.additional_model_response_field_paths is not None:
-            _serialize_additional_model_response_field_paths(serializer, _SCHEMA_CONVERSE_INPUT.members["additionalModelResponseFieldPaths"], self.additional_model_response_field_paths)
+            _serialize_additional_model_response_field_paths(
+                serializer,
+                _SCHEMA_CONVERSE_INPUT.members["additionalModelResponseFieldPaths"],
+                self.additional_model_response_field_paths,
+            )
 
         if self.request_metadata is not None:
-            _serialize_request_metadata(serializer, _SCHEMA_CONVERSE_INPUT.members["requestMetadata"], self.request_metadata)
+            _serialize_request_metadata(
+                serializer,
+                _SCHEMA_CONVERSE_INPUT.members["requestMetadata"],
+                self.request_metadata,
+            )
 
         if self.performance_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_INPUT.members["performanceConfig"], self.performance_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_INPUT.members["performanceConfig"],
+                self.performance_config,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5638,13 +6899,19 @@ class ConverseInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["model_id"] = de.read_string(_SCHEMA_CONVERSE_INPUT.members["modelId"])
+                    kwargs["model_id"] = de.read_string(
+                        _SCHEMA_CONVERSE_INPUT.members["modelId"]
+                    )
 
                 case 1:
-                    kwargs["messages"] = _deserialize_messages(de, _SCHEMA_CONVERSE_INPUT.members["messages"])
+                    kwargs["messages"] = _deserialize_messages(
+                        de, _SCHEMA_CONVERSE_INPUT.members["messages"]
+                    )
 
                 case 2:
-                    kwargs["system"] = _deserialize_system_content_blocks(de, _SCHEMA_CONVERSE_INPUT.members["system"])
+                    kwargs["system"] = _deserialize_system_content_blocks(
+                        de, _SCHEMA_CONVERSE_INPUT.members["system"]
+                    )
 
                 case 3:
                     kwargs["inference_config"] = InferenceConfiguration.deserialize(de)
@@ -5656,25 +6923,41 @@ class ConverseInput:
                     kwargs["guardrail_config"] = GuardrailConfiguration.deserialize(de)
 
                 case 6:
-                    kwargs["additional_model_request_fields"] = de.read_document(_SCHEMA_CONVERSE_INPUT.members["additionalModelRequestFields"])
+                    kwargs["additional_model_request_fields"] = de.read_document(
+                        _SCHEMA_CONVERSE_INPUT.members["additionalModelRequestFields"]
+                    )
 
                 case 7:
-                    kwargs["prompt_variables"] = _deserialize_prompt_variable_map(de, _SCHEMA_CONVERSE_INPUT.members["promptVariables"])
+                    kwargs["prompt_variables"] = _deserialize_prompt_variable_map(
+                        de, _SCHEMA_CONVERSE_INPUT.members["promptVariables"]
+                    )
 
                 case 8:
-                    kwargs["additional_model_response_field_paths"] = _deserialize_additional_model_response_field_paths(de, _SCHEMA_CONVERSE_INPUT.members["additionalModelResponseFieldPaths"])
+                    kwargs["additional_model_response_field_paths"] = (
+                        _deserialize_additional_model_response_field_paths(
+                            de,
+                            _SCHEMA_CONVERSE_INPUT.members[
+                                "additionalModelResponseFieldPaths"
+                            ],
+                        )
+                    )
 
                 case 9:
-                    kwargs["request_metadata"] = _deserialize_request_metadata(de, _SCHEMA_CONVERSE_INPUT.members["requestMetadata"])
+                    kwargs["request_metadata"] = _deserialize_request_metadata(
+                        de, _SCHEMA_CONVERSE_INPUT.members["requestMetadata"]
+                    )
 
                 case 10:
-                    kwargs["performance_config"] = PerformanceConfiguration.deserialize(de)
+                    kwargs["performance_config"] = PerformanceConfiguration.deserialize(
+                        de
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONVERSE_INPUT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ConverseMetrics:
@@ -5693,7 +6976,9 @@ class ConverseMetrics:
         serializer.write_struct(_SCHEMA_CONVERSE_METRICS, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_long(_SCHEMA_CONVERSE_METRICS.members["latencyMs"], self.latency_ms)
+        serializer.write_long(
+            _SCHEMA_CONVERSE_METRICS.members["latencyMs"], self.latency_ms
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5706,13 +6991,16 @@ class ConverseMetrics:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["latency_ms"] = de.read_long(_SCHEMA_CONVERSE_METRICS.members["latencyMs"])
+                    kwargs["latency_ms"] = de.read_long(
+                        _SCHEMA_CONVERSE_METRICS.members["latencyMs"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONVERSE_METRICS, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ConverseOutputMessage:
@@ -5732,6 +7020,7 @@ class ConverseOutputMessage:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=Message.deserialize(deserializer))
+
 
 @dataclass
 class ConverseOutputUnknown:
@@ -5755,6 +7044,7 @@ class ConverseOutputUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 ConverseOutput = Union[ConverseOutputMessage | ConverseOutputUnknown]
 
 """
@@ -5762,6 +7052,8 @@ The output from a call to `Converse <https://docs.aws.amazon.com/bedrock/latest/
 .
 
 """
+
+
 class _ConverseOutputDeserializer:
     _result: ConverseOutput | None = None
 
@@ -5784,8 +7076,11 @@ class _ConverseOutputDeserializer:
 
     def _set_result(self, value: ConverseOutput) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 class StopReason(StrEnum):
     END_TURN = "end_turn"
@@ -5795,59 +7090,88 @@ class StopReason(StrEnum):
     GUARDRAIL_INTERVENED = "guardrail_intervened"
     CONTENT_FILTERED = "content_filtered"
 
-def _serialize_guardrail_assessment_map(serializer: ShapeSerializer, schema: Schema, value: dict[str, GuardrailAssessment]) -> None:
+
+def _serialize_guardrail_assessment_map(
+    serializer: ShapeSerializer, schema: Schema, value: dict[str, GuardrailAssessment]
+) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
         for k, v in value.items():
             m.entry(k, lambda vs: vs.write_struct(value_schema, v))
 
-def _deserialize_guardrail_assessment_map(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, GuardrailAssessment]:
+
+def _deserialize_guardrail_assessment_map(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> dict[str, GuardrailAssessment]:
     result: dict[str, GuardrailAssessment] = {}
     value_schema = schema.members["value"]
+
     def _read_value(k: str, d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result[k] = GuardrailAssessment.deserialize(d)
+
     deserializer.read_map(schema, _read_value)
     return result
 
-def _serialize_model_outputs(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
+
+def _serialize_model_outputs(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
         for e in value:
             ls.write_string(member_schema, e)
 
-def _deserialize_model_outputs(deserializer: ShapeDeserializer, schema: Schema) -> list[str]:
+
+def _deserialize_model_outputs(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
     result: list[str] = []
     member_schema = schema.members["member"]
+
     def _read_value(d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result.append(d.read_string(member_schema))
+
     deserializer.read_list(schema, _read_value)
     return result
 
-def _serialize_guardrail_assessment_list_map(serializer: ShapeSerializer, schema: Schema, value: dict[str, list[GuardrailAssessment]]) -> None:
+
+def _serialize_guardrail_assessment_list_map(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: dict[str, list[GuardrailAssessment]],
+) -> None:
     with serializer.begin_map(schema, len(value)) as m:
         value_schema = schema.members["value"]
         for k, v in value.items():
-            m.entry(k, lambda vs: _serialize_guardrail_assessment_list(vs, value_schema, v))
+            m.entry(
+                k, lambda vs: _serialize_guardrail_assessment_list(vs, value_schema, v)
+            )
 
-def _deserialize_guardrail_assessment_list_map(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, list[GuardrailAssessment]]:
+
+def _deserialize_guardrail_assessment_list_map(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> dict[str, list[GuardrailAssessment]]:
     result: dict[str, list[GuardrailAssessment]] = {}
     value_schema = schema.members["value"]
+
     def _read_value(k: str, d: ShapeDeserializer):
         if d.is_null():
             d.read_null()
 
         else:
             result[k] = _deserialize_guardrail_assessment_list(d, value_schema)
+
     deserializer.read_map(schema, _read_value)
     return result
+
 
 @dataclass(kw_only=True)
 class GuardrailTraceAssessment:
@@ -5875,13 +7199,25 @@ class GuardrailTraceAssessment:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.model_output is not None:
-            _serialize_model_outputs(serializer, _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["modelOutput"], self.model_output)
+            _serialize_model_outputs(
+                serializer,
+                _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["modelOutput"],
+                self.model_output,
+            )
 
         if self.input_assessment is not None:
-            _serialize_guardrail_assessment_map(serializer, _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["inputAssessment"], self.input_assessment)
+            _serialize_guardrail_assessment_map(
+                serializer,
+                _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["inputAssessment"],
+                self.input_assessment,
+            )
 
         if self.output_assessments is not None:
-            _serialize_guardrail_assessment_list_map(serializer, _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["outputAssessments"], self.output_assessments)
+            _serialize_guardrail_assessment_list_map(
+                serializer,
+                _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["outputAssessments"],
+                self.output_assessments,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5894,19 +7230,32 @@ class GuardrailTraceAssessment:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["model_output"] = _deserialize_model_outputs(de, _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["modelOutput"])
+                    kwargs["model_output"] = _deserialize_model_outputs(
+                        de, _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["modelOutput"]
+                    )
 
                 case 1:
-                    kwargs["input_assessment"] = _deserialize_guardrail_assessment_map(de, _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["inputAssessment"])
+                    kwargs["input_assessment"] = _deserialize_guardrail_assessment_map(
+                        de,
+                        _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["inputAssessment"],
+                    )
 
                 case 2:
-                    kwargs["output_assessments"] = _deserialize_guardrail_assessment_list_map(de, _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["outputAssessments"])
+                    kwargs["output_assessments"] = (
+                        _deserialize_guardrail_assessment_list_map(
+                            de,
+                            _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members[
+                                "outputAssessments"
+                            ],
+                        )
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_GUARDRAIL_TRACE_ASSESSMENT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class PromptRouterTrace:
@@ -5925,7 +7274,10 @@ class PromptRouterTrace:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.invoked_model_id is not None:
-            serializer.write_string(_SCHEMA_PROMPT_ROUTER_TRACE.members["invokedModelId"], self.invoked_model_id)
+            serializer.write_string(
+                _SCHEMA_PROMPT_ROUTER_TRACE.members["invokedModelId"],
+                self.invoked_model_id,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5938,13 +7290,16 @@ class PromptRouterTrace:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["invoked_model_id"] = de.read_string(_SCHEMA_PROMPT_ROUTER_TRACE.members["invokedModelId"])
+                    kwargs["invoked_model_id"] = de.read_string(
+                        _SCHEMA_PROMPT_ROUTER_TRACE.members["invokedModelId"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_PROMPT_ROUTER_TRACE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ConverseTrace:
@@ -5968,10 +7323,14 @@ class ConverseTrace:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.guardrail is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_TRACE.members["guardrail"], self.guardrail)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_TRACE.members["guardrail"], self.guardrail
+            )
 
         if self.prompt_router is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_TRACE.members["promptRouter"], self.prompt_router)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_TRACE.members["promptRouter"], self.prompt_router
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5994,6 +7353,7 @@ class ConverseTrace:
 
         deserializer.read_struct(_SCHEMA_CONVERSE_TRACE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class TokenUsage:
@@ -6021,9 +7381,15 @@ class TokenUsage:
         serializer.write_struct(_SCHEMA_TOKEN_USAGE, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_integer(_SCHEMA_TOKEN_USAGE.members["inputTokens"], self.input_tokens)
-        serializer.write_integer(_SCHEMA_TOKEN_USAGE.members["outputTokens"], self.output_tokens)
-        serializer.write_integer(_SCHEMA_TOKEN_USAGE.members["totalTokens"], self.total_tokens)
+        serializer.write_integer(
+            _SCHEMA_TOKEN_USAGE.members["inputTokens"], self.input_tokens
+        )
+        serializer.write_integer(
+            _SCHEMA_TOKEN_USAGE.members["outputTokens"], self.output_tokens
+        )
+        serializer.write_integer(
+            _SCHEMA_TOKEN_USAGE.members["totalTokens"], self.total_tokens
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6036,19 +7402,26 @@ class TokenUsage:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["input_tokens"] = de.read_integer(_SCHEMA_TOKEN_USAGE.members["inputTokens"])
+                    kwargs["input_tokens"] = de.read_integer(
+                        _SCHEMA_TOKEN_USAGE.members["inputTokens"]
+                    )
 
                 case 1:
-                    kwargs["output_tokens"] = de.read_integer(_SCHEMA_TOKEN_USAGE.members["outputTokens"])
+                    kwargs["output_tokens"] = de.read_integer(
+                        _SCHEMA_TOKEN_USAGE.members["outputTokens"]
+                    )
 
                 case 2:
-                    kwargs["total_tokens"] = de.read_integer(_SCHEMA_TOKEN_USAGE.members["totalTokens"])
+                    kwargs["total_tokens"] = de.read_integer(
+                        _SCHEMA_TOKEN_USAGE.members["totalTokens"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_TOKEN_USAGE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ConverseOperationOutput:
@@ -6094,18 +7467,36 @@ class ConverseOperationOutput:
         serializer.write_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["output"], self.output)
-        serializer.write_string(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["stopReason"], self.stop_reason)
-        serializer.write_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["usage"], self.usage)
-        serializer.write_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["metrics"], self.metrics)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_OPERATION_OUTPUT.members["output"], self.output
+        )
+        serializer.write_string(
+            _SCHEMA_CONVERSE_OPERATION_OUTPUT.members["stopReason"], self.stop_reason
+        )
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_OPERATION_OUTPUT.members["usage"], self.usage
+        )
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_OPERATION_OUTPUT.members["metrics"], self.metrics
+        )
         if self.additional_model_response_fields is not None:
-            serializer.write_document(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["additionalModelResponseFields"], self.additional_model_response_fields)
+            serializer.write_document(
+                _SCHEMA_CONVERSE_OPERATION_OUTPUT.members[
+                    "additionalModelResponseFields"
+                ],
+                self.additional_model_response_fields,
+            )
 
         if self.trace is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["trace"], self.trace)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_OPERATION_OUTPUT.members["trace"], self.trace
+            )
 
         if self.performance_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["performanceConfig"], self.performance_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_OPERATION_OUTPUT.members["performanceConfig"],
+                self.performance_config,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6121,7 +7512,9 @@ class ConverseOperationOutput:
                     kwargs["output"] = _ConverseOutputDeserializer().deserialize(de)
 
                 case 1:
-                    kwargs["stop_reason"] = de.read_string(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["stopReason"])
+                    kwargs["stop_reason"] = de.read_string(
+                        _SCHEMA_CONVERSE_OPERATION_OUTPUT.members["stopReason"]
+                    )
 
                 case 2:
                     kwargs["usage"] = TokenUsage.deserialize(de)
@@ -6130,19 +7523,26 @@ class ConverseOperationOutput:
                     kwargs["metrics"] = ConverseMetrics.deserialize(de)
 
                 case 4:
-                    kwargs["additional_model_response_fields"] = de.read_document(_SCHEMA_CONVERSE_OPERATION_OUTPUT.members["additionalModelResponseFields"])
+                    kwargs["additional_model_response_fields"] = de.read_document(
+                        _SCHEMA_CONVERSE_OPERATION_OUTPUT.members[
+                            "additionalModelResponseFields"
+                        ]
+                    )
 
                 case 5:
                     kwargs["trace"] = ConverseTrace.deserialize(de)
 
                 case 6:
-                    kwargs["performance_config"] = PerformanceConfiguration.deserialize(de)
+                    kwargs["performance_config"] = PerformanceConfiguration.deserialize(
+                        de
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ModelErrorException(ApiError):
@@ -6171,13 +7571,21 @@ class ModelErrorException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_MODEL_ERROR_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_MODEL_ERROR_EXCEPTION.members["message"], self.message
+            )
 
         if self.original_status_code is not None:
-            serializer.write_integer(_SCHEMA_MODEL_ERROR_EXCEPTION.members["originalStatusCode"], self.original_status_code)
+            serializer.write_integer(
+                _SCHEMA_MODEL_ERROR_EXCEPTION.members["originalStatusCode"],
+                self.original_status_code,
+            )
 
         if self.resource_name is not None:
-            serializer.write_string(_SCHEMA_MODEL_ERROR_EXCEPTION.members["resourceName"], self.resource_name)
+            serializer.write_string(
+                _SCHEMA_MODEL_ERROR_EXCEPTION.members["resourceName"],
+                self.resource_name,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6190,19 +7598,26 @@ class ModelErrorException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_MODEL_ERROR_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_MODEL_ERROR_EXCEPTION.members["message"]
+                    )
 
                 case 1:
-                    kwargs["original_status_code"] = de.read_integer(_SCHEMA_MODEL_ERROR_EXCEPTION.members["originalStatusCode"])
+                    kwargs["original_status_code"] = de.read_integer(
+                        _SCHEMA_MODEL_ERROR_EXCEPTION.members["originalStatusCode"]
+                    )
 
                 case 2:
-                    kwargs["resource_name"] = de.read_string(_SCHEMA_MODEL_ERROR_EXCEPTION.members["resourceName"])
+                    kwargs["resource_name"] = de.read_string(
+                        _SCHEMA_MODEL_ERROR_EXCEPTION.members["resourceName"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_MODEL_ERROR_EXCEPTION, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ModelNotReadyException(ApiError):
@@ -6226,7 +7641,9 @@ class ModelNotReadyException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_MODEL_NOT_READY_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_MODEL_NOT_READY_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6239,13 +7656,16 @@ class ModelNotReadyException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_MODEL_NOT_READY_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_MODEL_NOT_READY_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_MODEL_NOT_READY_EXCEPTION, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ModelTimeoutException(ApiError):
@@ -6267,7 +7687,9 @@ class ModelTimeoutException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_MODEL_TIMEOUT_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_MODEL_TIMEOUT_EXCEPTION.members["message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6280,7 +7702,9 @@ class ModelTimeoutException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_MODEL_TIMEOUT_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_MODEL_TIMEOUT_EXCEPTION.members["message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -6288,31 +7712,52 @@ class ModelTimeoutException(ApiError):
         deserializer.read_struct(_SCHEMA_MODEL_TIMEOUT_EXCEPTION, consumer=_consumer)
         return kwargs
 
+
 CONVERSE = APIOperation(
-        input = ConverseInput,
-        output = ConverseOperationOutput,
-        schema = _SCHEMA_CONVERSE,
-        input_schema = _SCHEMA_CONVERSE_INPUT,
-        output_schema = _SCHEMA_CONVERSE_OPERATION_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ModelErrorException"): ModelErrorException,
-ShapeID("com.amazonaws.bedrockruntime#ModelNotReadyException"): ModelNotReadyException,
-ShapeID("com.amazonaws.bedrockruntime#ModelTimeoutException"): ModelTimeoutException,
-ShapeID("com.amazonaws.bedrockruntime#ResourceNotFoundException"): ResourceNotFoundException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceUnavailableException"): ServiceUnavailableException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=ConverseInput,
+    output=ConverseOperationOutput,
+    schema=_SCHEMA_CONVERSE,
+    input_schema=_SCHEMA_CONVERSE_INPUT,
+    output_schema=_SCHEMA_CONVERSE_OPERATION_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelErrorException"
+            ): ModelErrorException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelNotReadyException"
+            ): ModelNotReadyException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelTimeoutException"
+            ): ModelTimeoutException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceUnavailableException"
+            ): ServiceUnavailableException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )
+
 
 class GuardrailStreamProcessingMode(StrEnum):
     SYNC = "sync"
     ASYNC_ = "async"
+
 
 @dataclass(kw_only=True)
 class GuardrailStreamConfiguration:
@@ -6347,10 +7792,21 @@ class GuardrailStreamConfiguration:
         serializer.write_struct(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["guardrailIdentifier"], self.guardrail_identifier)
-        serializer.write_string(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["guardrailVersion"], self.guardrail_version)
-        serializer.write_string(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["trace"], self.trace)
-        serializer.write_string(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["streamProcessingMode"], self.stream_processing_mode)
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["guardrailIdentifier"],
+            self.guardrail_identifier,
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["guardrailVersion"],
+            self.guardrail_version,
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["trace"], self.trace
+        )
+        serializer.write_string(
+            _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["streamProcessingMode"],
+            self.stream_processing_mode,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6363,22 +7819,39 @@ class GuardrailStreamConfiguration:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["guardrail_identifier"] = de.read_string(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["guardrailIdentifier"])
+                    kwargs["guardrail_identifier"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members[
+                            "guardrailIdentifier"
+                        ]
+                    )
 
                 case 1:
-                    kwargs["guardrail_version"] = de.read_string(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["guardrailVersion"])
+                    kwargs["guardrail_version"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members[
+                            "guardrailVersion"
+                        ]
+                    )
 
                 case 2:
-                    kwargs["trace"] = de.read_string(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["trace"])
+                    kwargs["trace"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["trace"]
+                    )
 
                 case 3:
-                    kwargs["stream_processing_mode"] = de.read_string(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members["streamProcessingMode"])
+                    kwargs["stream_processing_mode"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION.members[
+                            "streamProcessingMode"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_STREAM_CONFIGURATION, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ConverseStreamInput:
@@ -6471,7 +7944,9 @@ class ConverseStreamInput:
     tool_config: ToolConfiguration | None = None
     guardrail_config: GuardrailStreamConfiguration | None = None
     additional_model_request_fields: Document | None = None
-    prompt_variables: dict[str, PromptVariableValues] | None = field(repr=False, default=None)
+    prompt_variables: dict[str, PromptVariableValues] | None = field(
+        repr=False, default=None
+    )
     additional_model_response_field_paths: list[str] | None = None
     request_metadata: dict[str, str] | None = field(repr=False, default=None)
     performance_config: PerformanceConfiguration | None = None
@@ -6481,34 +7956,68 @@ class ConverseStreamInput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.messages is not None:
-            _serialize_messages(serializer, _SCHEMA_CONVERSE_STREAM_INPUT.members["messages"], self.messages)
+            _serialize_messages(
+                serializer,
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["messages"],
+                self.messages,
+            )
 
         if self.system is not None:
-            _serialize_system_content_blocks(serializer, _SCHEMA_CONVERSE_STREAM_INPUT.members["system"], self.system)
+            _serialize_system_content_blocks(
+                serializer, _SCHEMA_CONVERSE_STREAM_INPUT.members["system"], self.system
+            )
 
         if self.inference_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_STREAM_INPUT.members["inferenceConfig"], self.inference_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["inferenceConfig"],
+                self.inference_config,
+            )
 
         if self.tool_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_STREAM_INPUT.members["toolConfig"], self.tool_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["toolConfig"], self.tool_config
+            )
 
         if self.guardrail_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_STREAM_INPUT.members["guardrailConfig"], self.guardrail_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["guardrailConfig"],
+                self.guardrail_config,
+            )
 
         if self.additional_model_request_fields is not None:
-            serializer.write_document(_SCHEMA_CONVERSE_STREAM_INPUT.members["additionalModelRequestFields"], self.additional_model_request_fields)
+            serializer.write_document(
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["additionalModelRequestFields"],
+                self.additional_model_request_fields,
+            )
 
         if self.prompt_variables is not None:
-            _serialize_prompt_variable_map(serializer, _SCHEMA_CONVERSE_STREAM_INPUT.members["promptVariables"], self.prompt_variables)
+            _serialize_prompt_variable_map(
+                serializer,
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["promptVariables"],
+                self.prompt_variables,
+            )
 
         if self.additional_model_response_field_paths is not None:
-            _serialize_additional_model_response_field_paths(serializer, _SCHEMA_CONVERSE_STREAM_INPUT.members["additionalModelResponseFieldPaths"], self.additional_model_response_field_paths)
+            _serialize_additional_model_response_field_paths(
+                serializer,
+                _SCHEMA_CONVERSE_STREAM_INPUT.members[
+                    "additionalModelResponseFieldPaths"
+                ],
+                self.additional_model_response_field_paths,
+            )
 
         if self.request_metadata is not None:
-            _serialize_request_metadata(serializer, _SCHEMA_CONVERSE_STREAM_INPUT.members["requestMetadata"], self.request_metadata)
+            _serialize_request_metadata(
+                serializer,
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["requestMetadata"],
+                self.request_metadata,
+            )
 
         if self.performance_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_STREAM_INPUT.members["performanceConfig"], self.performance_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["performanceConfig"],
+                self.performance_config,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6521,13 +8030,19 @@ class ConverseStreamInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["model_id"] = de.read_string(_SCHEMA_CONVERSE_STREAM_INPUT.members["modelId"])
+                    kwargs["model_id"] = de.read_string(
+                        _SCHEMA_CONVERSE_STREAM_INPUT.members["modelId"]
+                    )
 
                 case 1:
-                    kwargs["messages"] = _deserialize_messages(de, _SCHEMA_CONVERSE_STREAM_INPUT.members["messages"])
+                    kwargs["messages"] = _deserialize_messages(
+                        de, _SCHEMA_CONVERSE_STREAM_INPUT.members["messages"]
+                    )
 
                 case 2:
-                    kwargs["system"] = _deserialize_system_content_blocks(de, _SCHEMA_CONVERSE_STREAM_INPUT.members["system"])
+                    kwargs["system"] = _deserialize_system_content_blocks(
+                        de, _SCHEMA_CONVERSE_STREAM_INPUT.members["system"]
+                    )
 
                 case 3:
                     kwargs["inference_config"] = InferenceConfiguration.deserialize(de)
@@ -6536,28 +8051,48 @@ class ConverseStreamInput:
                     kwargs["tool_config"] = ToolConfiguration.deserialize(de)
 
                 case 5:
-                    kwargs["guardrail_config"] = GuardrailStreamConfiguration.deserialize(de)
+                    kwargs["guardrail_config"] = (
+                        GuardrailStreamConfiguration.deserialize(de)
+                    )
 
                 case 6:
-                    kwargs["additional_model_request_fields"] = de.read_document(_SCHEMA_CONVERSE_STREAM_INPUT.members["additionalModelRequestFields"])
+                    kwargs["additional_model_request_fields"] = de.read_document(
+                        _SCHEMA_CONVERSE_STREAM_INPUT.members[
+                            "additionalModelRequestFields"
+                        ]
+                    )
 
                 case 7:
-                    kwargs["prompt_variables"] = _deserialize_prompt_variable_map(de, _SCHEMA_CONVERSE_STREAM_INPUT.members["promptVariables"])
+                    kwargs["prompt_variables"] = _deserialize_prompt_variable_map(
+                        de, _SCHEMA_CONVERSE_STREAM_INPUT.members["promptVariables"]
+                    )
 
                 case 8:
-                    kwargs["additional_model_response_field_paths"] = _deserialize_additional_model_response_field_paths(de, _SCHEMA_CONVERSE_STREAM_INPUT.members["additionalModelResponseFieldPaths"])
+                    kwargs["additional_model_response_field_paths"] = (
+                        _deserialize_additional_model_response_field_paths(
+                            de,
+                            _SCHEMA_CONVERSE_STREAM_INPUT.members[
+                                "additionalModelResponseFieldPaths"
+                            ],
+                        )
+                    )
 
                 case 9:
-                    kwargs["request_metadata"] = _deserialize_request_metadata(de, _SCHEMA_CONVERSE_STREAM_INPUT.members["requestMetadata"])
+                    kwargs["request_metadata"] = _deserialize_request_metadata(
+                        de, _SCHEMA_CONVERSE_STREAM_INPUT.members["requestMetadata"]
+                    )
 
                 case 10:
-                    kwargs["performance_config"] = PerformanceConfiguration.deserialize(de)
+                    kwargs["performance_config"] = PerformanceConfiguration.deserialize(
+                        de
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONVERSE_STREAM_INPUT, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ReasoningContentBlockDeltaText:
@@ -6572,11 +8107,18 @@ class ReasoningContentBlockDeltaText:
         serializer.write_struct(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["text"], self.value)
+        serializer.write_string(
+            _SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["text"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["text"]))
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["text"]
+            )
+        )
+
 
 @dataclass
 class ReasoningContentBlockDeltaRedactedContent:
@@ -6592,11 +8134,18 @@ class ReasoningContentBlockDeltaRedactedContent:
         serializer.write_struct(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_blob(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["redactedContent"], self.value)
+        serializer.write_blob(
+            _SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["redactedContent"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_blob(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["redactedContent"]))
+        return cls(
+            value=deserializer.read_blob(
+                _SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["redactedContent"]
+            )
+        )
+
 
 @dataclass
 class ReasoningContentBlockDeltaSignature:
@@ -6613,11 +8162,18 @@ class ReasoningContentBlockDeltaSignature:
         serializer.write_struct(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["signature"], self.value)
+        serializer.write_string(
+            _SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["signature"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["signature"]))
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_REASONING_CONTENT_BLOCK_DELTA.members["signature"]
+            )
+        )
+
 
 @dataclass
 class ReasoningContentBlockDeltaUnknown:
@@ -6641,7 +8197,13 @@ class ReasoningContentBlockDeltaUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-ReasoningContentBlockDelta = Union[ReasoningContentBlockDeltaText | ReasoningContentBlockDeltaRedactedContent | ReasoningContentBlockDeltaSignature | ReasoningContentBlockDeltaUnknown]
+
+ReasoningContentBlockDelta = Union[
+    ReasoningContentBlockDeltaText
+    | ReasoningContentBlockDeltaRedactedContent
+    | ReasoningContentBlockDeltaSignature
+    | ReasoningContentBlockDeltaUnknown
+]
 
 """
 Contains content regarding the reasoning that is carried out by the model with
@@ -6650,10 +8212,14 @@ Thought (CoT) that the model generates to enhance the accuracy of its final
 response.
 
 """
+
+
 class _ReasoningContentBlockDeltaDeserializer:
     _result: ReasoningContentBlockDelta | None = None
 
-    def deserialize(self, deserializer: ShapeDeserializer) -> ReasoningContentBlockDelta:
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> ReasoningContentBlockDelta:
         self._result = None
         deserializer.read_struct(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA, self._consumer)
 
@@ -6668,7 +8234,9 @@ class _ReasoningContentBlockDeltaDeserializer:
                 self._set_result(ReasoningContentBlockDeltaText.deserialize(de))
 
             case 1:
-                self._set_result(ReasoningContentBlockDeltaRedactedContent.deserialize(de))
+                self._set_result(
+                    ReasoningContentBlockDeltaRedactedContent.deserialize(de)
+                )
 
             case 2:
                 self._set_result(ReasoningContentBlockDeltaSignature.deserialize(de))
@@ -6678,8 +8246,11 @@ class _ReasoningContentBlockDeltaDeserializer:
 
     def _set_result(self, value: ReasoningContentBlockDelta) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class ToolUseBlockDelta:
@@ -6697,7 +8268,9 @@ class ToolUseBlockDelta:
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK_DELTA, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_TOOL_USE_BLOCK_DELTA.members["input"], self.input)
+        serializer.write_string(
+            _SCHEMA_TOOL_USE_BLOCK_DELTA.members["input"], self.input
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6710,13 +8283,16 @@ class ToolUseBlockDelta:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["input"] = de.read_string(_SCHEMA_TOOL_USE_BLOCK_DELTA.members["input"])
+                    kwargs["input"] = de.read_string(
+                        _SCHEMA_TOOL_USE_BLOCK_DELTA.members["input"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_TOOL_USE_BLOCK_DELTA, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ContentBlockDeltaText:
@@ -6735,7 +8311,10 @@ class ContentBlockDeltaText:
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=deserializer.read_string(_SCHEMA_CONTENT_BLOCK_DELTA.members["text"]))
+        return cls(
+            value=deserializer.read_string(_SCHEMA_CONTENT_BLOCK_DELTA.members["text"])
+        )
+
 
 @dataclass
 class ContentBlockDeltaToolUse:
@@ -6750,11 +8329,14 @@ class ContentBlockDeltaToolUse:
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA.members["toolUse"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_DELTA.members["toolUse"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ToolUseBlockDelta.deserialize(deserializer))
+
 
 @dataclass
 class ContentBlockDeltaReasoningContent:
@@ -6771,11 +8353,16 @@ class ContentBlockDeltaReasoningContent:
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA.members["reasoningContent"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_DELTA.members["reasoningContent"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(value=_ReasoningContentBlockDeltaDeserializer().deserialize(deserializer))
+        return cls(
+            value=_ReasoningContentBlockDeltaDeserializer().deserialize(deserializer)
+        )
+
 
 @dataclass
 class ContentBlockDeltaUnknown:
@@ -6799,12 +8386,20 @@ class ContentBlockDeltaUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-ContentBlockDelta = Union[ContentBlockDeltaText | ContentBlockDeltaToolUse | ContentBlockDeltaReasoningContent | ContentBlockDeltaUnknown]
+
+ContentBlockDelta = Union[
+    ContentBlockDeltaText
+    | ContentBlockDeltaToolUse
+    | ContentBlockDeltaReasoningContent
+    | ContentBlockDeltaUnknown
+]
 
 """
 A block of content in a streaming response.
 
 """
+
+
 class _ContentBlockDeltaDeserializer:
     _result: ContentBlockDelta | None = None
 
@@ -6833,8 +8428,11 @@ class _ContentBlockDeltaDeserializer:
 
     def _set_result(self, value: ContentBlockDelta) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class ContentBlockDeltaEvent:
@@ -6857,8 +8455,13 @@ class ContentBlockDeltaEvent:
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA_EVENT.members["delta"], self.delta)
-        serializer.write_integer(_SCHEMA_CONTENT_BLOCK_DELTA_EVENT.members["contentBlockIndex"], self.content_block_index)
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_DELTA_EVENT.members["delta"], self.delta
+        )
+        serializer.write_integer(
+            _SCHEMA_CONTENT_BLOCK_DELTA_EVENT.members["contentBlockIndex"],
+            self.content_block_index,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6874,13 +8477,16 @@ class ContentBlockDeltaEvent:
                     kwargs["delta"] = _ContentBlockDeltaDeserializer().deserialize(de)
 
                 case 1:
-                    kwargs["content_block_index"] = de.read_integer(_SCHEMA_CONTENT_BLOCK_DELTA_EVENT.members["contentBlockIndex"])
+                    kwargs["content_block_index"] = de.read_integer(
+                        _SCHEMA_CONTENT_BLOCK_DELTA_EVENT.members["contentBlockIndex"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONTENT_BLOCK_DELTA_EVENT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ToolUseBlockStart:
@@ -6903,7 +8509,9 @@ class ToolUseBlockStart:
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK_START, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_TOOL_USE_BLOCK_START.members["toolUseId"], self.tool_use_id)
+        serializer.write_string(
+            _SCHEMA_TOOL_USE_BLOCK_START.members["toolUseId"], self.tool_use_id
+        )
         serializer.write_string(_SCHEMA_TOOL_USE_BLOCK_START.members["name"], self.name)
 
     @classmethod
@@ -6917,16 +8525,21 @@ class ToolUseBlockStart:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["tool_use_id"] = de.read_string(_SCHEMA_TOOL_USE_BLOCK_START.members["toolUseId"])
+                    kwargs["tool_use_id"] = de.read_string(
+                        _SCHEMA_TOOL_USE_BLOCK_START.members["toolUseId"]
+                    )
 
                 case 1:
-                    kwargs["name"] = de.read_string(_SCHEMA_TOOL_USE_BLOCK_START.members["name"])
+                    kwargs["name"] = de.read_string(
+                        _SCHEMA_TOOL_USE_BLOCK_START.members["name"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_TOOL_USE_BLOCK_START, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ContentBlockStartToolUse:
@@ -6941,11 +8554,14 @@ class ContentBlockStartToolUse:
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_START, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_START.members["toolUse"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_START.members["toolUse"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ToolUseBlockStart.deserialize(deserializer))
+
 
 @dataclass
 class ContentBlockStartUnknown:
@@ -6969,12 +8585,15 @@ class ContentBlockStartUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 ContentBlockStart = Union[ContentBlockStartToolUse | ContentBlockStartUnknown]
 
 """
 Content block start information.
 
 """
+
+
 class _ContentBlockStartDeserializer:
     _result: ContentBlockStart | None = None
 
@@ -6997,8 +8616,11 @@ class _ContentBlockStartDeserializer:
 
     def _set_result(self, value: ContentBlockStart) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class ContentBlockStartEvent:
@@ -7021,8 +8643,13 @@ class ContentBlockStartEvent:
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_START_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_START_EVENT.members["start"], self.start)
-        serializer.write_integer(_SCHEMA_CONTENT_BLOCK_START_EVENT.members["contentBlockIndex"], self.content_block_index)
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_START_EVENT.members["start"], self.start
+        )
+        serializer.write_integer(
+            _SCHEMA_CONTENT_BLOCK_START_EVENT.members["contentBlockIndex"],
+            self.content_block_index,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7038,13 +8665,16 @@ class ContentBlockStartEvent:
                     kwargs["start"] = _ContentBlockStartDeserializer().deserialize(de)
 
                 case 1:
-                    kwargs["content_block_index"] = de.read_integer(_SCHEMA_CONTENT_BLOCK_START_EVENT.members["contentBlockIndex"])
+                    kwargs["content_block_index"] = de.read_integer(
+                        _SCHEMA_CONTENT_BLOCK_START_EVENT.members["contentBlockIndex"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONTENT_BLOCK_START_EVENT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ContentBlockStopEvent:
@@ -7062,7 +8692,10 @@ class ContentBlockStopEvent:
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_STOP_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_integer(_SCHEMA_CONTENT_BLOCK_STOP_EVENT.members["contentBlockIndex"], self.content_block_index)
+        serializer.write_integer(
+            _SCHEMA_CONTENT_BLOCK_STOP_EVENT.members["contentBlockIndex"],
+            self.content_block_index,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7075,13 +8708,16 @@ class ContentBlockStopEvent:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["content_block_index"] = de.read_integer(_SCHEMA_CONTENT_BLOCK_STOP_EVENT.members["contentBlockIndex"])
+                    kwargs["content_block_index"] = de.read_integer(
+                        _SCHEMA_CONTENT_BLOCK_STOP_EVENT.members["contentBlockIndex"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONTENT_BLOCK_STOP_EVENT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class MessageStartEvent:
@@ -7112,13 +8748,16 @@ class MessageStartEvent:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["role"] = de.read_string(_SCHEMA_MESSAGE_START_EVENT.members["role"])
+                    kwargs["role"] = de.read_string(
+                        _SCHEMA_MESSAGE_START_EVENT.members["role"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_MESSAGE_START_EVENT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class MessageStopEvent:
@@ -7141,9 +8780,14 @@ class MessageStopEvent:
         serializer.write_struct(_SCHEMA_MESSAGE_STOP_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_MESSAGE_STOP_EVENT.members["stopReason"], self.stop_reason)
+        serializer.write_string(
+            _SCHEMA_MESSAGE_STOP_EVENT.members["stopReason"], self.stop_reason
+        )
         if self.additional_model_response_fields is not None:
-            serializer.write_document(_SCHEMA_MESSAGE_STOP_EVENT.members["additionalModelResponseFields"], self.additional_model_response_fields)
+            serializer.write_document(
+                _SCHEMA_MESSAGE_STOP_EVENT.members["additionalModelResponseFields"],
+                self.additional_model_response_fields,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7156,16 +8800,23 @@ class MessageStopEvent:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["stop_reason"] = de.read_string(_SCHEMA_MESSAGE_STOP_EVENT.members["stopReason"])
+                    kwargs["stop_reason"] = de.read_string(
+                        _SCHEMA_MESSAGE_STOP_EVENT.members["stopReason"]
+                    )
 
                 case 1:
-                    kwargs["additional_model_response_fields"] = de.read_document(_SCHEMA_MESSAGE_STOP_EVENT.members["additionalModelResponseFields"])
+                    kwargs["additional_model_response_fields"] = de.read_document(
+                        _SCHEMA_MESSAGE_STOP_EVENT.members[
+                            "additionalModelResponseFields"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_MESSAGE_STOP_EVENT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ConverseStreamMetrics:
@@ -7183,7 +8834,9 @@ class ConverseStreamMetrics:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METRICS, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_long(_SCHEMA_CONVERSE_STREAM_METRICS.members["latencyMs"], self.latency_ms)
+        serializer.write_long(
+            _SCHEMA_CONVERSE_STREAM_METRICS.members["latencyMs"], self.latency_ms
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7196,13 +8849,16 @@ class ConverseStreamMetrics:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["latency_ms"] = de.read_long(_SCHEMA_CONVERSE_STREAM_METRICS.members["latencyMs"])
+                    kwargs["latency_ms"] = de.read_long(
+                        _SCHEMA_CONVERSE_STREAM_METRICS.members["latencyMs"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONVERSE_STREAM_METRICS, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ConverseStreamTrace:
@@ -7226,10 +8882,15 @@ class ConverseStreamTrace:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.guardrail is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_STREAM_TRACE.members["guardrail"], self.guardrail)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_STREAM_TRACE.members["guardrail"], self.guardrail
+            )
 
         if self.prompt_router is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_STREAM_TRACE.members["promptRouter"], self.prompt_router)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_STREAM_TRACE.members["promptRouter"],
+                self.prompt_router,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7252,6 +8913,7 @@ class ConverseStreamTrace:
 
         deserializer.read_struct(_SCHEMA_CONVERSE_STREAM_TRACE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ConverseStreamMetadataEvent:
@@ -7284,13 +8946,22 @@ class ConverseStreamMetadataEvent:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METADATA_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METADATA_EVENT.members["usage"], self.usage)
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METADATA_EVENT.members["metrics"], self.metrics)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_METADATA_EVENT.members["usage"], self.usage
+        )
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_METADATA_EVENT.members["metrics"], self.metrics
+        )
         if self.trace is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METADATA_EVENT.members["trace"], self.trace)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_STREAM_METADATA_EVENT.members["trace"], self.trace
+            )
 
         if self.performance_config is not None:
-            serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METADATA_EVENT.members["performanceConfig"], self.performance_config)
+            serializer.write_struct(
+                _SCHEMA_CONVERSE_STREAM_METADATA_EVENT.members["performanceConfig"],
+                self.performance_config,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7312,13 +8983,18 @@ class ConverseStreamMetadataEvent:
                     kwargs["trace"] = ConverseStreamTrace.deserialize(de)
 
                 case 3:
-                    kwargs["performance_config"] = PerformanceConfiguration.deserialize(de)
+                    kwargs["performance_config"] = PerformanceConfiguration.deserialize(
+                        de
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_CONVERSE_STREAM_METADATA_EVENT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_CONVERSE_STREAM_METADATA_EVENT, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ModelStreamErrorException(ApiError):
@@ -7347,13 +9023,21 @@ class ModelStreamErrorException(ApiError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["message"], self.message)
+            serializer.write_string(
+                _SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["message"], self.message
+            )
 
         if self.original_status_code is not None:
-            serializer.write_integer(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["originalStatusCode"], self.original_status_code)
+            serializer.write_integer(
+                _SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["originalStatusCode"],
+                self.original_status_code,
+            )
 
         if self.original_message is not None:
-            serializer.write_string(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["originalMessage"], self.original_message)
+            serializer.write_string(
+                _SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["originalMessage"],
+                self.original_message,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7366,19 +9050,30 @@ class ModelStreamErrorException(ApiError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["message"]
+                    )
 
                 case 1:
-                    kwargs["original_status_code"] = de.read_integer(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["originalStatusCode"])
+                    kwargs["original_status_code"] = de.read_integer(
+                        _SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members[
+                            "originalStatusCode"
+                        ]
+                    )
 
                 case 2:
-                    kwargs["original_message"] = de.read_string(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["originalMessage"])
+                    kwargs["original_message"] = de.read_string(
+                        _SCHEMA_MODEL_STREAM_ERROR_EXCEPTION.members["originalMessage"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_MODEL_STREAM_ERROR_EXCEPTION, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass
 class ConverseStreamOutputMessageStart:
@@ -7393,11 +9088,14 @@ class ConverseStreamOutputMessageStart:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["messageStart"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["messageStart"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=MessageStartEvent.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputContentBlockStart:
@@ -7412,11 +9110,14 @@ class ConverseStreamOutputContentBlockStart:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["contentBlockStart"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["contentBlockStart"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ContentBlockStartEvent.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputContentBlockDelta:
@@ -7431,11 +9132,14 @@ class ConverseStreamOutputContentBlockDelta:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["contentBlockDelta"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["contentBlockDelta"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ContentBlockDeltaEvent.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputContentBlockStop:
@@ -7450,11 +9154,14 @@ class ConverseStreamOutputContentBlockStop:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["contentBlockStop"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["contentBlockStop"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ContentBlockStopEvent.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputMessageStop:
@@ -7469,11 +9176,14 @@ class ConverseStreamOutputMessageStop:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["messageStop"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["messageStop"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=MessageStopEvent.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputMetadata:
@@ -7488,11 +9198,14 @@ class ConverseStreamOutputMetadata:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["metadata"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["metadata"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ConverseStreamMetadataEvent.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputInternalServerException:
@@ -7507,11 +9220,15 @@ class ConverseStreamOutputInternalServerException:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["internalServerException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["internalServerException"],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=InternalServerException.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputModelStreamErrorException:
@@ -7526,11 +9243,15 @@ class ConverseStreamOutputModelStreamErrorException:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["modelStreamErrorException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["modelStreamErrorException"],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ModelStreamErrorException.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputValidationException:
@@ -7547,11 +9268,14 @@ class ConverseStreamOutputValidationException:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["validationException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["validationException"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ValidationException.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputThrottlingException:
@@ -7568,11 +9292,14 @@ class ConverseStreamOutputThrottlingException:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["throttlingException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["throttlingException"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ThrottlingException.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputServiceUnavailableException:
@@ -7589,11 +9316,15 @@ class ConverseStreamOutputServiceUnavailableException:
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT.members["serviceUnavailableException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_CONVERSE_STREAM_OUTPUT.members["serviceUnavailableException"],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ServiceUnavailableException.deserialize(deserializer))
+
 
 @dataclass
 class ConverseStreamOutputUnknown:
@@ -7617,12 +9348,28 @@ class ConverseStreamOutputUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-ConverseStreamOutput = Union[ConverseStreamOutputMessageStart | ConverseStreamOutputContentBlockStart | ConverseStreamOutputContentBlockDelta | ConverseStreamOutputContentBlockStop | ConverseStreamOutputMessageStop | ConverseStreamOutputMetadata | ConverseStreamOutputInternalServerException | ConverseStreamOutputModelStreamErrorException | ConverseStreamOutputValidationException | ConverseStreamOutputThrottlingException | ConverseStreamOutputServiceUnavailableException | ConverseStreamOutputUnknown]
+
+ConverseStreamOutput = Union[
+    ConverseStreamOutputMessageStart
+    | ConverseStreamOutputContentBlockStart
+    | ConverseStreamOutputContentBlockDelta
+    | ConverseStreamOutputContentBlockStop
+    | ConverseStreamOutputMessageStop
+    | ConverseStreamOutputMetadata
+    | ConverseStreamOutputInternalServerException
+    | ConverseStreamOutputModelStreamErrorException
+    | ConverseStreamOutputValidationException
+    | ConverseStreamOutputThrottlingException
+    | ConverseStreamOutputServiceUnavailableException
+    | ConverseStreamOutputUnknown
+]
 
 """
 The messages output stream
 
 """
+
+
 class _ConverseStreamOutputDeserializer:
     _result: ConverseStreamOutput | None = None
 
@@ -7656,32 +9403,44 @@ class _ConverseStreamOutputDeserializer:
                 self._set_result(ConverseStreamOutputMetadata.deserialize(de))
 
             case 6:
-                self._set_result(ConverseStreamOutputInternalServerException.deserialize(de))
+                self._set_result(
+                    ConverseStreamOutputInternalServerException.deserialize(de)
+                )
 
             case 7:
-                self._set_result(ConverseStreamOutputModelStreamErrorException.deserialize(de))
+                self._set_result(
+                    ConverseStreamOutputModelStreamErrorException.deserialize(de)
+                )
 
             case 8:
-                self._set_result(ConverseStreamOutputValidationException.deserialize(de))
+                self._set_result(
+                    ConverseStreamOutputValidationException.deserialize(de)
+                )
 
             case 9:
-                self._set_result(ConverseStreamOutputThrottlingException.deserialize(de))
+                self._set_result(
+                    ConverseStreamOutputThrottlingException.deserialize(de)
+                )
 
             case 10:
-                self._set_result(ConverseStreamOutputServiceUnavailableException.deserialize(de))
+                self._set_result(
+                    ConverseStreamOutputServiceUnavailableException.deserialize(de)
+                )
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: ConverseStreamOutput) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class ConverseStreamOperationOutput:
-    """
-    """
+    """ """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OPERATION_OUTPUT, self)
@@ -7699,38 +9458,60 @@ class ConverseStreamOperationOutput:
 
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
-
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_CONVERSE_STREAM_OPERATION_OUTPUT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_CONVERSE_STREAM_OPERATION_OUTPUT, consumer=_consumer
+        )
         return kwargs
 
+
 CONVERSE_STREAM = APIOperation(
-        input = ConverseStreamInput,
-        output = ConverseStreamOperationOutput,
-        schema = _SCHEMA_CONVERSE_STREAM,
-        input_schema = _SCHEMA_CONVERSE_STREAM_INPUT,
-        output_schema = _SCHEMA_CONVERSE_STREAM_OPERATION_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ModelErrorException"): ModelErrorException,
-ShapeID("com.amazonaws.bedrockruntime#ModelNotReadyException"): ModelNotReadyException,
-ShapeID("com.amazonaws.bedrockruntime#ModelTimeoutException"): ModelTimeoutException,
-ShapeID("com.amazonaws.bedrockruntime#ResourceNotFoundException"): ResourceNotFoundException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceUnavailableException"): ServiceUnavailableException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=ConverseStreamInput,
+    output=ConverseStreamOperationOutput,
+    schema=_SCHEMA_CONVERSE_STREAM,
+    input_schema=_SCHEMA_CONVERSE_STREAM_INPUT,
+    output_schema=_SCHEMA_CONVERSE_STREAM_OPERATION_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelErrorException"
+            ): ModelErrorException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelNotReadyException"
+            ): ModelNotReadyException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelTimeoutException"
+            ): ModelTimeoutException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceUnavailableException"
+            ): ServiceUnavailableException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )
+
 
 class Trace(StrEnum):
     ENABLED = "ENABLED"
     DISABLED = "DISABLED"
+
 
 @dataclass(kw_only=True)
 class InvokeModelInput:
@@ -7821,34 +9602,51 @@ class InvokeModelInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["body"] = de.read_blob(_SCHEMA_INVOKE_MODEL_INPUT.members["body"])
+                    kwargs["body"] = de.read_blob(
+                        _SCHEMA_INVOKE_MODEL_INPUT.members["body"]
+                    )
 
                 case 1:
-                    kwargs["content_type"] = de.read_string(_SCHEMA_INVOKE_MODEL_INPUT.members["contentType"])
+                    kwargs["content_type"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_INPUT.members["contentType"]
+                    )
 
                 case 2:
-                    kwargs["accept"] = de.read_string(_SCHEMA_INVOKE_MODEL_INPUT.members["accept"])
+                    kwargs["accept"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_INPUT.members["accept"]
+                    )
 
                 case 3:
-                    kwargs["model_id"] = de.read_string(_SCHEMA_INVOKE_MODEL_INPUT.members["modelId"])
+                    kwargs["model_id"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_INPUT.members["modelId"]
+                    )
 
                 case 4:
-                    kwargs["trace"] = de.read_string(_SCHEMA_INVOKE_MODEL_INPUT.members["trace"])
+                    kwargs["trace"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_INPUT.members["trace"]
+                    )
 
                 case 5:
-                    kwargs["guardrail_identifier"] = de.read_string(_SCHEMA_INVOKE_MODEL_INPUT.members["guardrailIdentifier"])
+                    kwargs["guardrail_identifier"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_INPUT.members["guardrailIdentifier"]
+                    )
 
                 case 6:
-                    kwargs["guardrail_version"] = de.read_string(_SCHEMA_INVOKE_MODEL_INPUT.members["guardrailVersion"])
+                    kwargs["guardrail_version"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_INPUT.members["guardrailVersion"]
+                    )
 
                 case 7:
-                    kwargs["performance_config_latency"] = de.read_string(_SCHEMA_INVOKE_MODEL_INPUT.members["performanceConfigLatency"])
+                    kwargs["performance_config_latency"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_INPUT.members["performanceConfigLatency"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_INVOKE_MODEL_INPUT, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class InvokeModelOutput:
@@ -7889,13 +9687,19 @@ class InvokeModelOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["body"] = de.read_blob(_SCHEMA_INVOKE_MODEL_OUTPUT.members["body"])
+                    kwargs["body"] = de.read_blob(
+                        _SCHEMA_INVOKE_MODEL_OUTPUT.members["body"]
+                    )
 
                 case 1:
-                    kwargs["content_type"] = de.read_string(_SCHEMA_INVOKE_MODEL_OUTPUT.members["contentType"])
+                    kwargs["content_type"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_OUTPUT.members["contentType"]
+                    )
 
                 case 2:
-                    kwargs["performance_config_latency"] = de.read_string(_SCHEMA_INVOKE_MODEL_OUTPUT.members["performanceConfigLatency"])
+                    kwargs["performance_config_latency"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_OUTPUT.members["performanceConfigLatency"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7903,32 +9707,53 @@ class InvokeModelOutput:
         deserializer.read_struct(_SCHEMA_INVOKE_MODEL_OUTPUT, consumer=_consumer)
         return kwargs
 
+
 INVOKE_MODEL = APIOperation(
-        input = InvokeModelInput,
-        output = InvokeModelOutput,
-        schema = _SCHEMA_INVOKE_MODEL,
-        input_schema = _SCHEMA_INVOKE_MODEL_INPUT,
-        output_schema = _SCHEMA_INVOKE_MODEL_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ModelErrorException"): ModelErrorException,
-ShapeID("com.amazonaws.bedrockruntime#ModelNotReadyException"): ModelNotReadyException,
-ShapeID("com.amazonaws.bedrockruntime#ModelTimeoutException"): ModelTimeoutException,
-ShapeID("com.amazonaws.bedrockruntime#ResourceNotFoundException"): ResourceNotFoundException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceQuotaExceededException"): ServiceQuotaExceededException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceUnavailableException"): ServiceUnavailableException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=InvokeModelInput,
+    output=InvokeModelOutput,
+    schema=_SCHEMA_INVOKE_MODEL,
+    input_schema=_SCHEMA_INVOKE_MODEL_INPUT,
+    output_schema=_SCHEMA_INVOKE_MODEL_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelErrorException"
+            ): ModelErrorException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelNotReadyException"
+            ): ModelNotReadyException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelTimeoutException"
+            ): ModelTimeoutException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceQuotaExceededException"
+            ): ServiceQuotaExceededException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceUnavailableException"
+            ): ServiceUnavailableException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )
+
 
 @dataclass(kw_only=True)
 class BidirectionalInputPayloadPart:
-
     bytes_: bytes | None = field(repr=False, default=None)
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7936,7 +9761,9 @@ class BidirectionalInputPayloadPart:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.bytes_ is not None:
-            serializer.write_blob(_SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART.members["bytes"], self.bytes_)
+            serializer.write_blob(
+                _SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART.members["bytes"], self.bytes_
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7949,28 +9776,38 @@ class BidirectionalInputPayloadPart:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["bytes_"] = de.read_blob(_SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART.members["bytes"])
+                    kwargs["bytes_"] = de.read_blob(
+                        _SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART.members["bytes"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamInputChunk:
-
     value: BidirectionalInputPayloadPart
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_INPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_INPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_INPUT.members["chunk"], self.value)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_INPUT.members["chunk"],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=BidirectionalInputPayloadPart.deserialize(deserializer))
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamInputUnknown:
@@ -7994,14 +9831,23 @@ class InvokeModelWithBidirectionalStreamInputUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-InvokeModelWithBidirectionalStreamInput = Union[InvokeModelWithBidirectionalStreamInputChunk | InvokeModelWithBidirectionalStreamInputUnknown]
+
+InvokeModelWithBidirectionalStreamInput = Union[
+    InvokeModelWithBidirectionalStreamInputChunk
+    | InvokeModelWithBidirectionalStreamInputUnknown
+]
+
 
 class _InvokeModelWithBidirectionalStreamInputDeserializer:
     _result: InvokeModelWithBidirectionalStreamInput | None = None
 
-    def deserialize(self, deserializer: ShapeDeserializer) -> InvokeModelWithBidirectionalStreamInput:
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> InvokeModelWithBidirectionalStreamInput:
         self._result = None
-        deserializer.read_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_INPUT, self._consumer)
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_INPUT, self._consumer
+        )
 
         if self._result is None:
             raise SmithyException("Unions must have exactly one value, but found none.")
@@ -8011,23 +9857,29 @@ class _InvokeModelWithBidirectionalStreamInputDeserializer:
     def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
         match schema.expect_member_index():
             case 0:
-                self._set_result(InvokeModelWithBidirectionalStreamInputChunk.deserialize(de))
+                self._set_result(
+                    InvokeModelWithBidirectionalStreamInputChunk.deserialize(de)
+                )
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: InvokeModelWithBidirectionalStreamInput) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class InvokeModelWithBidirectionalStreamOperationInput:
-
     model_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
         pass
@@ -8043,17 +9895,24 @@ class InvokeModelWithBidirectionalStreamOperationInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["model_id"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT.members["modelId"])
+                    kwargs["model_id"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT.members[
+                            "modelId"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT,
+            consumer=_consumer,
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class BidirectionalOutputPayloadPart:
-
     bytes_: bytes | None = field(repr=False, default=None)
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8061,7 +9920,9 @@ class BidirectionalOutputPayloadPart:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.bytes_ is not None:
-            serializer.write_blob(_SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART.members["bytes"], self.bytes_)
+            serializer.write_blob(
+                _SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART.members["bytes"], self.bytes_
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8074,28 +9935,38 @@ class BidirectionalOutputPayloadPart:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["bytes_"] = de.read_blob(_SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART.members["bytes"])
+                    kwargs["bytes_"] = de.read_blob(
+                        _SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART.members["bytes"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputChunk:
-
     value: BidirectionalOutputPayloadPart
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["chunk"], self.value)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["chunk"],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=BidirectionalOutputPayloadPart.deserialize(deserializer))
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputInternalServerException:
@@ -8109,14 +9980,22 @@ class InvokeModelWithBidirectionalStreamOutputInternalServerException:
     value: InternalServerException
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["internalServerException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members[
+                "internalServerException"
+            ],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=InternalServerException.deserialize(deserializer))
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputModelStreamErrorException:
@@ -8128,14 +10007,22 @@ class InvokeModelWithBidirectionalStreamOutputModelStreamErrorException:
     value: ModelStreamErrorException
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["modelStreamErrorException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members[
+                "modelStreamErrorException"
+            ],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ModelStreamErrorException.deserialize(deserializer))
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputValidationException:
@@ -8149,14 +10036,22 @@ class InvokeModelWithBidirectionalStreamOutputValidationException:
     value: ValidationException
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["validationException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members[
+                "validationException"
+            ],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ValidationException.deserialize(deserializer))
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputThrottlingException:
@@ -8170,14 +10065,22 @@ class InvokeModelWithBidirectionalStreamOutputThrottlingException:
     value: ThrottlingException
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["throttlingException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members[
+                "throttlingException"
+            ],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ThrottlingException.deserialize(deserializer))
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputModelTimeoutException:
@@ -8190,14 +10093,22 @@ class InvokeModelWithBidirectionalStreamOutputModelTimeoutException:
     value: ModelTimeoutException
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["modelTimeoutException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members[
+                "modelTimeoutException"
+            ],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ModelTimeoutException.deserialize(deserializer))
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputServiceUnavailableException:
@@ -8211,14 +10122,22 @@ class InvokeModelWithBidirectionalStreamOutputServiceUnavailableException:
     value: ServiceUnavailableException
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["serviceUnavailableException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members[
+                "serviceUnavailableException"
+            ],
+            self.value,
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ServiceUnavailableException.deserialize(deserializer))
+
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputUnknown:
@@ -8242,14 +10161,29 @@ class InvokeModelWithBidirectionalStreamOutputUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-InvokeModelWithBidirectionalStreamOutput = Union[InvokeModelWithBidirectionalStreamOutputChunk | InvokeModelWithBidirectionalStreamOutputInternalServerException | InvokeModelWithBidirectionalStreamOutputModelStreamErrorException | InvokeModelWithBidirectionalStreamOutputValidationException | InvokeModelWithBidirectionalStreamOutputThrottlingException | InvokeModelWithBidirectionalStreamOutputModelTimeoutException | InvokeModelWithBidirectionalStreamOutputServiceUnavailableException | InvokeModelWithBidirectionalStreamOutputUnknown]
+
+InvokeModelWithBidirectionalStreamOutput = Union[
+    InvokeModelWithBidirectionalStreamOutputChunk
+    | InvokeModelWithBidirectionalStreamOutputInternalServerException
+    | InvokeModelWithBidirectionalStreamOutputModelStreamErrorException
+    | InvokeModelWithBidirectionalStreamOutputValidationException
+    | InvokeModelWithBidirectionalStreamOutputThrottlingException
+    | InvokeModelWithBidirectionalStreamOutputModelTimeoutException
+    | InvokeModelWithBidirectionalStreamOutputServiceUnavailableException
+    | InvokeModelWithBidirectionalStreamOutputUnknown
+]
+
 
 class _InvokeModelWithBidirectionalStreamOutputDeserializer:
     _result: InvokeModelWithBidirectionalStreamOutput | None = None
 
-    def deserialize(self, deserializer: ShapeDeserializer) -> InvokeModelWithBidirectionalStreamOutput:
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> InvokeModelWithBidirectionalStreamOutput:
         self._result = None
-        deserializer.read_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self._consumer)
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self._consumer
+        )
 
         if self._result is None:
             raise SmithyException("Unions must have exactly one value, but found none.")
@@ -8259,39 +10193,69 @@ class _InvokeModelWithBidirectionalStreamOutputDeserializer:
     def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
         match schema.expect_member_index():
             case 0:
-                self._set_result(InvokeModelWithBidirectionalStreamOutputChunk.deserialize(de))
+                self._set_result(
+                    InvokeModelWithBidirectionalStreamOutputChunk.deserialize(de)
+                )
 
             case 1:
-                self._set_result(InvokeModelWithBidirectionalStreamOutputInternalServerException.deserialize(de))
+                self._set_result(
+                    InvokeModelWithBidirectionalStreamOutputInternalServerException.deserialize(
+                        de
+                    )
+                )
 
             case 2:
-                self._set_result(InvokeModelWithBidirectionalStreamOutputModelStreamErrorException.deserialize(de))
+                self._set_result(
+                    InvokeModelWithBidirectionalStreamOutputModelStreamErrorException.deserialize(
+                        de
+                    )
+                )
 
             case 3:
-                self._set_result(InvokeModelWithBidirectionalStreamOutputValidationException.deserialize(de))
+                self._set_result(
+                    InvokeModelWithBidirectionalStreamOutputValidationException.deserialize(
+                        de
+                    )
+                )
 
             case 4:
-                self._set_result(InvokeModelWithBidirectionalStreamOutputThrottlingException.deserialize(de))
+                self._set_result(
+                    InvokeModelWithBidirectionalStreamOutputThrottlingException.deserialize(
+                        de
+                    )
+                )
 
             case 5:
-                self._set_result(InvokeModelWithBidirectionalStreamOutputModelTimeoutException.deserialize(de))
+                self._set_result(
+                    InvokeModelWithBidirectionalStreamOutputModelTimeoutException.deserialize(
+                        de
+                    )
+                )
 
             case 6:
-                self._set_result(InvokeModelWithBidirectionalStreamOutputServiceUnavailableException.deserialize(de))
+                self._set_result(
+                    InvokeModelWithBidirectionalStreamOutputServiceUnavailableException.deserialize(
+                        de
+                    )
+                )
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: InvokeModelWithBidirectionalStreamOutput) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class InvokeModelWithBidirectionalStreamOperationOutput:
-
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
         pass
@@ -8306,36 +10270,62 @@ class InvokeModelWithBidirectionalStreamOperationOutput:
 
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
-
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT,
+            consumer=_consumer,
+        )
         return kwargs
 
+
 INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM = APIOperation(
-        input = InvokeModelWithBidirectionalStreamOperationInput,
-        output = InvokeModelWithBidirectionalStreamOperationOutput,
-        schema = _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM,
-        input_schema = _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT,
-        output_schema = _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ModelErrorException"): ModelErrorException,
-ShapeID("com.amazonaws.bedrockruntime#ModelNotReadyException"): ModelNotReadyException,
-ShapeID("com.amazonaws.bedrockruntime#ModelStreamErrorException"): ModelStreamErrorException,
-ShapeID("com.amazonaws.bedrockruntime#ModelTimeoutException"): ModelTimeoutException,
-ShapeID("com.amazonaws.bedrockruntime#ResourceNotFoundException"): ResourceNotFoundException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceQuotaExceededException"): ServiceQuotaExceededException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceUnavailableException"): ServiceUnavailableException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=InvokeModelWithBidirectionalStreamOperationInput,
+    output=InvokeModelWithBidirectionalStreamOperationOutput,
+    schema=_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM,
+    input_schema=_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT,
+    output_schema=_SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelErrorException"
+            ): ModelErrorException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelNotReadyException"
+            ): ModelNotReadyException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelStreamErrorException"
+            ): ModelStreamErrorException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelTimeoutException"
+            ): ModelTimeoutException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceQuotaExceededException"
+            ): ServiceQuotaExceededException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceUnavailableException"
+            ): ServiceUnavailableException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )
+
 
 @dataclass(kw_only=True)
 class InvokeModelWithResponseStreamInput:
@@ -8426,34 +10416,65 @@ class InvokeModelWithResponseStreamInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["body"] = de.read_blob(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["body"])
+                    kwargs["body"] = de.read_blob(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["body"]
+                    )
 
                 case 1:
-                    kwargs["content_type"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["contentType"])
+                    kwargs["content_type"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                            "contentType"
+                        ]
+                    )
 
                 case 2:
-                    kwargs["accept"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["accept"])
+                    kwargs["accept"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                            "accept"
+                        ]
+                    )
 
                 case 3:
-                    kwargs["model_id"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["modelId"])
+                    kwargs["model_id"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                            "modelId"
+                        ]
+                    )
 
                 case 4:
-                    kwargs["trace"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["trace"])
+                    kwargs["trace"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["trace"]
+                    )
 
                 case 5:
-                    kwargs["guardrail_identifier"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["guardrailIdentifier"])
+                    kwargs["guardrail_identifier"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                            "guardrailIdentifier"
+                        ]
+                    )
 
                 case 6:
-                    kwargs["guardrail_version"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["guardrailVersion"])
+                    kwargs["guardrail_version"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                            "guardrailVersion"
+                        ]
+                    )
 
                 case 7:
-                    kwargs["performance_config_latency"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["performanceConfigLatency"])
+                    kwargs["performance_config_latency"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                            "performanceConfigLatency"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class PayloadPart:
@@ -8485,13 +10506,16 @@ class PayloadPart:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["bytes_"] = de.read_blob(_SCHEMA_PAYLOAD_PART.members["bytes"])
+                    kwargs["bytes_"] = de.read_blob(
+                        _SCHEMA_PAYLOAD_PART.members["bytes"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_PAYLOAD_PART, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ResponseStreamChunk:
@@ -8512,6 +10536,7 @@ class ResponseStreamChunk:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=PayloadPart.deserialize(deserializer))
 
+
 @dataclass
 class ResponseStreamInternalServerException:
     """
@@ -8525,11 +10550,14 @@ class ResponseStreamInternalServerException:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM.members["internalServerException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM.members["internalServerException"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=InternalServerException.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamModelStreamErrorException:
@@ -8544,11 +10572,14 @@ class ResponseStreamModelStreamErrorException:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM.members["modelStreamErrorException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM.members["modelStreamErrorException"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ModelStreamErrorException.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamValidationException:
@@ -8563,11 +10594,14 @@ class ResponseStreamValidationException:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM.members["validationException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM.members["validationException"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ValidationException.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamThrottlingException:
@@ -8584,11 +10618,14 @@ class ResponseStreamThrottlingException:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM.members["throttlingException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM.members["throttlingException"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ThrottlingException.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamModelTimeoutException:
@@ -8604,11 +10641,14 @@ class ResponseStreamModelTimeoutException:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM.members["modelTimeoutException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM.members["modelTimeoutException"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ModelTimeoutException.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamServiceUnavailableException:
@@ -8623,11 +10663,14 @@ class ResponseStreamServiceUnavailableException:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM.members["serviceUnavailableException"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM.members["serviceUnavailableException"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ServiceUnavailableException.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamUnknown:
@@ -8651,12 +10694,24 @@ class ResponseStreamUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-ResponseStream = Union[ResponseStreamChunk | ResponseStreamInternalServerException | ResponseStreamModelStreamErrorException | ResponseStreamValidationException | ResponseStreamThrottlingException | ResponseStreamModelTimeoutException | ResponseStreamServiceUnavailableException | ResponseStreamUnknown]
+
+ResponseStream = Union[
+    ResponseStreamChunk
+    | ResponseStreamInternalServerException
+    | ResponseStreamModelStreamErrorException
+    | ResponseStreamValidationException
+    | ResponseStreamThrottlingException
+    | ResponseStreamModelTimeoutException
+    | ResponseStreamServiceUnavailableException
+    | ResponseStreamUnknown
+]
 
 """
 Definition of content in the response stream.
 
 """
+
+
 class _ResponseStreamDeserializer:
     _result: ResponseStream | None = None
 
@@ -8678,7 +10733,9 @@ class _ResponseStreamDeserializer:
                 self._set_result(ResponseStreamInternalServerException.deserialize(de))
 
             case 2:
-                self._set_result(ResponseStreamModelStreamErrorException.deserialize(de))
+                self._set_result(
+                    ResponseStreamModelStreamErrorException.deserialize(de)
+                )
 
             case 3:
                 self._set_result(ResponseStreamValidationException.deserialize(de))
@@ -8690,15 +10747,20 @@ class _ResponseStreamDeserializer:
                 self._set_result(ResponseStreamModelTimeoutException.deserialize(de))
 
             case 6:
-                self._set_result(ResponseStreamServiceUnavailableException.deserialize(de))
+                self._set_result(
+                    ResponseStreamServiceUnavailableException.deserialize(de)
+                )
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: ResponseStream) -> None:
         if self._result is not None:
-            raise SmithyException("Unions must have exactly one value, but found more than one.")
+            raise SmithyException(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class InvokeModelWithResponseStreamOutput:
@@ -8733,37 +10795,70 @@ class InvokeModelWithResponseStreamOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["content_type"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT.members["contentType"])
+                    kwargs["content_type"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT.members[
+                            "contentType"
+                        ]
+                    )
 
                 case 1:
-                    kwargs["performance_config_latency"] = de.read_string(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT.members["performanceConfigLatency"])
+                    kwargs["performance_config_latency"] = de.read_string(
+                        _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT.members[
+                            "performanceConfigLatency"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT, consumer=_consumer
+        )
         return kwargs
 
+
 INVOKE_MODEL_WITH_RESPONSE_STREAM = APIOperation(
-        input = InvokeModelWithResponseStreamInput,
-        output = InvokeModelWithResponseStreamOutput,
-        schema = _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM,
-        input_schema = _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT,
-        output_schema = _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.bedrockruntime#AccessDeniedException"): AccessDeniedException,
-ShapeID("com.amazonaws.bedrockruntime#InternalServerException"): InternalServerException,
-ShapeID("com.amazonaws.bedrockruntime#ModelErrorException"): ModelErrorException,
-ShapeID("com.amazonaws.bedrockruntime#ModelNotReadyException"): ModelNotReadyException,
-ShapeID("com.amazonaws.bedrockruntime#ModelStreamErrorException"): ModelStreamErrorException,
-ShapeID("com.amazonaws.bedrockruntime#ModelTimeoutException"): ModelTimeoutException,
-ShapeID("com.amazonaws.bedrockruntime#ResourceNotFoundException"): ResourceNotFoundException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceQuotaExceededException"): ServiceQuotaExceededException,
-ShapeID("com.amazonaws.bedrockruntime#ServiceUnavailableException"): ServiceUnavailableException,
-ShapeID("com.amazonaws.bedrockruntime#ThrottlingException"): ThrottlingException,
-ShapeID("com.amazonaws.bedrockruntime#ValidationException"): ValidationException,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4")
-        ]
+    input=InvokeModelWithResponseStreamInput,
+    output=InvokeModelWithResponseStreamOutput,
+    schema=_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM,
+    input_schema=_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT,
+    output_schema=_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelErrorException"
+            ): ModelErrorException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelNotReadyException"
+            ): ModelNotReadyException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelStreamErrorException"
+            ): ModelStreamErrorException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ModelTimeoutException"
+            ): ModelTimeoutException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceQuotaExceededException"
+            ): ServiceQuotaExceededException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceUnavailableException"
+            ): ServiceUnavailableException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )

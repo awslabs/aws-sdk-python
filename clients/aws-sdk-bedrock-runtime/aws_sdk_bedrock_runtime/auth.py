@@ -10,21 +10,22 @@ class HTTPAuthParams:
     operation: str
     region: str | None
 
+
 class HTTPAuthSchemeResolver:
-    def resolve_auth_scheme(self, auth_parameters: HTTPAuthParams) -> list[HTTPAuthOption]:
+    def resolve_auth_scheme(
+        self, auth_parameters: HTTPAuthParams
+    ) -> list[HTTPAuthOption]:
         auth_options: list[HTTPAuthOption] = []
 
-        if ((option := _generate_sigv4_option(auth_parameters)) is not None):
+        if (option := _generate_sigv4_option(auth_parameters)) is not None:
             auth_options.append(option)
 
         return auth_options
+
 
 def _generate_sigv4_option(auth_params: HTTPAuthParams) -> HTTPAuthOption | None:
     return HTTPAuthOption(
         scheme_id="aws.auth#sigv4",
         identity_properties={},
-        signer_properties={
-            "service": "bedrock",
-            "region": auth_params.region
-        }
+        signer_properties={"service": "bedrock", "region": auth_params.region},
     )

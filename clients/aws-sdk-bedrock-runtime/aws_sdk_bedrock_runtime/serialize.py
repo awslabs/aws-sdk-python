@@ -32,7 +32,9 @@ from .models import (
 )
 
 
-async def _serialize_apply_guardrail(input: ApplyGuardrailInput, config: Config) -> HTTPRequest:
+async def _serialize_apply_guardrail(
+    input: ApplyGuardrailInput, config: Config
+) -> HTTPRequest:
     if not input.guardrail_identifier:
         raise ServiceError("guardrail_identifier must not be empty.")
 
@@ -40,16 +42,16 @@ async def _serialize_apply_guardrail(input: ApplyGuardrailInput, config: Config)
         raise ServiceError("guardrail_version must not be empty.")
 
     path = "/guardrail/{guardrail_identifier}/version/{guardrail_version}/apply".format(
-        guardrail_identifier=urlquote(input.guardrail_identifier, safe=''),
-        guardrail_version=urlquote(input.guardrail_version, safe=''),
+        guardrail_identifier=urlquote(input.guardrail_identifier, safe=""),
+        guardrail_version=urlquote(input.guardrail_version, safe=""),
     )
-    query: str = f''
+    query: str = f""
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
     content = codec.serialize(input)
     if not content:
-        content = b'{}'
+        content = b"{}"
     content_length = len(content)
     body = SeekableAsyncBytesReader(content)
 
@@ -57,7 +59,6 @@ async def _serialize_apply_guardrail(input: ApplyGuardrailInput, config: Config)
         [
             Field(name="Content-Type", values=["application/json"]),
             Field(name="Content-Length", values=[str(content_length)]),
-
         ]
     )
 
@@ -72,21 +73,22 @@ async def _serialize_apply_guardrail(input: ApplyGuardrailInput, config: Config)
         fields=headers,
         body=body,
     )
+
 
 async def _serialize_converse(input: ConverseInput, config: Config) -> HTTPRequest:
     if not input.model_id:
         raise ServiceError("model_id must not be empty.")
 
     path = "/model/{model_id}/converse".format(
-        model_id=urlquote(input.model_id, safe=''),
+        model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f''
+    query: str = f""
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
     content = codec.serialize(input)
     if not content:
-        content = b'{}'
+        content = b"{}"
     content_length = len(content)
     body = SeekableAsyncBytesReader(content)
 
@@ -94,7 +96,6 @@ async def _serialize_converse(input: ConverseInput, config: Config) -> HTTPReque
         [
             Field(name="Content-Type", values=["application/json"]),
             Field(name="Content-Length", values=[str(content_length)]),
-
         ]
     )
 
@@ -110,20 +111,23 @@ async def _serialize_converse(input: ConverseInput, config: Config) -> HTTPReque
         body=body,
     )
 
-async def _serialize_converse_stream(input: ConverseStreamInput, config: Config) -> HTTPRequest:
+
+async def _serialize_converse_stream(
+    input: ConverseStreamInput, config: Config
+) -> HTTPRequest:
     if not input.model_id:
         raise ServiceError("model_id must not be empty.")
 
     path = "/model/{model_id}/converse-stream".format(
-        model_id=urlquote(input.model_id, safe=''),
+        model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f''
+    query: str = f""
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
     content = codec.serialize(input)
     if not content:
-        content = b'{}'
+        content = b"{}"
     content_length = len(content)
     body = SeekableAsyncBytesReader(content)
 
@@ -131,7 +135,6 @@ async def _serialize_converse_stream(input: ConverseStreamInput, config: Config)
         [
             Field(name="Content-Type", values=["application/json"]),
             Field(name="Content-Length", values=[str(content_length)]),
-
         ]
     )
 
@@ -147,21 +150,20 @@ async def _serialize_converse_stream(input: ConverseStreamInput, config: Config)
         body=body,
     )
 
-async def _serialize_get_async_invoke(input: GetAsyncInvokeInput, config: Config) -> HTTPRequest:
+
+async def _serialize_get_async_invoke(
+    input: GetAsyncInvokeInput, config: Config
+) -> HTTPRequest:
     if not input.invocation_arn:
         raise ServiceError("invocation_arn must not be empty.")
 
     path = "/async-invoke/{invocation_arn}".format(
-        invocation_arn=urlquote(input.invocation_arn, safe=''),
+        invocation_arn=urlquote(input.invocation_arn, safe=""),
     )
-    query: str = f''
+    query: str = f""
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
-    headers = Fields(
-        [
-
-        ]
-    )
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
+    headers = Fields([])
 
     return _HTTPRequest(
         destination=_URI(
@@ -175,16 +177,19 @@ async def _serialize_get_async_invoke(input: GetAsyncInvokeInput, config: Config
         body=body,
     )
 
-async def _serialize_invoke_model(input: InvokeModelInput, config: Config) -> HTTPRequest:
+
+async def _serialize_invoke_model(
+    input: InvokeModelInput, config: Config
+) -> HTTPRequest:
     if not input.model_id:
         raise ServiceError("model_id must not be empty.")
 
     path = "/model/{model_id}/invoke".format(
-        model_id=urlquote(input.model_id, safe=''),
+        model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f''
+    query: str = f""
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     content_length: int = 0
     if input.body is not None:
         content_length = len(input.body)
@@ -193,22 +198,52 @@ async def _serialize_invoke_model(input: InvokeModelInput, config: Config) -> HT
         [
             Field(name="Content-Type", values=["application/octet-stream"]),
             Field(name="Content-Length", values=[str(content_length)]),
-
         ]
     )
 
     if input.content_type:
-        headers.extend(Fields([Field(name="Content-Type", values=[input.content_type])]))
+        headers.extend(
+            Fields([Field(name="Content-Type", values=[input.content_type])])
+        )
     if input.accept:
         headers.extend(Fields([Field(name="Accept", values=[input.accept])]))
     if input.trace:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-Trace", values=[input.trace])]))
+        headers.extend(
+            Fields([Field(name="X-Amzn-Bedrock-Trace", values=[input.trace])])
+        )
     if input.guardrail_identifier:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-GuardrailIdentifier", values=[input.guardrail_identifier])]))
+        headers.extend(
+            Fields(
+                [
+                    Field(
+                        name="X-Amzn-Bedrock-GuardrailIdentifier",
+                        values=[input.guardrail_identifier],
+                    )
+                ]
+            )
+        )
     if input.guardrail_version:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-GuardrailVersion", values=[input.guardrail_version])]))
+        headers.extend(
+            Fields(
+                [
+                    Field(
+                        name="X-Amzn-Bedrock-GuardrailVersion",
+                        values=[input.guardrail_version],
+                    )
+                ]
+            )
+        )
     if input.performance_config_latency:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-PerformanceConfig-Latency", values=[input.performance_config_latency])]))
+        headers.extend(
+            Fields(
+                [
+                    Field(
+                        name="X-Amzn-Bedrock-PerformanceConfig-Latency",
+                        values=[input.performance_config_latency],
+                    )
+                ]
+            )
+        )
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -221,22 +256,27 @@ async def _serialize_invoke_model(input: InvokeModelInput, config: Config) -> HT
         body=body,
     )
 
-async def _serialize_invoke_model_with_bidirectional_stream(input: InvokeModelWithBidirectionalStreamOperationInput, config: Config) -> HTTPRequest:
+
+async def _serialize_invoke_model_with_bidirectional_stream(
+    input: InvokeModelWithBidirectionalStreamOperationInput, config: Config
+) -> HTTPRequest:
     if not input.model_id:
         raise ServiceError("model_id must not be empty.")
 
     path = "/model/{model_id}/invoke-with-bidirectional-stream".format(
-        model_id=urlquote(input.model_id, safe=''),
+        model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f''
+    query: str = f""
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     body = AsyncBytesProvider()
     headers = Fields(
         [
-
             Field(name="Content-Type", values=["application/vnd.amazon.eventstream"]),
-            Field(name="X-Amz-Content-SHA256", values=["STREAMING-AWS4-HMAC-SHA256-EVENTS"]),
+            Field(
+                name="X-Amz-Content-SHA256",
+                values=["STREAMING-AWS4-HMAC-SHA256-EVENTS"],
+            ),
         ]
     )
 
@@ -252,16 +292,19 @@ async def _serialize_invoke_model_with_bidirectional_stream(input: InvokeModelWi
         body=body,
     )
 
-async def _serialize_invoke_model_with_response_stream(input: InvokeModelWithResponseStreamInput, config: Config) -> HTTPRequest:
+
+async def _serialize_invoke_model_with_response_stream(
+    input: InvokeModelWithResponseStreamInput, config: Config
+) -> HTTPRequest:
     if not input.model_id:
         raise ServiceError("model_id must not be empty.")
 
     path = "/model/{model_id}/invoke-with-response-stream".format(
-        model_id=urlquote(input.model_id, safe=''),
+        model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f''
+    query: str = f""
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     content_length: int = 0
     if input.body is not None:
         content_length = len(input.body)
@@ -270,22 +313,54 @@ async def _serialize_invoke_model_with_response_stream(input: InvokeModelWithRes
         [
             Field(name="Content-Type", values=["application/octet-stream"]),
             Field(name="Content-Length", values=[str(content_length)]),
-
         ]
     )
 
     if input.content_type:
-        headers.extend(Fields([Field(name="Content-Type", values=[input.content_type])]))
+        headers.extend(
+            Fields([Field(name="Content-Type", values=[input.content_type])])
+        )
     if input.accept:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-Accept", values=[input.accept])]))
+        headers.extend(
+            Fields([Field(name="X-Amzn-Bedrock-Accept", values=[input.accept])])
+        )
     if input.trace:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-Trace", values=[input.trace])]))
+        headers.extend(
+            Fields([Field(name="X-Amzn-Bedrock-Trace", values=[input.trace])])
+        )
     if input.guardrail_identifier:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-GuardrailIdentifier", values=[input.guardrail_identifier])]))
+        headers.extend(
+            Fields(
+                [
+                    Field(
+                        name="X-Amzn-Bedrock-GuardrailIdentifier",
+                        values=[input.guardrail_identifier],
+                    )
+                ]
+            )
+        )
     if input.guardrail_version:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-GuardrailVersion", values=[input.guardrail_version])]))
+        headers.extend(
+            Fields(
+                [
+                    Field(
+                        name="X-Amzn-Bedrock-GuardrailVersion",
+                        values=[input.guardrail_version],
+                    )
+                ]
+            )
+        )
     if input.performance_config_latency:
-        headers.extend(Fields([Field(name="X-Amzn-Bedrock-PerformanceConfig-Latency", values=[input.performance_config_latency])]))
+        headers.extend(
+            Fields(
+                [
+                    Field(
+                        name="X-Amzn-Bedrock-PerformanceConfig-Latency",
+                        values=[input.performance_config_latency],
+                    )
+                ]
+            )
+        )
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -298,15 +373,25 @@ async def _serialize_invoke_model_with_response_stream(input: InvokeModelWithRes
         body=body,
     )
 
-async def _serialize_list_async_invokes(input: ListAsyncInvokesInput, config: Config) -> HTTPRequest:
+
+async def _serialize_list_async_invokes(
+    input: ListAsyncInvokesInput, config: Config
+) -> HTTPRequest:
     path = "/async-invoke"
-    query: str = f''
+    query: str = f""
 
     query_params: list[tuple[str, str | None]] = []
     if input.submit_time_after is not None:
-        query_params.append(("submitTimeAfter", serialize_rfc3339(ensure_utc(input.submit_time_after))))
+        query_params.append(
+            ("submitTimeAfter", serialize_rfc3339(ensure_utc(input.submit_time_after)))
+        )
     if input.submit_time_before is not None:
-        query_params.append(("submitTimeBefore", serialize_rfc3339(ensure_utc(input.submit_time_before))))
+        query_params.append(
+            (
+                "submitTimeBefore",
+                serialize_rfc3339(ensure_utc(input.submit_time_before)),
+            )
+        )
     if input.status_equals is not None:
         query_params.append(("statusEquals", input.status_equals))
     if input.max_results is not None:
@@ -320,12 +405,8 @@ async def _serialize_list_async_invokes(input: ListAsyncInvokesInput, config: Co
 
     query = join_query_params(params=query_params, prefix=query)
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
-    headers = Fields(
-        [
-
-        ]
-    )
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
+    headers = Fields([])
 
     return _HTTPRequest(
         destination=_URI(
@@ -339,15 +420,18 @@ async def _serialize_list_async_invokes(input: ListAsyncInvokesInput, config: Co
         body=body,
     )
 
-async def _serialize_start_async_invoke(input: StartAsyncInvokeInput, config: Config) -> HTTPRequest:
-    path = "/async-invoke"
-    query: str = f''
 
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+async def _serialize_start_async_invoke(
+    input: StartAsyncInvokeInput, config: Config
+) -> HTTPRequest:
+    path = "/async-invoke"
+    query: str = f""
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
     content = codec.serialize(input)
     if not content:
-        content = b'{}'
+        content = b"{}"
     content_length = len(content)
     body = SeekableAsyncBytesReader(content)
 
@@ -355,7 +439,6 @@ async def _serialize_start_async_invoke(input: StartAsyncInvokeInput, config: Co
         [
             Field(name="Content-Type", values=["application/json"]),
             Field(name="Content-Length", values=[str(content_length)]),
-
         ]
     )
 

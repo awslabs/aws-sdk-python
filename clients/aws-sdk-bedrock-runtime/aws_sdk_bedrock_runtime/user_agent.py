@@ -12,6 +12,6 @@ def aws_user_agent_plugin(config: Config):
             ua_suffix=config.user_agent_extra,
             ua_app_id=config.sdk_ua_app_id,
             sdk_version=__version__,
-            service_id='Bedrock_Runtime'
+            service_id="Bedrock_Runtime",
         )
     )

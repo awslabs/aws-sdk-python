@@ -105,8 +105,8 @@ from .serialize import (
 from .user_agent import aws_user_agent_plugin
 
 
-
 logger = logging.getLogger(__name__)
+
 
 class BedrockRuntime:
     """<p>Describes the API operations for running inference using Amazon Bedrock models.</p>
@@ -117,12 +117,15 @@ class BedrockRuntime:
     :param plugins: A list of callables that modify the configuration dynamically. These
         can be used to set defaults, for example.
     """
-    def __init__(self, config: Config | None = None, plugins: list[Plugin] | None = None):
+
+    def __init__(
+        self, config: Config | None = None, plugins: list[Plugin] | None = None
+    ):
         self._config = config or Config()
 
         client_plugins: list[Plugin] = [
             aws_user_agent_plugin,
-    user_agent_plugin,
+            user_agent_plugin,
         ]
         if plugins:
             client_plugins.extend(plugins)
@@ -130,7 +133,9 @@ class BedrockRuntime:
         for plugin in client_plugins:
             plugin(self._config)
 
-    async def apply_guardrail(self, input: ApplyGuardrailInput, plugins: list[Plugin] | None = None) -> ApplyGuardrailOutput:
+    async def apply_guardrail(
+        self, input: ApplyGuardrailInput, plugins: list[Plugin] | None = None
+    ) -> ApplyGuardrailOutput:
         """:param input: The operation's input.
 
         :param plugins: A list of callables that modify the configuration dynamically.
@@ -143,9 +148,7 @@ class BedrockRuntime:
         in the Amazon Bedrock User Guide
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -158,7 +161,9 @@ class BedrockRuntime:
             operation=APPLY_GUARDRAIL,
         )
 
-    async def converse(self, input: ConverseInput, plugins: list[Plugin] | None = None) -> ConverseOperationOutput:
+    async def converse(
+        self, input: ConverseInput, plugins: list[Plugin] | None = None
+    ) -> ConverseOperationOutput:
         """:param input: The operation's input.
 
         :param plugins: A list of callables that modify the configuration dynamically.
@@ -199,9 +204,7 @@ class BedrockRuntime:
         in the Amazon Bedrock User Guide
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -215,9 +218,7 @@ class BedrockRuntime:
         )
 
     async def converse_stream(
-        self,
-        input: ConverseStreamInput,
-        plugins: list[Plugin] | None = None
+        self, input: ConverseStreamInput, plugins: list[Plugin] | None = None
     ) -> OutputEventStream[ConverseStreamOutput, ConverseStreamOperationOutput]:
         """:param input: The operation's input.
 
@@ -267,9 +268,7 @@ class BedrockRuntime:
         in the Amazon Bedrock User Guide
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -283,7 +282,9 @@ class BedrockRuntime:
             event_deserializer=_ConverseStreamOutputDeserializer().deserialize,
         )  # type: ignore
 
-    async def get_async_invoke(self, input: GetAsyncInvokeInput, plugins: list[Plugin] | None = None) -> GetAsyncInvokeOutput:
+    async def get_async_invoke(
+        self, input: GetAsyncInvokeInput, plugins: list[Plugin] | None = None
+    ) -> GetAsyncInvokeOutput:
         """:param input: The operation's input.
 
         :param plugins: A list of callables that modify the configuration dynamically.
@@ -293,9 +294,7 @@ class BedrockRuntime:
         Retrieve information about an asynchronous invocation.
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -308,7 +307,9 @@ class BedrockRuntime:
             operation=GET_ASYNC_INVOKE,
         )
 
-    async def invoke_model(self, input: InvokeModelInput, plugins: list[Plugin] | None = None) -> InvokeModelOutput:
+    async def invoke_model(
+        self, input: InvokeModelInput, plugins: list[Plugin] | None = None
+    ) -> InvokeModelOutput:
         """:param input: The operation's input.
 
         :param plugins: A list of callables that modify the configuration dynamically.
@@ -334,9 +335,7 @@ class BedrockRuntime:
         in the Amazon Bedrock User Guide
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -352,8 +351,12 @@ class BedrockRuntime:
     async def invoke_model_with_bidirectional_stream(
         self,
         input: InvokeModelWithBidirectionalStreamOperationInput,
-        plugins: list[Plugin] | None = None
-    ) -> DuplexEventStream[InvokeModelWithBidirectionalStreamInput, InvokeModelWithBidirectionalStreamOutput, InvokeModelWithBidirectionalStreamOperationOutput]:
+        plugins: list[Plugin] | None = None,
+    ) -> DuplexEventStream[
+        InvokeModelWithBidirectionalStreamInput,
+        InvokeModelWithBidirectionalStreamOutput,
+        InvokeModelWithBidirectionalStreamOperationOutput,
+    ]:
         """:param input: The operation's input.
 
         :param plugins: A list of callables that modify the configuration dynamically.
@@ -363,9 +366,7 @@ class BedrockRuntime:
         Invokes the InvokeModelWithBidirectionalStream operation.
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -382,7 +383,7 @@ class BedrockRuntime:
     async def invoke_model_with_response_stream(
         self,
         input: InvokeModelWithResponseStreamInput,
-        plugins: list[Plugin] | None = None
+        plugins: list[Plugin] | None = None,
     ) -> OutputEventStream[ResponseStream, InvokeModelWithResponseStreamOutput]:
         """:param input: The operation's input.
 
@@ -417,9 +418,7 @@ class BedrockRuntime:
         in the Amazon Bedrock User Guide
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -433,7 +432,9 @@ class BedrockRuntime:
             event_deserializer=_ResponseStreamDeserializer().deserialize,
         )  # type: ignore
 
-    async def list_async_invokes(self, input: ListAsyncInvokesInput, plugins: list[Plugin] | None = None) -> ListAsyncInvokesOutput:
+    async def list_async_invokes(
+        self, input: ListAsyncInvokesInput, plugins: list[Plugin] | None = None
+    ) -> ListAsyncInvokesOutput:
         """:param input: The operation's input.
 
         :param plugins: A list of callables that modify the configuration dynamically.
@@ -443,9 +444,7 @@ class BedrockRuntime:
         Lists asynchronous invocations.
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -458,7 +457,9 @@ class BedrockRuntime:
             operation=LIST_ASYNC_INVOKES,
         )
 
-    async def start_async_invoke(self, input: StartAsyncInvokeInput, plugins: list[Plugin] | None = None) -> StartAsyncInvokeOutput:
+    async def start_async_invoke(
+        self, input: StartAsyncInvokeInput, plugins: list[Plugin] | None = None
+    ) -> StartAsyncInvokeOutput:
         """:param input: The operation's input.
 
         :param plugins: A list of callables that modify the configuration dynamically.
@@ -476,9 +477,7 @@ class BedrockRuntime:
             .
 
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
 
@@ -495,7 +494,7 @@ class BedrockRuntime:
         self,
         *,
         error: Exception,
-        context: ResponseContext[Any, HTTPRequest, HTTPResponse | None]
+        context: ResponseContext[Any, HTTPRequest, HTTPResponse | None],
     ) -> RetryErrorInfo:
         logger.debug("Classifying error: %s", error)
 
@@ -508,7 +507,9 @@ class BedrockRuntime:
                 retry_header = context.transport_response.fields["retry-after"]
                 if retry_header and retry_header.values:
                     retry_after = float(retry_header.values[0])
-                return RetryErrorInfo(error_type=RetryErrorType.THROTTLING, retry_after_hint=retry_after)
+                return RetryErrorInfo(
+                    error_type=RetryErrorType.THROTTLING, retry_after_hint=retry_after
+                )
 
             if context.transport_response.status >= 500:
                 return RetryErrorInfo(error_type=RetryErrorType.SERVER_ERROR)
@@ -529,10 +530,17 @@ class BedrockRuntime:
         operation: APIOperation[Input, Output],
     ) -> Any:
         request_future = Future[RequestContext[Any, HTTPRequest]]()
-        awaitable_output = asyncio.create_task(self._execute_operation(
-            input, plugins, serialize, deserialize, config, operation,
-            request_future=request_future
-        ))
+        awaitable_output = asyncio.create_task(
+            self._execute_operation(
+                input,
+                plugins,
+                serialize,
+                deserialize,
+                config,
+                operation,
+                request_future=request_future,
+            )
+        )
         request_context = await request_future
         # TODO - Move this out of the RestJSON generator
         ctx = request_context
@@ -568,8 +576,13 @@ class BedrockRuntime:
     ) -> Any:
         response_future = Future[HTTPResponse]()
         output = await self._execute_operation(
-            input, plugins, serialize, deserialize, config, operation,
-            response_future=response_future
+            input,
+            plugins,
+            serialize,
+            deserialize,
+            config,
+            operation,
+            response_future=response_future,
         )
         transport_response = await response_future
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -581,10 +594,7 @@ class BedrockRuntime:
             deserializer=event_deserializer,  # type: ignore
         )
 
-        return OutputEventStream[Any, Any](
-            output_stream=receiver,
-            output=output
-        )
+        return OutputEventStream[Any, Any](output_stream=receiver, output=output)
 
     async def _duplex_stream[Input: SerializeableShape, Output: DeserializeableShape](
         self,
@@ -598,11 +608,18 @@ class BedrockRuntime:
     ) -> Any:
         request_future = Future[RequestContext[Any, HTTPRequest]]()
         response_future = Future[HTTPResponse]()
-        awaitable_output = asyncio.create_task(self._execute_operation(
-            input, plugins, serialize, deserialize, config, operation,
-            request_future=request_future,
-            response_future=response_future
-        ))
+        awaitable_output = asyncio.create_task(
+            self._execute_operation(
+                input,
+                plugins,
+                serialize,
+                deserialize,
+                config,
+                operation,
+                request_future=request_future,
+                response_future=response_future,
+            )
+        )
         request_context = await request_future
         # TODO - Move this out of the RestJSON generator
         ctx = request_context
@@ -621,16 +638,20 @@ class BedrockRuntime:
             signer=signer,  # type: ignore
         )
 
-        output_future = asyncio.create_task(self._wrap_duplex_output(
-            response_future, awaitable_output, config, operation,
-            event_deserializer
-        ))
+        output_future = asyncio.create_task(
+            self._wrap_duplex_output(
+                response_future, awaitable_output, config, operation, event_deserializer
+            )
+        )
         return DuplexEventStream[Any, Any, Any](
             input_stream=publisher,
             output_future=output_future,
         )
 
-    async def _wrap_duplex_output[Input: SerializeableShape, Output: DeserializeableShape](
+    async def _wrap_duplex_output[
+        Input: SerializeableShape,
+        Output: DeserializeableShape,
+    ](
         self,
         response_future: Future[HTTPResponse],
         awaitable_output: Future[Any],
@@ -650,7 +671,10 @@ class BedrockRuntime:
 
         return await awaitable_output, receiver
 
-    async def _execute_operation[Input: SerializeableShape, Output: DeserializeableShape](
+    async def _execute_operation[
+        Input: SerializeableShape,
+        Output: DeserializeableShape,
+    ](
         self,
         input: Input,
         plugins: list[Plugin],
@@ -663,8 +687,14 @@ class BedrockRuntime:
     ) -> Output:
         try:
             return await self._handle_execution(
-                input, plugins, serialize, deserialize, config, operation,
-                request_future, response_future,
+                input,
+                plugins,
+                serialize,
+                deserialize,
+                config,
+                operation,
+                request_future,
+                response_future,
             )
         except Exception as e:
             if request_future is not None and not request_future.done():
@@ -678,7 +708,10 @@ class BedrockRuntime:
                 raise ServiceError(e) from e
             raise
 
-    async def _handle_execution[Input: SerializeableShape, Output: DeserializeableShape](
+    async def _handle_execution[
+        Input: SerializeableShape,
+        Output: DeserializeableShape,
+    ](
         self,
         input: Input,
         plugins: list[Plugin],
@@ -690,17 +723,26 @@ class BedrockRuntime:
         response_future: Future[HTTPResponse] | None,
     ) -> Output:
         operation_name = operation.schema.id.name
-        logger.debug('Making request for operation "%s" with parameters: %s', operation_name, input)
+        logger.debug(
+            'Making request for operation "%s" with parameters: %s',
+            operation_name,
+            input,
+        )
         config = deepcopy(config)
         for plugin in plugins:
             plugin(config)
 
-        input_context = InputContext(request=input, properties=TypedProperties({"config": config}))
+        input_context = InputContext(
+            request=input, properties=TypedProperties({"config": config})
+        )
         transport_request: HTTPRequest | None = None
-        output_context: OutputContext[Input, Output, HTTPRequest | None, HTTPResponse | None] | None = None
+        output_context: (
+            OutputContext[Input, Output, HTTPRequest | None, HTTPResponse | None] | None
+        ) = None
 
         client_interceptors = cast(
-            list[Interceptor[Input, Output, HTTPRequest, HTTPResponse]], list(config.interceptors)
+            list[Interceptor[Input, Output, HTTPRequest, HTTPResponse]],
+            list(config.interceptors),
         )
         interceptor_chain = InterceptorChain(client_interceptors)
 
@@ -711,7 +753,7 @@ class BedrockRuntime:
             # Step 2: Invoke the modify_before_serialization hooks
             input_context = replace(
                 input_context,
-                request=interceptor_chain.modify_before_serialization(input_context)
+                request=interceptor_chain.modify_before_serialization(input_context),
             )
 
             # Step 3: Invoke the read_before_serialization hooks
@@ -725,7 +767,10 @@ class BedrockRuntime:
                 transport_request=transport_request,
                 properties=input_context.properties,
             )
-            logger.debug("Serialization complete. Transport request: %s", request_context.transport_request)
+            logger.debug(
+                "Serialization complete. Transport request: %s",
+                request_context.transport_request,
+            )
 
             # Step 5: Invoke read_after_serialization
             interceptor_chain.read_after_serialization(request_context)
@@ -733,7 +778,9 @@ class BedrockRuntime:
             # Step 6: Invoke modify_before_retry_loop
             request_context = replace(
                 request_context,
-                transport_request=interceptor_chain.modify_before_retry_loop(request_context)
+                transport_request=interceptor_chain.modify_before_retry_loop(
+                    request_context
+                ),
             )
 
             # Step 7: Acquire the retry token.
@@ -746,8 +793,8 @@ class BedrockRuntime:
                     deserialize,
                     interceptor_chain,
                     replace(
-                      request_context,
-                      transport_request = copy(request_context.transport_request)
+                        request_context,
+                        transport_request=copy(request_context.transport_request),
                     ),
                     config,
                     operation,
@@ -762,14 +809,14 @@ class BedrockRuntime:
                             error_info=self._classify_error(
                                 error=output_context.response,
                                 context=output_context,
-                            )
+                            ),
                         )
                     except SmithyRetryException:
                         raise output_context.response
                     logger.debug(
                         "Retry needed. Attempting request #%s in %.4f seconds.",
                         retry_token.retry_count + 1,
-                        retry_token.retry_delay
+                        retry_token.retry_delay,
                     )
                     await sleep(retry_token.retry_delay)
                     current_body = output_context.transport_request.body
@@ -786,7 +833,9 @@ class BedrockRuntime:
                     break
         except Exception as e:
             if output_context is not None:
-                logger.exception("Exception occurred while handling: %s", output_context.response)
+                logger.exception(
+                    "Exception occurred while handling: %s", output_context.response
+                )
                 output_context = replace(output_context, response=e)
             else:
                 output_context = OutputContext(
@@ -794,7 +843,7 @@ class BedrockRuntime:
                     response=e,
                     transport_request=transport_request,
                     transport_response=None,
-                    properties=input_context.properties
+                    properties=input_context.properties,
                 )
 
         return await self._finalize_execution(interceptor_chain, output_context)
@@ -847,11 +896,12 @@ class BedrockRuntime:
 
             # Step 7f: Invoke endpoint_resolver.resolve_endpoint
             endpoint_resolver_parameters = EndpointResolverParams(
-                operation=operation,
-                input=context.request,
-                context=context.properties
+                operation=operation, input=context.request, context=context.properties
             )
-            logger.debug("Calling endpoint resolver with parameters: %s", endpoint_resolver_parameters)
+            logger.debug(
+                "Calling endpoint resolver with parameters: %s",
+                endpoint_resolver_parameters,
+            )
             endpoint = await config.endpoint_resolver.resolve_endpoint(
                 endpoint_resolver_parameters
             )
@@ -877,8 +927,7 @@ class BedrockRuntime:
 
             # Step 7g: Invoke modify_before_signing
             context = replace(
-                context,
-                transport_request=interceptor.modify_before_signing(context)
+                context, transport_request=interceptor.modify_before_signing(context)
             )
 
             # Step 7h: Invoke read_before_signing
@@ -887,17 +936,14 @@ class BedrockRuntime:
             # Step 7i: sign the request
             if auth_option and signer:
                 logger.debug("HTTP request to sign: %s", context.transport_request)
-                logger.debug(
-                    "Signer properties: %s",
-                    auth_option.signer_properties
-                )
+                logger.debug("Signer properties: %s", auth_option.signer_properties)
                 context = replace(
                     context,
-                    transport_request= await signer.sign(
+                    transport_request=await signer.sign(
                         http_request=context.transport_request,
                         identity=identity,
                         signing_properties=auth_option.signer_properties,
-                    )
+                    ),
                 )
                 logger.debug("Signed HTTP request: %s", context.transport_request)
 
@@ -905,15 +951,15 @@ class BedrockRuntime:
                 fields = context.transport_request.fields
                 auth_value = fields["Authorization"].as_string()  # type: ignore
                 signature = re.split("Signature=", auth_value)[-1]  # type: ignore
-                context.properties["signature"] = signature.encode('utf-8')
+                context.properties["signature"] = signature.encode("utf-8")
 
                 identity_key: PropertyKey[Identity | None] = PropertyKey(
                     key="identity",
-                    value_type=Identity | None  # type: ignore
+                    value_type=Identity | None,  # type: ignore
                 )
                 sp_key: PropertyKey[dict[str, Any]] = PropertyKey(
                     key="signer_properties",
-                    value_type=dict[str, Any]  # type: ignore
+                    value_type=dict[str, Any],  # type: ignore
                 )
                 context.properties[identity_key] = identity
                 context.properties[sp_key] = auth_option.signer_properties
@@ -923,8 +969,7 @@ class BedrockRuntime:
 
             # Step 7k: Invoke modify_before_transmit
             context = replace(
-                context,
-                transport_request=interceptor.modify_before_transmit(context)
+                context, transport_request=interceptor.modify_before_transmit(context)
             )
 
             # Step 7l: Invoke read_before_transmit
@@ -936,10 +981,12 @@ class BedrockRuntime:
             logger.debug("Sending HTTP request: %s", context.transport_request)
 
             if request_future is not None:
-                response_task = asyncio.create_task(config.http_client.send(
-                    request=context.transport_request,
-                    request_config=request_config,
-                ))
+                response_task = asyncio.create_task(
+                    config.http_client.send(
+                        request=context.transport_request,
+                        request_config=request_config,
+                    )
+                )
                 request_future.set_result(context)
                 transport_response = await response_task
             else:
@@ -952,9 +999,11 @@ class BedrockRuntime:
                 request=context.request,
                 transport_request=context.transport_request,
                 transport_response=transport_response,
-                properties=context.properties
+                properties=context.properties,
             )
-            logger.debug("Received HTTP response: %s", response_context.transport_response)
+            logger.debug(
+                "Received HTTP response: %s", response_context.transport_response
+            )
 
             # Step 7n: Invoke read_after_transmit
             interceptor.read_after_transmit(response_context)
@@ -962,40 +1011,50 @@ class BedrockRuntime:
             # Step 7o: Invoke modify_before_deserialization
             response_context = replace(
                 response_context,
-                transport_response=interceptor.modify_before_deserialization(response_context)
+                transport_response=interceptor.modify_before_deserialization(
+                    response_context
+                ),
             )
 
             # Step 7p: Invoke read_before_deserialization
             interceptor.read_before_deserialization(response_context)
 
             # Step 7q: deserialize
-            logger.debug("Deserializing transport response: %s", response_context.transport_response)
-            output = await deserialize(
-                response_context.transport_response, config
+            logger.debug(
+                "Deserializing transport response: %s",
+                response_context.transport_response,
             )
+            output = await deserialize(response_context.transport_response, config)
             output_context = OutputContext(
                 request=response_context.request,
                 response=output,
                 transport_request=response_context.transport_request,
                 transport_response=response_context.transport_response,
-                properties=response_context.properties
+                properties=response_context.properties,
             )
-            logger.debug("Deserialization complete. Response: %s", output_context.response)
+            logger.debug(
+                "Deserialization complete. Response: %s", output_context.response
+            )
 
             # Step 7r: Invoke read_after_deserialization
             interceptor.read_after_deserialization(output_context)
         except Exception as e:
-            output_context: OutputContext[Input, Output, HTTPRequest, HTTPResponse] = OutputContext(
-                request=context.request,
-                response=e,  # type: ignore
-                transport_request=context.transport_request,
-                transport_response=transport_response,
-                properties=context.properties
+            output_context: OutputContext[Input, Output, HTTPRequest, HTTPResponse] = (
+                OutputContext(
+                    request=context.request,
+                    response=e,  # type: ignore
+                    transport_request=context.transport_request,
+                    transport_response=transport_response,
+                    properties=context.properties,
+                )
             )
 
         return await self._finalize_attempt(interceptor, output_context)
 
-    async def _finalize_attempt[Input: SerializeableShape, Output: DeserializeableShape](
+    async def _finalize_attempt[
+        Input: SerializeableShape,
+        Output: DeserializeableShape,
+    ](
         self,
         interceptor: Interceptor[Input, Output, HTTPRequest, HTTPResponse],
         context: OutputContext[Input, Output, HTTPRequest, HTTPResponse | None],
@@ -1003,8 +1062,7 @@ class BedrockRuntime:
         # Step 7s: Invoke modify_before_attempt_completion
         try:
             context = replace(
-                context,
-                response=interceptor.modify_before_attempt_completion(context)
+                context, response=interceptor.modify_before_attempt_completion(context)
             )
         except Exception as e:
             logger.exception("Exception occurred while handling: %s", context.response)
@@ -1018,7 +1076,10 @@ class BedrockRuntime:
 
         return context
 
-    async def _finalize_execution[Input: SerializeableShape, Output: DeserializeableShape](
+    async def _finalize_execution[
+        Input: SerializeableShape,
+        Output: DeserializeableShape,
+    ](
         self,
         interceptor: Interceptor[Input, Output, HTTPRequest, HTTPResponse],
         context: OutputContext[Input, Output, HTTPRequest | None, HTTPResponse | None],
@@ -1026,8 +1087,7 @@ class BedrockRuntime:
         try:
             # Step 9: Invoke modify_before_completion
             context = replace(
-                context,
-                response=interceptor.modify_before_completion(context)
+                context, response=interceptor.modify_before_completion(context)
             )
 
             # Step 10: Invoke trace_probe.dispatch_events
@@ -1035,7 +1095,9 @@ class BedrockRuntime:
                 pass
             except Exception as e:
                 # log and ignore exceptions
-                logger.exception("Exception occurred while dispatching trace events: %s", e)
+                logger.exception(
+                    "Exception occurred while dispatching trace events: %s", e
+                )
                 pass
         except Exception as e:
             logger.exception("Exception occurred while handling: %s", context.response)

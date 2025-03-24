@@ -37,7 +37,9 @@ from .models import (
 )
 
 
-async def _deserialize_apply_guardrail(http_response: HTTPResponse, config: Config) -> ApplyGuardrailOutput:
+async def _deserialize_apply_guardrail(
+    http_response: HTTPResponse, config: Config
+) -> ApplyGuardrailOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_apply_guardrail(http_response, config)
 
@@ -52,32 +54,50 @@ async def _deserialize_apply_guardrail(http_response: HTTPResponse, config: Conf
 
     return ApplyGuardrailOutput(**kwargs)
 
-async def _deserialize_error_apply_guardrail(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_apply_guardrail(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "resourcenotfoundexception":
-            return await _deserialize_error_resource_not_found_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_resource_not_found_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "servicequotaexceededexception":
-            return await _deserialize_error_service_quota_exceeded_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_quota_exceeded_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_converse(http_response: HTTPResponse, config: Config) -> ConverseOperationOutput:
+
+async def _deserialize_converse(
+    http_response: HTTPResponse, config: Config
+) -> ConverseOperationOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_converse(http_response, config)
 
@@ -92,41 +112,65 @@ async def _deserialize_converse(http_response: HTTPResponse, config: Config) -> 
 
     return ConverseOperationOutput(**kwargs)
 
-async def _deserialize_error_converse(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_converse(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelerrorexception":
-            return await _deserialize_error_model_error_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_error_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelnotreadyexception":
-            return await _deserialize_error_model_not_ready_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_not_ready_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modeltimeoutexception":
-            return await _deserialize_error_model_timeout_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_timeout_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "resourcenotfoundexception":
-            return await _deserialize_error_resource_not_found_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_resource_not_found_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "serviceunavailableexception":
-            return await _deserialize_error_service_unavailable_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_unavailable_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_converse_stream(http_response: HTTPResponse, config: Config) -> ConverseStreamOperationOutput:
+
+async def _deserialize_converse_stream(
+    http_response: HTTPResponse, config: Config
+) -> ConverseStreamOperationOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_converse_stream(http_response, config)
 
@@ -134,41 +178,65 @@ async def _deserialize_converse_stream(http_response: HTTPResponse, config: Conf
 
     return ConverseStreamOperationOutput(**kwargs)
 
-async def _deserialize_error_converse_stream(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_converse_stream(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelerrorexception":
-            return await _deserialize_error_model_error_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_error_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelnotreadyexception":
-            return await _deserialize_error_model_not_ready_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_not_ready_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modeltimeoutexception":
-            return await _deserialize_error_model_timeout_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_timeout_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "resourcenotfoundexception":
-            return await _deserialize_error_resource_not_found_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_resource_not_found_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "serviceunavailableexception":
-            return await _deserialize_error_service_unavailable_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_unavailable_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_get_async_invoke(http_response: HTTPResponse, config: Config) -> GetAsyncInvokeOutput:
+
+async def _deserialize_get_async_invoke(
+    http_response: HTTPResponse, config: Config
+) -> GetAsyncInvokeOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_get_async_invoke(http_response, config)
 
@@ -183,26 +251,40 @@ async def _deserialize_get_async_invoke(http_response: HTTPResponse, config: Con
 
     return GetAsyncInvokeOutput(**kwargs)
 
-async def _deserialize_error_get_async_invoke(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_get_async_invoke(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_invoke_model(http_response: HTTPResponse, config: Config) -> InvokeModelOutput:
+
+async def _deserialize_invoke_model(
+    http_response: HTTPResponse, config: Config
+) -> InvokeModelOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_invoke_model(http_response, config)
 
@@ -227,94 +309,152 @@ async def _deserialize_invoke_model(http_response: HTTPResponse, config: Config)
 
     return InvokeModelOutput(**kwargs)
 
-async def _deserialize_error_invoke_model(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_invoke_model(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelerrorexception":
-            return await _deserialize_error_model_error_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_error_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelnotreadyexception":
-            return await _deserialize_error_model_not_ready_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_not_ready_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modeltimeoutexception":
-            return await _deserialize_error_model_timeout_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_timeout_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "resourcenotfoundexception":
-            return await _deserialize_error_resource_not_found_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_resource_not_found_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "servicequotaexceededexception":
-            return await _deserialize_error_service_quota_exceeded_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_quota_exceeded_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "serviceunavailableexception":
-            return await _deserialize_error_service_unavailable_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_unavailable_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_invoke_model_with_bidirectional_stream(http_response: HTTPResponse, config: Config) -> InvokeModelWithBidirectionalStreamOperationOutput:
+
+async def _deserialize_invoke_model_with_bidirectional_stream(
+    http_response: HTTPResponse, config: Config
+) -> InvokeModelWithBidirectionalStreamOperationOutput:
     if http_response.status != 200 and http_response.status >= 300:
-        raise await _deserialize_error_invoke_model_with_bidirectional_stream(http_response, config)
+        raise await _deserialize_error_invoke_model_with_bidirectional_stream(
+            http_response, config
+        )
 
     kwargs: dict[str, Any] = {}
 
     return InvokeModelWithBidirectionalStreamOperationOutput(**kwargs)
 
-async def _deserialize_error_invoke_model_with_bidirectional_stream(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_invoke_model_with_bidirectional_stream(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelerrorexception":
-            return await _deserialize_error_model_error_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_error_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelnotreadyexception":
-            return await _deserialize_error_model_not_ready_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_not_ready_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelstreamerrorexception":
-            return await _deserialize_error_model_stream_error_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_stream_error_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modeltimeoutexception":
-            return await _deserialize_error_model_timeout_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_timeout_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "resourcenotfoundexception":
-            return await _deserialize_error_resource_not_found_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_resource_not_found_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "servicequotaexceededexception":
-            return await _deserialize_error_service_quota_exceeded_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_quota_exceeded_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "serviceunavailableexception":
-            return await _deserialize_error_service_unavailable_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_unavailable_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_invoke_model_with_response_stream(http_response: HTTPResponse, config: Config) -> InvokeModelWithResponseStreamOutput:
+
+async def _deserialize_invoke_model_with_response_stream(
+    http_response: HTTPResponse, config: Config
+) -> InvokeModelWithResponseStreamOutput:
     if http_response.status != 200 and http_response.status >= 300:
-        raise await _deserialize_error_invoke_model_with_response_stream(http_response, config)
+        raise await _deserialize_error_invoke_model_with_response_stream(
+            http_response, config
+        )
 
     kwargs: dict[str, Any] = {}
 
@@ -333,47 +473,75 @@ async def _deserialize_invoke_model_with_response_stream(http_response: HTTPResp
 
     return InvokeModelWithResponseStreamOutput(**kwargs)
 
-async def _deserialize_error_invoke_model_with_response_stream(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_invoke_model_with_response_stream(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelerrorexception":
-            return await _deserialize_error_model_error_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_error_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelnotreadyexception":
-            return await _deserialize_error_model_not_ready_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_not_ready_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modelstreamerrorexception":
-            return await _deserialize_error_model_stream_error_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_stream_error_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "modeltimeoutexception":
-            return await _deserialize_error_model_timeout_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_model_timeout_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "resourcenotfoundexception":
-            return await _deserialize_error_resource_not_found_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_resource_not_found_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "servicequotaexceededexception":
-            return await _deserialize_error_service_quota_exceeded_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_quota_exceeded_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "serviceunavailableexception":
-            return await _deserialize_error_service_unavailable_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_unavailable_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_list_async_invokes(http_response: HTTPResponse, config: Config) -> ListAsyncInvokesOutput:
+
+async def _deserialize_list_async_invokes(
+    http_response: HTTPResponse, config: Config
+) -> ListAsyncInvokesOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_list_async_invokes(http_response, config)
 
@@ -388,26 +556,40 @@ async def _deserialize_list_async_invokes(http_response: HTTPResponse, config: C
 
     return ListAsyncInvokesOutput(**kwargs)
 
-async def _deserialize_error_list_async_invokes(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_list_async_invokes(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_start_async_invoke(http_response: HTTPResponse, config: Config) -> StartAsyncInvokeOutput:
+
+async def _deserialize_start_async_invoke(
+    http_response: HTTPResponse, config: Config
+) -> StartAsyncInvokeOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_start_async_invoke(http_response, config)
 
@@ -422,36 +604,56 @@ async def _deserialize_start_async_invoke(http_response: HTTPResponse, config: C
 
     return StartAsyncInvokeOutput(**kwargs)
 
-async def _deserialize_error_start_async_invoke(http_response: HTTPResponse, config: Config) -> ApiError:
+
+async def _deserialize_error_start_async_invoke(
+    http_response: HTTPResponse, config: Config
+) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():
         case "accessdeniedexception":
-            return await _deserialize_error_access_denied_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_access_denied_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "conflictexception":
-            return await _deserialize_error_conflict_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_conflict_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "internalserverexception":
-            return await _deserialize_error_internal_server_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_internal_server_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "resourcenotfoundexception":
-            return await _deserialize_error_resource_not_found_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_resource_not_found_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "servicequotaexceededexception":
-            return await _deserialize_error_service_quota_exceeded_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_quota_exceeded_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "serviceunavailableexception":
-            return await _deserialize_error_service_unavailable_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_service_unavailable_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "throttlingexception":
-            return await _deserialize_error_throttling_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_throttling_exception(
+                http_response, config, parsed_body, message
+            )
 
         case "validationexception":
-            return await _deserialize_error_validation_exception(http_response, config, parsed_body, message)
+            return await _deserialize_error_validation_exception(
+                http_response, config, parsed_body, message
+            )
 
         case _:
             return UnknownApiError(f"{code}: {message}")
+
 
 async def _deserialize_error_access_denied_exception(
     http_response: HTTPResponse,
@@ -464,7 +666,7 @@ async def _deserialize_error_access_denied_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -473,6 +675,7 @@ async def _deserialize_error_access_denied_exception(
         kwargs.update(body_kwargs)
 
     return AccessDeniedException(**kwargs)
+
 
 async def _deserialize_error_conflict_exception(
     http_response: HTTPResponse,
@@ -485,7 +688,7 @@ async def _deserialize_error_conflict_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -494,6 +697,7 @@ async def _deserialize_error_conflict_exception(
         kwargs.update(body_kwargs)
 
     return ConflictException(**kwargs)
+
 
 async def _deserialize_error_internal_server_exception(
     http_response: HTTPResponse,
@@ -506,7 +710,7 @@ async def _deserialize_error_internal_server_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -515,6 +719,7 @@ async def _deserialize_error_internal_server_exception(
         kwargs.update(body_kwargs)
 
     return InternalServerException(**kwargs)
+
 
 async def _deserialize_error_model_error_exception(
     http_response: HTTPResponse,
@@ -527,7 +732,7 @@ async def _deserialize_error_model_error_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -536,6 +741,7 @@ async def _deserialize_error_model_error_exception(
         kwargs.update(body_kwargs)
 
     return ModelErrorException(**kwargs)
+
 
 async def _deserialize_error_model_not_ready_exception(
     http_response: HTTPResponse,
@@ -548,7 +754,7 @@ async def _deserialize_error_model_not_ready_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -557,6 +763,7 @@ async def _deserialize_error_model_not_ready_exception(
         kwargs.update(body_kwargs)
 
     return ModelNotReadyException(**kwargs)
+
 
 async def _deserialize_error_model_stream_error_exception(
     http_response: HTTPResponse,
@@ -569,7 +776,7 @@ async def _deserialize_error_model_stream_error_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -578,6 +785,7 @@ async def _deserialize_error_model_stream_error_exception(
         kwargs.update(body_kwargs)
 
     return ModelStreamErrorException(**kwargs)
+
 
 async def _deserialize_error_model_timeout_exception(
     http_response: HTTPResponse,
@@ -590,7 +798,7 @@ async def _deserialize_error_model_timeout_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -599,6 +807,7 @@ async def _deserialize_error_model_timeout_exception(
         kwargs.update(body_kwargs)
 
     return ModelTimeoutException(**kwargs)
+
 
 async def _deserialize_error_resource_not_found_exception(
     http_response: HTTPResponse,
@@ -611,7 +820,7 @@ async def _deserialize_error_resource_not_found_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -620,6 +829,7 @@ async def _deserialize_error_resource_not_found_exception(
         kwargs.update(body_kwargs)
 
     return ResourceNotFoundException(**kwargs)
+
 
 async def _deserialize_error_service_quota_exceeded_exception(
     http_response: HTTPResponse,
@@ -632,7 +842,7 @@ async def _deserialize_error_service_quota_exceeded_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -641,6 +851,7 @@ async def _deserialize_error_service_quota_exceeded_exception(
         kwargs.update(body_kwargs)
 
     return ServiceQuotaExceededException(**kwargs)
+
 
 async def _deserialize_error_service_unavailable_exception(
     http_response: HTTPResponse,
@@ -653,7 +864,7 @@ async def _deserialize_error_service_unavailable_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -662,6 +873,7 @@ async def _deserialize_error_service_unavailable_exception(
         kwargs.update(body_kwargs)
 
     return ServiceUnavailableException(**kwargs)
+
 
 async def _deserialize_error_throttling_exception(
     http_response: HTTPResponse,
@@ -674,7 +886,7 @@ async def _deserialize_error_throttling_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -683,6 +895,7 @@ async def _deserialize_error_throttling_exception(
         kwargs.update(body_kwargs)
 
     return ThrottlingException(**kwargs)
+
 
 async def _deserialize_error_validation_exception(
     http_response: HTTPResponse,
@@ -695,7 +908,7 @@ async def _deserialize_error_validation_exception(
     if parsed_body is None:
         body = await http_response.consume_body_async()
     else:
-        body = json.dumps(parsed_body).encode('utf-8')
+        body = json.dumps(parsed_body).encode("utf-8")
 
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)

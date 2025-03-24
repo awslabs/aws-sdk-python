@@ -44,12 +44,36 @@ from .models import (
 )
 
 
-_ServiceInterceptor = Union[Interceptor[ApplyGuardrailInput, ApplyGuardrailOutput, Any, Any], Interceptor[ConverseInput, ConverseOperationOutput, Any, Any], Interceptor[ConverseStreamInput, ConverseStreamOperationOutput, Any, Any], Interceptor[GetAsyncInvokeInput, GetAsyncInvokeOutput, Any, Any], Interceptor[InvokeModelInput, InvokeModelOutput, Any, Any], Interceptor[InvokeModelWithBidirectionalStreamOperationInput, InvokeModelWithBidirectionalStreamOperationOutput, Any, Any], Interceptor[InvokeModelWithResponseStreamInput, InvokeModelWithResponseStreamOutput, Any, Any], Interceptor[ListAsyncInvokesInput, ListAsyncInvokesOutput, Any, Any], Interceptor[StartAsyncInvokeInput, StartAsyncInvokeOutput, Any, Any]]
+_ServiceInterceptor = Union[
+    Interceptor[ApplyGuardrailInput, ApplyGuardrailOutput, Any, Any],
+    Interceptor[ConverseInput, ConverseOperationOutput, Any, Any],
+    Interceptor[ConverseStreamInput, ConverseStreamOperationOutput, Any, Any],
+    Interceptor[GetAsyncInvokeInput, GetAsyncInvokeOutput, Any, Any],
+    Interceptor[InvokeModelInput, InvokeModelOutput, Any, Any],
+    Interceptor[
+        InvokeModelWithBidirectionalStreamOperationInput,
+        InvokeModelWithBidirectionalStreamOperationOutput,
+        Any,
+        Any,
+    ],
+    Interceptor[
+        InvokeModelWithResponseStreamInput,
+        InvokeModelWithResponseStreamOutput,
+        Any,
+        Any,
+    ],
+    Interceptor[ListAsyncInvokesInput, ListAsyncInvokesOutput, Any, Any],
+    Interceptor[StartAsyncInvokeInput, StartAsyncInvokeOutput, Any, Any],
+]
+
+
 @dataclass(init=False)
 class Config:
     """Configuration for AmazonBedrockFrontendService."""
 
-    aws_credentials_identity_resolver: IdentityResolver[AWSCredentialsIdentity, IdentityProperties] | None
+    aws_credentials_identity_resolver: (
+        IdentityResolver[AWSCredentialsIdentity, IdentityProperties] | None
+    )
     endpoint_resolver: _EndpointResolver
     endpoint_uri: str | URI | None
     http_auth_scheme_resolver: HTTPAuthSchemeResolver
@@ -65,7 +89,10 @@ class Config:
     def __init__(
         self,
         *,
-        aws_credentials_identity_resolver: IdentityResolver[AWSCredentialsIdentity, IdentityProperties] | None = None,
+        aws_credentials_identity_resolver: IdentityResolver[
+            AWSCredentialsIdentity, IdentityProperties
+        ]
+        | None = None,
         endpoint_resolver: _EndpointResolver | None = None,
         endpoint_uri: str | URI | None = None,
         http_auth_scheme_resolver: HTTPAuthSchemeResolver | None = None,
@@ -113,9 +140,13 @@ class Config:
 
         """
         self.aws_credentials_identity_resolver = aws_credentials_identity_resolver
-        self.endpoint_resolver = endpoint_resolver or _RegionalResolver(endpoint_prefix="bedrock-runtime")
+        self.endpoint_resolver = endpoint_resolver or _RegionalResolver(
+            endpoint_prefix="bedrock-runtime"
+        )
         self.endpoint_uri = endpoint_uri
-        self.http_auth_scheme_resolver = http_auth_scheme_resolver or HTTPAuthSchemeResolver()
+        self.http_auth_scheme_resolver = (
+            http_auth_scheme_resolver or HTTPAuthSchemeResolver()
+        )
         self.http_auth_schemes = http_auth_schemes or {
             "aws.auth#sigv4": SigV4AuthScheme(),
         }
@@ -136,6 +167,7 @@ class Config:
         :param scheme: The auth scheme to add.
         """
         self.http_auth_schemes[scheme.scheme_id] = scheme
+
 
 #
 # A callable that allows customizing the config object on each request.
