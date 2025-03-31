@@ -1,0 +1,7 @@
+# Document history for the Amazon Bedrock Runtime client User Guide<a name="doc-history"></a>
+
+The following table describes the documentation releases for Amazon Bedrock Runtime client\.
+
+| Change | Description | Date | 
+| --- |--- |--- |
+| [Initial release](#doc-history) | Initial release of the experimental Amazon Bedrock Runtime client for Python Developer Guide | April 2, 2025 | 
