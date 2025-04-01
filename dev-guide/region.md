@@ -7,7 +7,7 @@ Most resources reside in a specific AWS Region and you must supply the correct R
 
 ## Specifying the region inline<a name="region-setting"></a>
 
-The Region is specified by setting the `region` property of the `Config` object to a string giving the name of the Region\. For example, to specify the region "us\-east\-1" when creating an Amazon Bedrock Runtime client:
+The Region is specified by setting the `region` property of the `Config` object to a string giving the name of the Region\. For example, to specify the region `us-east-1` when creating an Amazon Bedrock Runtime client:
 
 ```
     service_client = BedrockRuntime(
@@ -23,7 +23,7 @@ Not all Amazon Bedrock foundation models are available in all Regions\. See [Mod
 
 ## Getting the region from the environment<a name="region-getting-from-environment"></a>
 
-The Amazon Bedrock Runtime client does not currently support automatically retrieving the value of the `AWS_REGION` environment variable\. To make your application use this variable to specify the Region in which to operate, you can add code similar to the following to your project:
+The experimental Amazon Bedrock Runtime client for Python does not currently support automatically retrieving the value of the `AWS_REGION` environment variable\. To make your application use this variable to specify the Region in which to operate, you can add code similar to the following to your project:
 
 ```
 import os

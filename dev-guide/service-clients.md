@@ -18,8 +18,7 @@ The SDK has a series of places \(or sources\) that it checks in order to find a 
 1. Any explicit setting set in the code or on a service client itself takes precedence over anything else\.
 
 1. Environment variables
-**Note**  
-At this time, environment variables are only used to obtain credentials using the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables\.
+   + **Note: **At this time, environment variables are only used to obtain credentials using the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` variables\.
    + For details on setting environment variables, see [environment variables](https://docs.aws.amazon.com/sdkref/latest/guide/environment-variables.html) in the *AWS SDKs and Tools Reference Guide*\.
 
 1. Any default value provided by the SDK source code itself is used last\.

@@ -1,4 +1,4 @@
-# Document history for the Amazon Bedrock Runtime client User Guide<a name="doc-history"></a>
+# Document history for the experimental Amazon Bedrock Runtime client for Python Developer Guide<a name="doc-history"></a>
 
 The following table describes the documentation releases for Amazon Bedrock Runtime client\.
 
