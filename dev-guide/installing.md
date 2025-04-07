@@ -25,7 +25,7 @@ This will install into your environment the experimental Amazon Bedrock Runtime 
 If your project requires a specific version of the Amazon Bedrock Runtime client, you may wish to provide constraints when installing the package:
 
 ```
-$ # Install Amazon Bedrock Runtime client version 0.0.1 specifically
+$ # Install experimental Amazon Bedrock Runtime client for Python version 0.0.1 specifically
 $ python -m pip install aws-sdk-bedrock-runtime==0.0.1
 
 $ # Make sure the experimental Amazon Bedrock Runtime client for Python is no older than version 0.0.2
@@ -35,4 +35,4 @@ $ # Avoid versions of the experimental Amazon Bedrock Runtime client for Python 
 $ pip install aws-sdk-bedrock-runtime<=0.0.3
 ```
 
-While the Amazon Bedrock Runtime client for Python is experimental, you may wish to pin to a specific version or the client, or to versions up to and including a specific version, in order to prevent updating to a version that isn't compatible with your application\.
+As long as the Amazon Bedrock Runtime client for Python is experimental, you may wish to pin to a specific version of the client, or to versions up to and including a specific version, in order to prevent updating to a version that isn't compatible with your application\.

@@ -4,4 +4,4 @@ The following table describes the documentation releases for Amazon Bedrock Runt
 
 | Change | Description | Date | 
 | --- |--- |--- |
-| [Initial release](#doc-history) | Initial release of the experimental Amazon Bedrock Runtime client for Python Developer Guide | April 2, 2025 | 
+| [Initial release](#doc-history) | Initial release of the experimental Amazon Bedrock Runtime client for Python Developer Guide | April 8, 2025 | 

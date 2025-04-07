@@ -1,1 +1,0 @@
-# Guided examples for calling AWS services using experimental Amazon Bedrock Runtime client for Python<a name="guided-examples"></a>
