@@ -10,17 +10,17 @@ $ python -m venv .venv
 $ source .venv/bin/activate
 ```
 
-This provides an isolated space for your installation that will avoid unexpected interactions with packages installed at the system level\. Skipping this step may result in unexpected dependency conflicts or failures with other tools installed on your system\.
+This provides an isolated space for your installation that will avoid unexpected interactions with packages installed at the system level. Skipping this step may result in unexpected dependency conflicts or failures with other tools installed on your system.
 
 ## Installing the experimental Amazon Bedrock Runtime client for Python<a name="installing-sdk"></a>
 
-To add the SDK to your Python project, use the pip tool to install each service package into your environment\. For example, to install support for the Amazon Bedrock Runtime, use the following command:
+To add the SDK to your Python project, use the pip tool to install each service package into your environment. For example, to install support for the Amazon Bedrock Runtime, use the following command:
 
 ```
 $ python -m pip install aws-sdk-bedrock-runtime
 ```
 
-This will install into your environment the experimental Amazon Bedrock Runtime client for Python package\(s\) you specify, as well as their dependencies, including `[smithy\-python](https://github.com/smithy-lang/smithy-python)`\.
+This will install into your environment the experimental Amazon Bedrock Runtime client for Python package(s) you specify, as well as their dependencies, including `[smithy-python](https://github.com/smithy-lang/smithy-python)`.
 
 If your project requires a specific version of the Amazon Bedrock Runtime client, you may wish to provide constraints when installing the package:
 
@@ -35,4 +35,4 @@ $ # Avoid versions of the experimental Amazon Bedrock Runtime client for Python 
 $ pip install aws-sdk-bedrock-runtime<=0.0.3
 ```
 
-As long as the Amazon Bedrock Runtime client for Python is experimental, you may wish to pin to a specific version of the client, or to versions up to and including a specific version, in order to prevent updating to a version that isn't compatible with your application\.
+As long as the Amazon Bedrock Runtime client for Python is experimental, you may wish to pin to a specific version of the client, or to versions up to and including a specific version, in order to prevent updating to a version that isn't compatible with your application.
