@@ -45,7 +45,7 @@ async def _serialize_apply_guardrail(
         guardrail_identifier=urlquote(input.guardrail_identifier, safe=""),
         guardrail_version=urlquote(input.guardrail_version, safe=""),
     )
-    query: str = f""
+    query: str = ""
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -82,7 +82,7 @@ async def _serialize_converse(input: ConverseInput, config: Config) -> HTTPReque
     path = "/model/{model_id}/converse".format(
         model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f""
+    query: str = ""
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -121,7 +121,7 @@ async def _serialize_converse_stream(
     path = "/model/{model_id}/converse-stream".format(
         model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f""
+    query: str = ""
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
@@ -160,7 +160,7 @@ async def _serialize_get_async_invoke(
     path = "/async-invoke/{invocation_arn}".format(
         invocation_arn=urlquote(input.invocation_arn, safe=""),
     )
-    query: str = f""
+    query: str = ""
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     headers = Fields([])
@@ -187,7 +187,7 @@ async def _serialize_invoke_model(
     path = "/model/{model_id}/invoke".format(
         model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f""
+    query: str = ""
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     content_length: int = 0
@@ -266,7 +266,7 @@ async def _serialize_invoke_model_with_bidirectional_stream(
     path = "/model/{model_id}/invoke-with-bidirectional-stream".format(
         model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f""
+    query: str = ""
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     body = AsyncBytesProvider()
@@ -302,7 +302,7 @@ async def _serialize_invoke_model_with_response_stream(
     path = "/model/{model_id}/invoke-with-response-stream".format(
         model_id=urlquote(input.model_id, safe=""),
     )
-    query: str = f""
+    query: str = ""
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     content_length: int = 0
@@ -378,7 +378,7 @@ async def _serialize_list_async_invokes(
     input: ListAsyncInvokesInput, config: Config
 ) -> HTTPRequest:
     path = "/async-invoke"
-    query: str = f""
+    query: str = ""
 
     query_params: list[tuple[str, str | None]] = []
     if input.submit_time_after is not None:
@@ -425,7 +425,7 @@ async def _serialize_start_async_invoke(
     input: StartAsyncInvokeInput, config: Config
 ) -> HTTPRequest:
     path = "/async-invoke"
-    query: str = f""
+    query: str = ""
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b"")
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)

@@ -4,6 +4,7 @@ from types import MappingProxyType
 
 from smithy_core.prelude import (
     BLOB,
+    BOOLEAN,
     DOCUMENT,
     DOUBLE,
     FLOAT,
@@ -1072,6 +1073,27 @@ GUARDRAIL_VERSION = Schema(
     ],
 )
 
+GUARDRAIL_OUTPUT_SCOPE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#GuardrailOutputScope"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "INTERVENTIONS": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="INTERVENTIONS"),
+            ],
+        },
+        "FULL": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="FULL"),
+            ],
+        },
+    },
+)
+
 GUARDRAIL_CONTENT_SOURCE = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#GuardrailContentSource"),
     shape_type=ShapeType.ENUM,
@@ -1133,6 +1155,10 @@ APPLY_GUARDRAIL_INPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
+        "outputScope": {
+            "target": GUARDRAIL_OUTPUT_SCOPE,
+            "index": 4,
+        },
     },
 )
 
@@ -1168,6 +1194,13 @@ GUARDRAIL_CONTENT_POLICY_ACTION = Schema.collection(
             "index": 0,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="BLOCKED"),
+            ],
+        },
+        "NONE": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="NONE"),
             ],
         },
     },
@@ -1320,6 +1353,10 @@ GUARDRAIL_CONTENT_FILTER = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
+        "detected": {
+            "target": BOOLEAN,
+            "index": 4,
+        },
     },
 )
 
@@ -1438,6 +1475,10 @@ GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
+        "detected": {
+            "target": BOOLEAN,
+            "index": 4,
+        },
     },
 )
 
@@ -1546,6 +1587,16 @@ GUARDRAIL_PROCESSING_LATENCY = Schema(
     ],
 )
 
+GUARDRAIL_CONTENT_POLICY_IMAGE_UNITS_PROCESSED = Schema(
+    id=ShapeID(
+        "com.amazonaws.bedrockruntime#GuardrailContentPolicyImageUnitsProcessed"
+    ),
+    shape_type=ShapeType.INTEGER,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#box")),
+    ],
+)
+
 GUARDRAIL_CONTENT_POLICY_UNITS_PROCESSED = Schema(
     id=ShapeID("com.amazonaws.bedrockruntime#GuardrailContentPolicyUnitsProcessed"),
     shape_type=ShapeType.INTEGER,
@@ -1645,6 +1696,10 @@ GUARDRAIL_USAGE = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
+        "contentPolicyImageUnits": {
+            "target": GUARDRAIL_CONTENT_POLICY_IMAGE_UNITS_PROCESSED,
+            "index": 6,
+        },
     },
 )
 
@@ -1684,6 +1739,13 @@ GUARDRAIL_SENSITIVE_INFORMATION_POLICY_ACTION = Schema.collection(
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="BLOCKED"),
+            ],
+        },
+        "NONE": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="NONE"),
             ],
         },
     },
@@ -1973,6 +2035,10 @@ GUARDRAIL_PII_ENTITY_FILTER = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
+        "detected": {
+            "target": BOOLEAN,
+            "index": 3,
+        },
     },
 )
 
@@ -2008,6 +2074,10 @@ GUARDRAIL_REGEX_FILTER = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
+        },
+        "detected": {
+            "target": BOOLEAN,
+            "index": 4,
         },
     },
 )
@@ -2056,6 +2126,13 @@ GUARDRAIL_TOPIC_POLICY_ACTION = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="BLOCKED"),
             ],
         },
+        "NONE": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="NONE"),
+            ],
+        },
     },
 )
 
@@ -2097,6 +2174,10 @@ GUARDRAIL_TOPIC = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
+        "detected": {
+            "target": BOOLEAN,
+            "index": 3,
+        },
     },
 )
 
@@ -2135,6 +2216,13 @@ GUARDRAIL_WORD_POLICY_ACTION = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="BLOCKED"),
             ],
         },
+        "NONE": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="NONE"),
+            ],
+        },
     },
 )
 
@@ -2154,6 +2242,10 @@ GUARDRAIL_CUSTOM_WORD = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
+        },
+        "detected": {
+            "target": BOOLEAN,
+            "index": 2,
         },
     },
 )
@@ -2206,6 +2298,10 @@ GUARDRAIL_MANAGED_WORD = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
+        },
+        "detected": {
+            "target": BOOLEAN,
+            "index": 3,
         },
     },
 )
@@ -2332,23 +2428,27 @@ APPLY_GUARDRAIL_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
+        "actionReason": {
+            "target": STRING,
+            "index": 2,
+        },
         "outputs": {
             "target": GUARDRAIL_OUTPUT_CONTENT_LIST,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
         "assessments": {
             "target": GUARDRAIL_ASSESSMENT_LIST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
         "guardrailCoverage": {
             "target": GUARDRAIL_COVERAGE,
-            "index": 4,
+            "index": 5,
         },
     },
 )
@@ -2386,6 +2486,13 @@ GUARDRAIL_TRACE = Schema.collection(
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="disabled"),
+            ],
+        },
+        "ENABLED_FULL": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="enabled_full"),
             ],
         },
     },
@@ -2503,6 +2610,33 @@ INFERENCE_CONFIGURATION = Schema.collection(
                         }
                     ),
                 ),
+            ],
+        },
+    },
+)
+
+CACHE_POINT_TYPE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#CachePointType"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "DEFAULT": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="default"),
+            ],
+        },
+    },
+)
+
+CACHE_POINT_BLOCK = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#CachePointBlock"),
+    members={
+        "type": {
+            "target": CACHE_POINT_TYPE,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
             ],
         },
     },
@@ -3196,9 +3330,13 @@ CONTENT_BLOCK = Schema.collection(
             "target": GUARDRAIL_CONVERSE_CONTENT_BLOCK,
             "index": 6,
         },
+        "cachePoint": {
+            "target": CACHE_POINT_BLOCK,
+            "index": 7,
+        },
         "reasoningContent": {
             "target": REASONING_CONTENT_BLOCK,
-            "index": 7,
+            "index": 8,
         },
     },
 )
@@ -3418,6 +3556,10 @@ SYSTEM_CONTENT_BLOCK = Schema.collection(
             "target": GUARDRAIL_CONVERSE_CONTENT_BLOCK,
             "index": 1,
         },
+        "cachePoint": {
+            "target": CACHE_POINT_BLOCK,
+            "index": 2,
+        },
     },
 )
 
@@ -3514,6 +3656,10 @@ TOOL = Schema.collection(
         "toolSpec": {
             "target": TOOL_SPECIFICATION,
             "index": 0,
+        },
+        "cachePoint": {
+            "target": CACHE_POINT_BLOCK,
+            "index": 1,
         },
     },
 )
@@ -3756,6 +3902,10 @@ GUARDRAIL_TRACE_ASSESSMENT = Schema.collection(
             "target": GUARDRAIL_ASSESSMENT_LIST_MAP,
             "index": 2,
         },
+        "actionReason": {
+            "target": STRING,
+            "index": 3,
+        },
     },
 )
 
@@ -3832,6 +3982,34 @@ TOKEN_USAGE = Schema.collection(
             "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(
+                    id=ShapeID("smithy.api#range"),
+                    value=MappingProxyType(
+                        {
+                            "min": 0,
+                        }
+                    ),
+                ),
+            ],
+        },
+        "cacheReadInputTokens": {
+            "target": INTEGER,
+            "index": 3,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#range"),
+                    value=MappingProxyType(
+                        {
+                            "min": 0,
+                        }
+                    ),
+                ),
+            ],
+        },
+        "cacheWriteInputTokens": {
+            "target": INTEGER,
+            "index": 4,
+            "traits": [
                 Trait.new(
                     id=ShapeID("smithy.api#range"),
                     value=MappingProxyType(
@@ -4518,6 +4696,13 @@ TRACE = Schema.collection(
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="DISABLED"),
+            ],
+        },
+        "ENABLED_FULL": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="ENABLED_FULL"),
             ],
         },
     },
@@ -6055,20 +6240,6 @@ AMAZON_BEDROCK_FRONTEND_SERVICE = Schema(
                 }
             ),
         ),
-        Trait.new(
-            id=ShapeID("aws.protocols#restJson1"),
-            value=MappingProxyType(
-                {
-                    "http": (
-                        "h2",
-                        "http/1.1",
-                    ),
-                    "eventStreamHttp": (
-                        "h2",
-                        "http/1.1",
-                    ),
-                }
-            ),
-        ),
+        Trait.new(id=ShapeID("aws.protocols#restJson1")),
     ],
 )

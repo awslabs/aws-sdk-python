@@ -8,7 +8,6 @@ from smithy_aws_core.endpoints.standard_regional import (
     StandardRegionalEndpointsResolver as _RegionalResolver,
 )
 from smithy_aws_core.identity import AWSCredentialsIdentity
-from smithy_core.aio.endpoints import StaticEndpointResolver
 from smithy_core.aio.interfaces import EndpointResolver as _EndpointResolver
 from smithy_core.aio.interfaces.identity import IdentityResolver
 from smithy_core.interceptors import Interceptor
@@ -107,36 +106,44 @@ class Config:
     ):
         """Constructor.
 
-        :param aws_credentials_identity_resolver: Resolves AWS Credentials. Required for
-        operations that use Sigv4 Auth.
+        :param aws_credentials_identity_resolver:
+             Resolves AWS Credentials. Required for operations that use Sigv4 Auth.
 
-        :param endpoint_resolver: The endpoint resolver used to resolve the final
-        endpoint per-operation based on the configuration.
+        :param endpoint_resolver:
+             The endpoint resolver used to resolve the final endpoint per-operation based on
+             the configuration.
 
-        :param endpoint_uri: A static URI to route requests to.
+        :param endpoint_uri:
+             A static URI to route requests to.
 
-        :param http_auth_scheme_resolver: An http auth scheme resolver that determines
-        the auth scheme for each operation.
+        :param http_auth_scheme_resolver:
+             An http auth scheme resolver that determines the auth scheme for each operation.
 
-        :param http_auth_schemes: A map of http auth scheme ids to http auth schemes.
+        :param http_auth_schemes:
+             A map of http auth scheme ids to http auth schemes.
 
-        :param http_client: The HTTP client used to make requests.
+        :param http_client:
+             The HTTP client used to make requests.
 
-        :param http_request_config: Configuration for individual HTTP requests.
+        :param http_request_config:
+             Configuration for individual HTTP requests.
 
-        :param interceptors: The list of interceptors, which are hooks that are called
-        during the execution of a request.
+        :param interceptors:
+             The list of interceptors, which are hooks that are called during the execution
+             of a request.
 
-        :param region: The AWS region to connect to. The configured region is used to
-        determine the service endpoint.
+        :param region:
+             The AWS region to connect to. The configured region is used to determine the
+             service endpoint.
 
-        :param retry_strategy: The retry strategy for issuing retry tokens and computing
-        retry delays.
+        :param retry_strategy:
+             The retry strategy for issuing retry tokens and computing retry delays.
 
-        :param sdk_ua_app_id: A unique and opaque application ID that is appended to the
-        User-Agent header.
+        :param sdk_ua_app_id:
+             A unique and opaque application ID that is appended to the User-Agent header.
 
-        :param user_agent_extra: Additional suffix to be added to the User-Agent header.
+        :param user_agent_extra:
+             Additional suffix to be added to the User-Agent header.
 
         """
         self.aws_credentials_identity_resolver = aws_credentials_identity_resolver

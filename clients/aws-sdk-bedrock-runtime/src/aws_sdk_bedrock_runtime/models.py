@@ -25,6 +25,7 @@ from ._private.schemas import (
     AUTO_TOOL_CHOICE as _SCHEMA_AUTO_TOOL_CHOICE,
     BIDIRECTIONAL_INPUT_PAYLOAD_PART as _SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART,
     BIDIRECTIONAL_OUTPUT_PAYLOAD_PART as _SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART,
+    CACHE_POINT_BLOCK as _SCHEMA_CACHE_POINT_BLOCK,
     CONFLICT_EXCEPTION as _SCHEMA_CONFLICT_EXCEPTION,
     CONTENT_BLOCK as _SCHEMA_CONTENT_BLOCK,
     CONTENT_BLOCK_DELTA as _SCHEMA_CONTENT_BLOCK_DELTA,
@@ -249,7 +250,7 @@ class GetAsyncInvokeInput:
     """
 
     :param invocation_arn:
-    The invocation's ARN.
+        **[Required]** - The invocation's ARN.
 
     """
 
@@ -289,13 +290,13 @@ class AsyncInvokeS3OutputDataConfig:
     Asynchronous invocation output data settings.
 
     :param s3_uri:
-    An object URI starting with ``s3://``.
+        **[Required]** - An object URI starting with ``s3://``.
 
     :param kms_key_id:
-    A KMS encryption key ID.
+        A KMS encryption key ID.
 
     :param bucket_owner:
-    If the bucket belongs to another AWS account, specify that account's ID.
+        If the bucket belongs to another AWS account, specify that account's ID.
 
     """
 
@@ -460,31 +461,31 @@ class GetAsyncInvokeOutput:
     """
 
     :param invocation_arn:
-    The invocation's ARN.
+        **[Required]** - The invocation's ARN.
 
     :param model_arn:
-    The invocation's model ARN.
+        **[Required]** - The invocation's model ARN.
 
     :param status:
-    The invocation's status.
+        **[Required]** - The invocation's status.
 
     :param submit_time:
-    When the invocation request was submitted.
+        **[Required]** - When the invocation request was submitted.
 
     :param output_data_config:
-    Output data settings.
+        **[Required]** - Output data settings.
 
     :param client_request_token:
-    The invocation's idempotency token.
+        The invocation's idempotency token.
 
     :param failure_message:
-    An error message.
+        An error message.
 
     :param last_modified_time:
-    The invocation's last modified time.
+        The invocation's last modified time.
 
     :param end_time:
-    When the invocation ended.
+        When the invocation ended.
 
     """
 
@@ -791,26 +792,26 @@ class ListAsyncInvokesInput:
     """
 
     :param submit_time_after:
-    Include invocations submitted after this time.
+        Include invocations submitted after this time.
 
     :param submit_time_before:
-    Include invocations submitted before this time.
+        Include invocations submitted before this time.
 
     :param status_equals:
-    Filter invocations by status.
+        Filter invocations by status.
 
     :param max_results:
-    The maximum number of invocations to return in one page of results.
+        The maximum number of invocations to return in one page of results.
 
     :param next_token:
-    Specify the pagination token from a previous request to retrieve the next page
-    of results.
+        Specify the pagination token from a previous request to retrieve the next page
+        of results.
 
     :param sort_by:
-    How to sort the response.
+        How to sort the response.
 
     :param sort_order:
-    The sorting order for the response.
+        The sorting order for the response.
 
     """
 
@@ -886,31 +887,31 @@ class AsyncInvokeSummary:
     A summary of an asynchronous invocation.
 
     :param invocation_arn:
-    The invocation's ARN.
+        **[Required]** - The invocation's ARN.
 
     :param model_arn:
-    The invoked model's ARN.
+        **[Required]** - The invoked model's ARN.
 
     :param submit_time:
-    When the invocation was submitted.
+        **[Required]** - When the invocation was submitted.
 
     :param output_data_config:
-    The invocation's output data settings.
+        **[Required]** - The invocation's output data settings.
 
     :param client_request_token:
-    The invocation's idempotency token.
+        The invocation's idempotency token.
 
     :param status:
-    The invocation's status.
+        The invocation's status.
 
     :param failure_message:
-    An error message.
+        An error message.
 
     :param last_modified_time:
-    When the invocation was last modified.
+        When the invocation was last modified.
 
     :param end_time:
-    When the invocation ended.
+        When the invocation ended.
 
     """
 
@@ -1066,11 +1067,11 @@ class ListAsyncInvokesOutput:
     """
 
     :param next_token:
-    Specify the pagination token from a previous request to retrieve the next page
-    of results.
+        Specify the pagination token from a previous request to retrieve the next page
+        of results.
 
     :param async_invoke_summaries:
-    A list of invocation summaries.
+        A list of invocation summaries.
 
     """
 
@@ -1350,10 +1351,10 @@ class Tag:
     A tag.
 
     :param key:
-    The tag's key.
+        **[Required]** - The tag's key.
 
     :param value:
-    The tag's value.
+        **[Required]** - The tag's value.
 
     """
 
@@ -1419,19 +1420,19 @@ class StartAsyncInvokeInput:
     """
 
     :param client_request_token:
-    Specify idempotency token to ensure that requests are not duplicated.
+        Specify idempotency token to ensure that requests are not duplicated.
 
     :param model_id:
-    The model to invoke.
+        **[Required]** - The model to invoke.
 
     :param model_input:
-    Input to send to the model.
+        **[Required]** - Input to send to the model.
 
     :param output_data_config:
-    Where to store the output.
+        **[Required]** - Where to store the output.
 
     :param tags:
-    Tags to apply to the invocation.
+        Tags to apply to the invocation.
 
     """
 
@@ -1519,7 +1520,7 @@ class StartAsyncInvokeOutput:
     """
 
     :param invocation_arn:
-    The ARN of the invocation.
+        **[Required]** - The ARN of the invocation.
 
     """
 
@@ -1692,10 +1693,12 @@ class GuardrailImageBlock:
     guardrails independent API.
 
     :param format:
-    The format details for the file type of the image blocked by the guardrail.
+        **[Required]** - The format details for the file type of the image blocked by
+        the guardrail.
 
     :param source:
-    The image source (image bytes) details of the image blocked by the guardrail.
+        **[Required]** - The image source (image bytes) details of the image blocked by
+        the guardrail.
 
     """
 
@@ -1779,10 +1782,10 @@ class GuardrailTextBlock:
     The text block to be evaluated by the guardrail.
 
     :param text:
-    The input text details to be evaluated by the guardrail.
+        **[Required]** - The input text details to be evaluated by the guardrail.
 
     :param qualifiers:
-    The qualifiers describing the text block.
+        The qualifiers describing the text block.
 
     """
 
@@ -1966,6 +1969,11 @@ def _deserialize_guardrail_content_block_list(
     return result
 
 
+class GuardrailOutputScope(StrEnum):
+    INTERVENTIONS = "INTERVENTIONS"
+    FULL = "FULL"
+
+
 class GuardrailContentSource(StrEnum):
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
@@ -1976,16 +1984,28 @@ class ApplyGuardrailInput:
     """
 
     :param guardrail_identifier:
-    The guardrail identifier used in the request to apply the guardrail.
+        **[Required]** - The guardrail identifier used in the request to apply the
+        guardrail.
 
     :param guardrail_version:
-    The guardrail version used in the request to apply the guardrail.
+        **[Required]** - The guardrail version used in the request to apply the
+        guardrail.
 
     :param source:
-    The source of data used in the request to apply the guardrail.
+        **[Required]** - The source of data used in the request to apply the guardrail.
 
     :param content:
-    The content details used in the request to apply the guardrail.
+        **[Required]** - The content details used in the request to apply the guardrail.
+
+    :param output_scope:
+        Specifies the scope of the output that you get in the response. Set to ``FULL``
+        to return the entire output, including any detected and non-detected entries in
+        the response for enhanced debugging.
+
+        Note that the full output scope doesn't apply to word filters or regex in
+        sensitive information filters. It does apply to all other filtering policies,
+        including sensitive information with filters that can detect personally
+        identifiable information (PII).
 
     """
 
@@ -1993,6 +2013,7 @@ class ApplyGuardrailInput:
     guardrail_version: str | None = None
     source: str | None = None
     content: list[GuardrailContentBlock] | None = None
+    output_scope: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_APPLY_GUARDRAIL_INPUT, self)
@@ -2008,6 +2029,11 @@ class ApplyGuardrailInput:
                 serializer,
                 _SCHEMA_APPLY_GUARDRAIL_INPUT.members["content"],
                 self.content,
+            )
+
+        if self.output_scope is not None:
+            serializer.write_string(
+                _SCHEMA_APPLY_GUARDRAIL_INPUT.members["outputScope"], self.output_scope
             )
 
     @classmethod
@@ -2040,6 +2066,11 @@ class ApplyGuardrailInput:
                         de, _SCHEMA_APPLY_GUARDRAIL_INPUT.members["content"]
                     )
 
+                case 4:
+                    kwargs["output_scope"] = de.read_string(
+                        _SCHEMA_APPLY_GUARDRAIL_INPUT.members["outputScope"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -2054,6 +2085,7 @@ class GuardrailAction(StrEnum):
 
 class GuardrailContentPolicyAction(StrEnum):
     BLOCKED = "BLOCKED"
+    NONE = "NONE"
 
 
 class GuardrailContentFilterConfidence(StrEnum):
@@ -2085,16 +2117,19 @@ class GuardrailContentFilter:
     The content filter for a guardrail.
 
     :param type:
-    The guardrail type.
+        **[Required]** - The guardrail type.
 
     :param confidence:
-    The guardrail confidence.
+        **[Required]** - The guardrail confidence.
 
     :param action:
-    The guardrail action.
+        **[Required]** - The guardrail action.
 
     :param filter_strength:
-    The filter strength setting for the guardrail content filter.
+        The filter strength setting for the guardrail content filter.
+
+    :param detected:
+        Indicates whether content that breaches the guardrail configuration is detected.
 
     """
 
@@ -2105,6 +2140,7 @@ class GuardrailContentFilter:
     action: str
 
     filter_strength: str | None = None
+    detected: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_FILTER, self)
@@ -2125,6 +2161,10 @@ class GuardrailContentFilter:
         serializer.write_string(
             _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["action"], self.action
         )
+        if self.detected is not None:
+            serializer.write_boolean(
+                _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["detected"], self.detected
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2154,6 +2194,11 @@ class GuardrailContentFilter:
                 case 3:
                     kwargs["action"] = de.read_string(
                         _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["action"]
+                    )
+
+                case 4:
+                    kwargs["detected"] = de.read_boolean(
+                        _SCHEMA_GUARDRAIL_CONTENT_FILTER.members["detected"]
                     )
 
                 case _:
@@ -2194,7 +2239,7 @@ class GuardrailContentPolicyAssessment:
     An assessment of a content policy for a guardrail.
 
     :param filters:
-    The content policy filters.
+        **[Required]** - The content policy filters.
 
     """
 
@@ -2251,17 +2296,23 @@ class GuardrailContextualGroundingFilter:
     The details for the guardrails contextual grounding filter.
 
     :param type:
-    The contextual grounding filter type.
+        **[Required]** - The contextual grounding filter type.
 
     :param threshold:
-    The threshold used by contextual grounding filter to determine whether the
-    content is grounded or not.
+        **[Required]** - The threshold used by contextual grounding filter to determine
+        whether the content is grounded or not.
 
     :param score:
-    The score generated by contextual grounding filter.
+        **[Required]** - The score generated by contextual grounding filter.
 
     :param action:
-    The action performed by the guardrails contextual grounding filter.
+        **[Required]** - The action performed by the guardrails contextual grounding
+        filter.
+
+    :param detected:
+        Indicates whether content that fails the contextual grounding evaluation
+        (grounding or relevance score less than the corresponding threshold) was
+        detected.
 
     """
 
@@ -2272,6 +2323,8 @@ class GuardrailContextualGroundingFilter:
     score: float
 
     action: str
+
+    detected: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER, self)
@@ -2290,6 +2343,11 @@ class GuardrailContextualGroundingFilter:
         serializer.write_string(
             _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["action"], self.action
         )
+        if self.detected is not None:
+            serializer.write_boolean(
+                _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["detected"],
+                self.detected,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2321,6 +2379,13 @@ class GuardrailContextualGroundingFilter:
                 case 3:
                     kwargs["action"] = de.read_string(
                         _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members["action"]
+                    )
+
+                case 4:
+                    kwargs["detected"] = de.read_boolean(
+                        _SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER.members[
+                            "detected"
+                        ]
                     )
 
                 case _:
@@ -2365,7 +2430,7 @@ class GuardrailContextualGroundingPolicyAssessment:
     The policy assessment details for the guardrails contextual grounding filter.
 
     :param filters:
-    The filter details for the guardrails contextual grounding filter.
+        The filter details for the guardrails contextual grounding filter.
 
     """
 
@@ -2421,11 +2486,11 @@ class GuardrailImageCoverage:
     The details of the guardrail image coverage.
 
     :param guarded:
-    The count (integer) of images guardrails guarded.
+        The count (integer) of images guardrails guarded.
 
     :param total:
-    Represents the total number of images (integer) that were in the request
-    (guarded and unguarded).
+        Represents the total number of images (integer) that were in the request
+        (guarded and unguarded).
 
     """
 
@@ -2479,10 +2544,10 @@ class GuardrailTextCharactersCoverage:
     The guardrail coverage for the text characters.
 
     :param guarded:
-    The text characters that were guarded by the guardrail coverage.
+        The text characters that were guarded by the guardrail coverage.
 
     :param total:
-    The total text characters by the guardrail coverage.
+        The total text characters by the guardrail coverage.
 
     """
 
@@ -2539,11 +2604,11 @@ class GuardrailCoverage:
     The action of the guardrail coverage details.
 
     :param text_characters:
-    The text characters of the guardrail coverage details.
+        The text characters of the guardrail coverage details.
 
     :param images:
-    The guardrail coverage for images (the number of images that guardrails
-    guarded).
+        The guardrail coverage for images (the number of images that guardrails
+        guarded).
 
     """
 
@@ -2596,22 +2661,28 @@ class GuardrailUsage:
     The details on the use of the guardrail.
 
     :param topic_policy_units:
-    The topic policy units processed by the guardrail.
+        **[Required]** - The topic policy units processed by the guardrail.
 
     :param content_policy_units:
-    The content policy units processed by the guardrail.
+        **[Required]** - The content policy units processed by the guardrail.
 
     :param word_policy_units:
-    The word policy units processed by the guardrail.
+        **[Required]** - The word policy units processed by the guardrail.
 
     :param sensitive_information_policy_units:
-    The sensitive information policy units processed by the guardrail.
+        **[Required]** - The sensitive information policy units processed by the
+        guardrail.
 
     :param sensitive_information_policy_free_units:
-    The sensitive information policy free units processed by the guardrail.
+        **[Required]** - The sensitive information policy free units processed by the
+        guardrail.
 
     :param contextual_grounding_policy_units:
-    The contextual grounding policy units processed by the guardrail.
+        **[Required]** - The contextual grounding policy units processed by the
+        guardrail.
+
+    :param content_policy_image_units:
+        The content policy image units processed by the guardrail.
 
     """
 
@@ -2626,6 +2697,8 @@ class GuardrailUsage:
     sensitive_information_policy_free_units: int
 
     contextual_grounding_policy_units: int
+
+    content_policy_image_units: int | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_USAGE, self)
@@ -2653,6 +2726,11 @@ class GuardrailUsage:
             _SCHEMA_GUARDRAIL_USAGE.members["contextualGroundingPolicyUnits"],
             self.contextual_grounding_policy_units,
         )
+        if self.content_policy_image_units is not None:
+            serializer.write_integer(
+                _SCHEMA_GUARDRAIL_USAGE.members["contentPolicyImageUnits"],
+                self.content_policy_image_units,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2700,6 +2778,11 @@ class GuardrailUsage:
                         ]
                     )
 
+                case 6:
+                    kwargs["content_policy_image_units"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members["contentPolicyImageUnits"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -2713,13 +2796,13 @@ class GuardrailInvocationMetrics:
     The invocation metrics for the guardrail.
 
     :param guardrail_processing_latency:
-    The processing latency details for the guardrail invocation metrics.
+        The processing latency details for the guardrail invocation metrics.
 
     :param usage:
-    The usage details for the guardrail invocation metrics.
+        The usage details for the guardrail invocation metrics.
 
     :param guardrail_coverage:
-    The coverage details for the guardrail invocation metrics.
+        The coverage details for the guardrail invocation metrics.
 
     """
 
@@ -2785,6 +2868,7 @@ class GuardrailInvocationMetrics:
 class GuardrailSensitiveInformationPolicyAction(StrEnum):
     ANONYMIZED = "ANONYMIZED"
     BLOCKED = "BLOCKED"
+    NONE = "NONE"
 
 
 class GuardrailPiiEntityType(StrEnum):
@@ -2827,13 +2911,17 @@ class GuardrailPiiEntityFilter:
     A Personally Identifiable Information (PII) entity configured in a guardrail.
 
     :param match:
-    The PII entity filter match.
+        **[Required]** - The PII entity filter match.
 
     :param type:
-    The PII entity filter type.
+        **[Required]** - The PII entity filter type.
 
     :param action:
-    The PII entity filter action.
+        **[Required]** - The PII entity filter action.
+
+    :param detected:
+        Indicates whether personally identifiable information (PII) that breaches the
+        guardrail configuration is detected.
 
     """
 
@@ -2842,6 +2930,8 @@ class GuardrailPiiEntityFilter:
     type: str
 
     action: str
+
+    detected: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER, self)
@@ -2856,6 +2946,10 @@ class GuardrailPiiEntityFilter:
         serializer.write_string(
             _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["action"], self.action
         )
+        if self.detected is not None:
+            serializer.write_boolean(
+                _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["detected"], self.detected
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2880,6 +2974,11 @@ class GuardrailPiiEntityFilter:
                 case 2:
                     kwargs["action"] = de.read_string(
                         _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["action"]
+                    )
+
+                case 3:
+                    kwargs["detected"] = de.read_boolean(
+                        _SCHEMA_GUARDRAIL_PII_ENTITY_FILTER.members["detected"]
                     )
 
                 case _:
@@ -2922,16 +3021,20 @@ class GuardrailRegexFilter:
     A Regex filter configured in a guardrail.
 
     :param action:
-    The region filter action.
+        **[Required]** - The region filter action.
 
     :param name:
-    The regex filter name.
+        The regex filter name.
 
     :param match:
-    The regesx filter match.
+        The regesx filter match.
 
     :param regex:
-    The regex query.
+        The regex query.
+
+    :param detected:
+        Indicates whether custom regex entities that breach the guardrail configuration
+        are detected.
 
     """
 
@@ -2940,6 +3043,7 @@ class GuardrailRegexFilter:
     name: str | None = None
     match: str | None = None
     regex: str | None = None
+    detected: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_REGEX_FILTER, self)
@@ -2963,6 +3067,10 @@ class GuardrailRegexFilter:
         serializer.write_string(
             _SCHEMA_GUARDRAIL_REGEX_FILTER.members["action"], self.action
         )
+        if self.detected is not None:
+            serializer.write_boolean(
+                _SCHEMA_GUARDRAIL_REGEX_FILTER.members["detected"], self.detected
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -2992,6 +3100,11 @@ class GuardrailRegexFilter:
                 case 3:
                     kwargs["action"] = de.read_string(
                         _SCHEMA_GUARDRAIL_REGEX_FILTER.members["action"]
+                    )
+
+                case 4:
+                    kwargs["detected"] = de.read_boolean(
+                        _SCHEMA_GUARDRAIL_REGEX_FILTER.members["detected"]
                     )
 
                 case _:
@@ -3032,10 +3145,10 @@ class GuardrailSensitiveInformationPolicyAssessment:
     The assessment for aPersonally Identifiable Information (PII) policy.
 
     :param pii_entities:
-    The PII entities in the assessment.
+        **[Required]** - The PII entities in the assessment.
 
     :param regexes:
-    The regex queries in the assessment.
+        **[Required]** - The regex queries in the assessment.
 
     """
 
@@ -3104,6 +3217,7 @@ class GuardrailSensitiveInformationPolicyAssessment:
 
 class GuardrailTopicPolicyAction(StrEnum):
     BLOCKED = "BLOCKED"
+    NONE = "NONE"
 
 
 class GuardrailTopicType(StrEnum):
@@ -3116,14 +3230,19 @@ class GuardrailTopic:
     Information about a topic guardrail.
 
     :param name:
-    The name for the guardrail.
+        **[Required]** - The name for the guardrail.
 
     :param type:
-    The type behavior that the guardrail should perform when the model detects the
-    topic.
+        **[Required]** - The type behavior that the guardrail should perform when the
+        model detects the topic.
 
     :param action:
-    The action the guardrail should take when it intervenes on a topic.
+        **[Required]** - The action the guardrail should take when it intervenes on a
+        topic.
+
+    :param detected:
+        Indicates whether topic content that breaches the guardrail configuration is
+        detected.
 
     """
 
@@ -3133,6 +3252,8 @@ class GuardrailTopic:
 
     action: str
 
+    detected: bool | None = None
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TOPIC, self)
 
@@ -3140,6 +3261,10 @@ class GuardrailTopic:
         serializer.write_string(_SCHEMA_GUARDRAIL_TOPIC.members["name"], self.name)
         serializer.write_string(_SCHEMA_GUARDRAIL_TOPIC.members["type"], self.type)
         serializer.write_string(_SCHEMA_GUARDRAIL_TOPIC.members["action"], self.action)
+        if self.detected is not None:
+            serializer.write_boolean(
+                _SCHEMA_GUARDRAIL_TOPIC.members["detected"], self.detected
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3164,6 +3289,11 @@ class GuardrailTopic:
                 case 2:
                     kwargs["action"] = de.read_string(
                         _SCHEMA_GUARDRAIL_TOPIC.members["action"]
+                    )
+
+                case 3:
+                    kwargs["detected"] = de.read_boolean(
+                        _SCHEMA_GUARDRAIL_TOPIC.members["detected"]
                     )
 
                 case _:
@@ -3204,7 +3334,7 @@ class GuardrailTopicPolicyAssessment:
     A behavior assessment of a topic policy.
 
     :param topics:
-    The topics in the assessment.
+        **[Required]** - The topics in the assessment.
 
     """
 
@@ -3246,6 +3376,7 @@ class GuardrailTopicPolicyAssessment:
 
 class GuardrailWordPolicyAction(StrEnum):
     BLOCKED = "BLOCKED"
+    NONE = "NONE"
 
 
 @dataclass(kw_only=True)
@@ -3254,16 +3385,22 @@ class GuardrailCustomWord:
     A custom word configured in a guardrail.
 
     :param match:
-    The match for the custom word.
+        **[Required]** - The match for the custom word.
 
     :param action:
-    The action for the custom word.
+        **[Required]** - The action for the custom word.
+
+    :param detected:
+        Indicates whether custom word content that breaches the guardrail configuration
+        is detected.
 
     """
 
     match: str
 
     action: str
+
+    detected: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CUSTOM_WORD, self)
@@ -3275,6 +3412,10 @@ class GuardrailCustomWord:
         serializer.write_string(
             _SCHEMA_GUARDRAIL_CUSTOM_WORD.members["action"], self.action
         )
+        if self.detected is not None:
+            serializer.write_boolean(
+                _SCHEMA_GUARDRAIL_CUSTOM_WORD.members["detected"], self.detected
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3294,6 +3435,11 @@ class GuardrailCustomWord:
                 case 1:
                     kwargs["action"] = de.read_string(
                         _SCHEMA_GUARDRAIL_CUSTOM_WORD.members["action"]
+                    )
+
+                case 2:
+                    kwargs["detected"] = de.read_boolean(
+                        _SCHEMA_GUARDRAIL_CUSTOM_WORD.members["detected"]
                     )
 
                 case _:
@@ -3338,13 +3484,17 @@ class GuardrailManagedWord:
     A managed word configured in a guardrail.
 
     :param match:
-    The match for the managed word.
+        **[Required]** - The match for the managed word.
 
     :param type:
-    The type for the managed word.
+        **[Required]** - The type for the managed word.
 
     :param action:
-    The action for the managed word.
+        **[Required]** - The action for the managed word.
+
+    :param detected:
+        Indicates whether managed word content that breaches the guardrail configuration
+        is detected.
 
     """
 
@@ -3353,6 +3503,8 @@ class GuardrailManagedWord:
     type: str
 
     action: str
+
+    detected: bool | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_MANAGED_WORD, self)
@@ -3367,6 +3519,10 @@ class GuardrailManagedWord:
         serializer.write_string(
             _SCHEMA_GUARDRAIL_MANAGED_WORD.members["action"], self.action
         )
+        if self.detected is not None:
+            serializer.write_boolean(
+                _SCHEMA_GUARDRAIL_MANAGED_WORD.members["detected"], self.detected
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -3391,6 +3547,11 @@ class GuardrailManagedWord:
                 case 2:
                     kwargs["action"] = de.read_string(
                         _SCHEMA_GUARDRAIL_MANAGED_WORD.members["action"]
+                    )
+
+                case 3:
+                    kwargs["detected"] = de.read_boolean(
+                        _SCHEMA_GUARDRAIL_MANAGED_WORD.members["detected"]
                     )
 
                 case _:
@@ -3431,10 +3592,10 @@ class GuardrailWordPolicyAssessment:
     The word policy assessment.
 
     :param custom_words:
-    Custom words in the assessment.
+        **[Required]** - Custom words in the assessment.
 
     :param managed_word_lists:
-    Managed word lists in the assessment.
+        **[Required]** - Managed word lists in the assessment.
 
     """
 
@@ -3499,22 +3660,22 @@ class GuardrailAssessment:
     API.
 
     :param topic_policy:
-    The topic policy.
+        The topic policy.
 
     :param content_policy:
-    The content policy.
+        The content policy.
 
     :param word_policy:
-    The word policy.
+        The word policy.
 
     :param sensitive_information_policy:
-    The sensitive information policy.
+        The sensitive information policy.
 
     :param contextual_grounding_policy:
-    The contextual grounding policy used for the guardrail assessment.
+        The contextual grounding policy used for the guardrail assessment.
 
     :param invocation_metrics:
-    The invocation metrics for the guardrail assessment.
+        The invocation metrics for the guardrail assessment.
 
     """
 
@@ -3645,7 +3806,7 @@ class GuardrailOutputContent:
     The output content produced by the guardrail.
 
     :param text:
-    The specific text for the output content produced by the guardrail.
+        The specific text for the output content produced by the guardrail.
 
     """
 
@@ -3712,19 +3873,22 @@ class ApplyGuardrailOutput:
     """
 
     :param usage:
-    The usage details in the response from the guardrail.
+        **[Required]** - The usage details in the response from the guardrail.
 
     :param action:
-    The action taken in the response from the guardrail.
+        **[Required]** - The action taken in the response from the guardrail.
 
     :param outputs:
-    The output details in the response from the guardrail.
+        **[Required]** - The output details in the response from the guardrail.
 
     :param assessments:
-    The assessment details in the response from the guardrail.
+        **[Required]** - The assessment details in the response from the guardrail.
+
+    :param action_reason:
+        The reason for the action taken when harmful content is detected.
 
     :param guardrail_coverage:
-    The guardrail coverage details in the apply guardrail response.
+        The guardrail coverage details in the apply guardrail response.
 
     """
 
@@ -3736,6 +3900,7 @@ class ApplyGuardrailOutput:
 
     assessments: list[GuardrailAssessment]
 
+    action_reason: str | None = None
     guardrail_coverage: GuardrailCoverage | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3748,6 +3913,12 @@ class ApplyGuardrailOutput:
         serializer.write_string(
             _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["action"], self.action
         )
+        if self.action_reason is not None:
+            serializer.write_string(
+                _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["actionReason"],
+                self.action_reason,
+            )
+
         _serialize_guardrail_output_content_list(
             serializer, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["outputs"], self.outputs
         )
@@ -3781,16 +3952,21 @@ class ApplyGuardrailOutput:
                     )
 
                 case 2:
+                    kwargs["action_reason"] = de.read_string(
+                        _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["actionReason"]
+                    )
+
+                case 3:
                     kwargs["outputs"] = _deserialize_guardrail_output_content_list(
                         de, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["outputs"]
                     )
 
-                case 3:
+                case 4:
                     kwargs["assessments"] = _deserialize_guardrail_assessment_list(
                         de, _SCHEMA_APPLY_GUARDRAIL_OUTPUT.members["assessments"]
                     )
 
-                case 4:
+                case 5:
                     kwargs["guardrail_coverage"] = GuardrailCoverage.deserialize(de)
 
                 case _:
@@ -3835,6 +4011,7 @@ APPLY_GUARDRAIL = APIOperation(
 class GuardrailTrace(StrEnum):
     ENABLED = "enabled"
     DISABLED = "disabled"
+    ENABLED_FULL = "enabled_full"
 
 
 @dataclass(kw_only=True)
@@ -3844,13 +4021,13 @@ class GuardrailConfiguration:
     operation.
 
     :param guardrail_identifier:
-    The identifier for the guardrail.
+        **[Required]** - The identifier for the guardrail.
 
     :param guardrail_version:
-    The version of the guardrail.
+        **[Required]** - The version of the guardrail.
 
     :param trace:
-    The trace behavior for the guardrail.
+        The trace behavior for the guardrail.
 
     """
 
@@ -3941,37 +4118,40 @@ class InferenceConfiguration:
     or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_.
     For more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
     .
+
     If you need to pass additional parameters that the model supports, use the
     ``additionalModelRequestFields`` request field in the call to ``Converse`` or ``ConverseStream``. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
     .
 
     :param max_tokens:
-    The maximum number of tokens to allow in the generated response. The default
-    value is the maximum allowed value for the model that you are using. For more
-    information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+        The maximum number of tokens to allow in the generated response. The default
+        value is the maximum allowed value for the model that you are using. For more
+        information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+        .
 
     :param temperature:
-    The likelihood of the model selecting higher-probability options while
-    generating a response. A lower value makes the model more likely to choose
-    higher-probability options, while a higher value makes the model more likely to
-    choose lower-probability options.
-    The default value is the default value for the model that you are using. For
-    more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+        The likelihood of the model selecting higher-probability options while
+        generating a response. A lower value makes the model more likely to choose
+        higher-probability options, while a higher value makes the model more likely to
+        choose lower-probability options.
+
+        The default value is the default value for the model that you are using. For
+        more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+        .
 
     :param top_p:
-    The percentage of most-likely candidates that the model considers for the next
-    token. For example, if you choose a value of 0.8 for ``topP``, the model selects
-    from the top 80% of the probability distribution of tokens that could be next in
-    the sequence.
-    The default value is the default value for the model that you are using. For
-    more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+        The percentage of most-likely candidates that the model considers for the next
+        token. For example, if you choose a value of 0.8 for ``topP``, the model selects
+        from the top 80% of the probability distribution of tokens that could be next in
+        the sequence.
+
+        The default value is the default value for the model that you are using. For
+        more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+        .
 
     :param stop_sequences:
-    A list of stop sequences. A stop sequence is a sequence of characters that
-    causes the model to stop generating the response.
+        A list of stop sequences. A stop sequence is a sequence of characters that
+        causes the model to stop generating the response.
 
     """
 
@@ -4040,6 +4220,50 @@ class InferenceConfiguration:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_INFERENCE_CONFIGURATION, consumer=_consumer)
+        return kwargs
+
+
+class CachePointType(StrEnum):
+    DEFAULT = "default"
+
+
+@dataclass(kw_only=True)
+class CachePointBlock:
+    """
+    Defines a section of content to be cached for reuse in subsequent API calls.
+
+    :param type:
+        **[Required]** - Specifies the type of cache point within the CachePointBlock.
+
+    """
+
+    type: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CACHE_POINT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_CACHE_POINT_BLOCK.members["type"], self.type)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_CACHE_POINT_BLOCK.members["type"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CACHE_POINT_BLOCK, consumer=_consumer)
         return kwargs
 
 
@@ -4143,24 +4367,29 @@ class DocumentBlock:
     A document to include in a message.
 
     :param format:
-    The format of a document, or its extension.
+        **[Required]** - The format of a document, or its extension.
 
     :param name:
-    A name for the document. The name can only contain the following characters:
+        **[Required]** - A name for the document. The name can only contain the
+        following characters:
 
-    * Alphanumeric characters
-    * Whitespace characters (no more than one in a row)
-    * Hyphens
-    * Parentheses
-    * Square brackets
+        * Alphanumeric characters
 
-    .. note::
-        This field is vulnerable to prompt injections, because the model might
-        inadvertently interpret it as instructions. Therefore, we recommend that you
-        specify a neutral name.
+        * Whitespace characters (no more than one in a row)
+
+        * Hyphens
+
+        * Parentheses
+
+        * Square brackets
+
+        .. note::
+            This field is vulnerable to prompt injections, because the model might
+            inadvertently interpret it as instructions. Therefore, we recommend that you
+            specify a neutral name.
 
     :param source:
-    Contains the content of the document.
+        **[Required]** - Contains the content of the document.
 
     """
 
@@ -4310,10 +4539,12 @@ class GuardrailConverseImageBlock:
     An image block that contains images that you want to assess with a guardrail.
 
     :param format:
-    The format details for the image type of the guardrail converse image block.
+        **[Required]** - The format details for the image type of the guardrail converse
+        image block.
 
     :param source:
-    The image source (image bytes) of the guardrail converse image block.
+        **[Required]** - The image source (image bytes) of the guardrail converse image
+        block.
 
     """
 
@@ -4397,13 +4628,13 @@ def _deserialize_guardrail_converse_content_qualifier_list(
 class GuardrailConverseTextBlock:
     """
     A text block that contains text that you want to assess with a guardrail. For
-    more information, see `GuardrailConverseContentBlock <>`_.
+    more information, see `GuardrailConverseContentBlock`.
 
     :param text:
-    The text that you want to guard.
+        **[Required]** - The text that you want to guard.
 
     :param qualifiers:
-    The qualifier details for the guardrails contextual grounding filter.
+        The qualifier details for the guardrails contextual grounding filter.
 
     """
 
@@ -4667,10 +4898,10 @@ class ImageBlock:
     Image content for a message.
 
     :param format:
-    The format of the image.
+        **[Required]** - The format of the image.
 
     :param source:
-    The source for the image.
+        **[Required]** - The source for the image.
 
     """
 
@@ -4716,12 +4947,12 @@ class ReasoningTextBlock:
     Contains the reasoning that the model used to return the output.
 
     :param text:
-    The reasoning that the model used to return the output.
+        **[Required]** - The reasoning that the model used to return the output.
 
     :param signature:
-    A token that verifies that the reasoning text was generated by the model. If you
-    pass a reasoning block back to the API in a multi-turn conversation, include the
-    text and its signature unmodified.
+        A token that verifies that the reasoning text was generated by the model. If you
+        pass a reasoning block back to the API in a multi-turn conversation, include the
+        text and its signature unmodified.
 
     """
 
@@ -4902,10 +5133,10 @@ class S3Location:
     A storage location in an S3 bucket.
 
     :param uri:
-    An object URI starting with ``s3://``.
+        **[Required]** - An object URI starting with ``s3://``.
 
     :param bucket_owner:
-    If the bucket belongs to another AWS account, specify that account's ID.
+        If the bucket belongs to another AWS account, specify that account's ID.
 
     """
 
@@ -5058,10 +5289,10 @@ class VideoBlock:
     A video block.
 
     :param format:
-    The block's format.
+        **[Required]** - The block's format.
 
     :param source:
-    The block's source.
+        **[Required]** - The block's source.
 
     """
 
@@ -5337,16 +5568,16 @@ class ToolResultBlock:
     previously made.
 
     :param tool_use_id:
-    The ID of the tool request that this is the result for.
+        **[Required]** - The ID of the tool request that this is the result for.
 
     :param content:
-    The content for tool result content block.
+        **[Required]** - The content for tool result content block.
 
     :param status:
-    The status for the tool result content block.
+        The status for the tool result content block.
 
-    .. note::
-        This field is only supported Anthropic Claude 3 models.
+        .. note::
+            This field is only supported Anthropic Claude 3 models.
 
     """
 
@@ -5411,13 +5642,13 @@ class ToolUseBlock:
     response.
 
     :param tool_use_id:
-    The ID for the tool request.
+        **[Required]** - The ID for the tool request.
 
     :param name:
-    The name of the tool that the model wants to use.
+        **[Required]** - The name of the tool that the model wants to use.
 
     :param input:
-    The input to pass to the tool.
+        **[Required]** - The input to pass to the tool.
 
     """
 
@@ -5600,6 +5831,7 @@ class ContentBlockGuardContent:
     Contains the content to assess with the guardrail. If you don't specify
     ``guardContent`` in a call to the Converse API, the guardrail (if passed in the
     Converse API) assesses the entire message.
+
     For more information, see *Use a guardrail with the Converse API* in the *Amazon
     Bedrock User Guide*.
 
@@ -5620,6 +5852,26 @@ class ContentBlockGuardContent:
         return cls(
             value=_GuardrailConverseContentBlockDeserializer().deserialize(deserializer)
         )
+
+
+@dataclass
+class ContentBlockCachePoint:
+    """
+    CachePoint to include in the message.
+
+    """
+
+    value: CachePointBlock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK.members["cachePoint"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=CachePointBlock.deserialize(deserializer))
 
 
 @dataclass
@@ -5677,6 +5929,7 @@ ContentBlock = Union[
     | ContentBlockToolUse
     | ContentBlockToolResult
     | ContentBlockGuardContent
+    | ContentBlockCachePoint
     | ContentBlockReasoningContent
     | ContentBlockUnknown
 ]
@@ -5726,6 +5979,9 @@ class _ContentBlockDeserializer:
                 self._set_result(ContentBlockGuardContent.deserialize(de))
 
             case 7:
+                self._set_result(ContentBlockCachePoint.deserialize(de))
+
+            case 8:
                 self._set_result(ContentBlockReasoningContent.deserialize(de))
 
             case _:
@@ -5777,18 +6033,21 @@ class Message:
     .
 
     :param role:
-    The role that the message plays in the message.
+        **[Required]** - The role that the message plays in the message.
 
     :param content:
-    The message content. Note the following restrictions:
+        **[Required]** - The message content. Note the following restrictions:
 
-    * You can include up to 20 images. Each image's size, height, and width must be
-    no more than 3.75 MB, 8000 px, and 8000 px, respectively.
-    * You can include up to five documents. Each document's size must be no more
-    than 4.5 MB.
-    * If you include a ``ContentBlock`` with a ``document`` field in the array, you
-    must also include a ``ContentBlock`` with a ``text`` field.
-    * You can only include images and documents if the ``role`` is ``user``.
+        * You can include up to 20 images. Each image's size, height, and width must be
+          no more than 3.75 MB, 8000 px, and 8000 px, respectively.
+
+        * You can include up to five documents. Each document's size must be no more
+          than 4.5 MB.
+
+        * If you include a ``ContentBlock`` with a ``document`` field in the array, you
+          must also include a ``ContentBlock`` with a ``text`` field.
+
+        * You can only include images and documents if the ``role`` is ``user``.
 
     """
 
@@ -5866,7 +6125,7 @@ class PerformanceConfiguration:
     Performance settings for a model.
 
     :param latency:
-    To use a latency-optimized version of the model, set to ``optimized``.
+        To use a latency-optimized version of the model, set to ``optimized``.
 
     """
 
@@ -6072,6 +6331,7 @@ class SystemContentBlockGuardContent:
     A content block to assess with the guardrail. Use with the `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
     or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
     API operations.
+
     For more information, see *Use a guardrail with the Converse API* in the *Amazon
     Bedrock User Guide*.
 
@@ -6092,6 +6352,28 @@ class SystemContentBlockGuardContent:
         return cls(
             value=_GuardrailConverseContentBlockDeserializer().deserialize(deserializer)
         )
+
+
+@dataclass
+class SystemContentBlockCachePoint:
+    """
+    CachePoint to include in the system prompt.
+
+    """
+
+    value: CachePointBlock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_SYSTEM_CONTENT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_SYSTEM_CONTENT_BLOCK.members["cachePoint"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=CachePointBlock.deserialize(deserializer))
 
 
 @dataclass
@@ -6118,7 +6400,10 @@ class SystemContentBlockUnknown:
 
 
 SystemContentBlock = Union[
-    SystemContentBlockText | SystemContentBlockGuardContent | SystemContentBlockUnknown
+    SystemContentBlockText
+    | SystemContentBlockGuardContent
+    | SystemContentBlockCachePoint
+    | SystemContentBlockUnknown
 ]
 
 """
@@ -6146,6 +6431,9 @@ class _SystemContentBlockDeserializer:
 
             case 1:
                 self._set_result(SystemContentBlockGuardContent.deserialize(de))
+
+            case 2:
+                self._set_result(SystemContentBlockCachePoint.deserialize(de))
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
@@ -6255,7 +6543,7 @@ class SpecificToolChoice:
         This field is only supported by Anthropic Claude 3 models.
 
     :param name:
-    The name of the tool that the model must request.
+        **[Required]** - The name of the tool that the model must request.
 
     """
 
@@ -6506,13 +6794,13 @@ class ToolSpecification:
     The specification for the tool.
 
     :param name:
-    The name for the tool.
+        **[Required]** - The name for the tool.
 
     :param input_schema:
-    The input schema for the tool in JSON format.
+        **[Required]** - The input schema for the tool in JSON format.
 
     :param description:
-    The description for the tool.
+        The description for the tool.
 
     """
 
@@ -6589,6 +6877,26 @@ class ToolToolSpec:
 
 
 @dataclass
+class ToolCachePoint:
+    """
+    CachePoint to include in the tool configuration.
+
+    """
+
+    value: CachePointBlock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL.members["cachePoint"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=CachePointBlock.deserialize(deserializer))
+
+
+@dataclass
 class ToolUnknown:
     """Represents an unknown variant.
 
@@ -6611,7 +6919,7 @@ class ToolUnknown:
         raise NotImplementedError()
 
 
-Tool = Union[ToolToolSpec | ToolUnknown]
+Tool = Union[ToolToolSpec | ToolCachePoint | ToolUnknown]
 
 """
 Information about a tool that you can use with the Converse API. For more
@@ -6637,6 +6945,9 @@ class _ToolDeserializer:
         match schema.expect_member_index():
             case 0:
                 self._set_result(ToolToolSpec.deserialize(de))
+
+            case 1:
+                self._set_result(ToolCachePoint.deserialize(de))
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
@@ -6680,10 +6991,10 @@ class ToolConfiguration:
     in the Amazon Bedrock User Guide.
 
     :param tools:
-    An array of tools that you want to pass to a model.
+        **[Required]** - An array of tools that you want to pass to a model.
 
     :param tool_choice:
-    If supported by model, forces the model to request a tool.
+        If supported by model, forces the model to request a tool.
 
     """
 
@@ -6733,82 +7044,92 @@ class ConverseInput:
     """
 
     :param model_id:
-    Specifies the model or throughput with which to run inference, or the prompt
-    resource to use in inference. The value depends on the resource that you use:
+        **[Required]** - Specifies the model or throughput with which to run inference,
+        or the prompt resource to use in inference. The value depends on the resource
+        that you use:
 
-    * If you use a base model, specify the model ID or its ARN. For a list of model
-    IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
-    in the Amazon Bedrock User Guide.
-    * If you use an inference profile, specify the inference profile ID or its ARN.
-    For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-    For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use a custom model, first purchase Provisioned Throughput for it. Then
-    specify the ARN of the resulting provisioned model. For more information, see
-    `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
-    in the Amazon Bedrock User Guide.
-    * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
-    specify the ARN of the prompt version to use.
-    The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
-    .
+        * If you use a base model, specify the model ID or its ARN. For a list of model
+          IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use an inference profile, specify the inference profile ID or its ARN.
+          For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
+          For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use a custom model, first purchase Provisioned Throughput for it. Then
+          specify the ARN of the resulting provisioned model. For more information, see
+          `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
+          specify the ARN of the prompt version to use.
+
+        The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
+        .
 
     :param messages:
-    The messages that you want to send to the model.
+        The messages that you want to send to the model.
 
     :param system:
-    A prompt that provides instructions or context to the model about the task it
-    should perform, or the persona it should adopt during the conversation.
+        A prompt that provides instructions or context to the model about the task it
+        should perform, or the persona it should adopt during the conversation.
 
     :param inference_config:
-    Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
-    support a base set of inference parameters. If you need to pass additional
-    parameters that the model supports, use the ``additionalModelRequestFields``
-    request field.
+        Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
+        support a base set of inference parameters. If you need to pass additional
+        parameters that the model supports, use the ``additionalModelRequestFields``
+        request field.
 
     :param tool_config:
-    Configuration information for the tools that the model can use when generating a
-    response.
-    For information about models that support tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
-    .
+        Configuration information for the tools that the model can use when generating a
+        response.
+
+        For information about models that support tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
+        .
 
     :param guardrail_config:
-    Configuration information for a guardrail that you want to use in the request.
-    If you include ``guardContent`` blocks in the ``content`` field in the
-    ``messages`` field, the guardrail operates only on those messages. If you
-    include no ``guardContent`` blocks, the guardrail operates on all messages in
-    the request body and in any included prompt resource.
+        Configuration information for a guardrail that you want to use in the request.
+        If you include ``guardContent`` blocks in the ``content`` field in the
+        ``messages`` field, the guardrail operates only on those messages. If you
+        include no ``guardContent`` blocks, the guardrail operates on all messages in
+        the request body and in any included prompt resource.
 
     :param additional_model_request_fields:
-    Additional inference parameters that the model supports, beyond the base set of
-    inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+        Additional inference parameters that the model supports, beyond the base set of
+        inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+        .
 
     :param prompt_variables:
-    Contains a map of variables in a prompt from Prompt management to objects
-    containing the values to fill in for them when running model invocation. This
-    field is ignored if you don't specify a prompt resource in the ``modelId``
-    field.
+        Contains a map of variables in a prompt from Prompt management to objects
+        containing the values to fill in for them when running model invocation. This
+        field is ignored if you don't specify a prompt resource in the ``modelId``
+        field.
 
     :param additional_model_response_field_paths:
-    Additional model parameters field paths to return in the response. ``Converse``
-    and ``ConverseStream`` return the requested fields as a JSON Pointer object in
-    the ``additionalModelResponseFields`` field. The following is example JSON for
-    ``additionalModelResponseFieldPaths``.
-    ``[ "/stop_sequence" ]``
-    For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
-    documentation.
-    ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
-    structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
-    but the requested field is not in the model response, it is ignored by
-    ``Converse``.
+        Additional model parameters field paths to return in the response. ``Converse``
+        and ``ConverseStream`` return the requested fields as a JSON Pointer object in
+        the ``additionalModelResponseFields`` field. The following is example JSON for
+        ``additionalModelResponseFieldPaths``.
+
+        ``[ "/stop_sequence" ]``
+
+        For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
+        documentation.
+
+        ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
+        structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
+        but the requested field is not in the model response, it is ignored by
+        ``Converse``.
 
     :param request_metadata:
-    Key-value pairs that you can use to filter invocation logs.
+        Key-value pairs that you can use to filter invocation logs.
 
     :param performance_config:
-    Model performance settings for the request.
+        Model performance settings for the request.
 
     """
 
@@ -6966,7 +7287,7 @@ class ConverseMetrics:
     .
 
     :param latency_ms:
-    The latency of the call to ``Converse``, in milliseconds.
+        **[Required]** - The latency of the call to ``Converse``, in milliseconds.
 
     """
 
@@ -7176,23 +7497,26 @@ def _deserialize_guardrail_assessment_list_map(
 @dataclass(kw_only=True)
 class GuardrailTraceAssessment:
     """
-    A Top level guardrail trace object. For more information, see `ConverseTrace <>`_
-    .
+    A Top level guardrail trace object. For more information, see `ConverseTrace`.
 
     :param model_output:
-    The output from the model.
+        The output from the model.
 
     :param input_assessment:
-    The input assessment.
+        The input assessment.
 
     :param output_assessments:
-    the output assessments.
+        the output assessments.
+
+    :param action_reason:
+        Provides the reason for the action taken when harmful content is detected.
 
     """
 
     model_output: list[str] | None = None
     input_assessment: dict[str, GuardrailAssessment] | None = None
     output_assessments: dict[str, list[GuardrailAssessment]] | None = None
+    action_reason: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TRACE_ASSESSMENT, self)
@@ -7217,6 +7541,12 @@ class GuardrailTraceAssessment:
                 serializer,
                 _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["outputAssessments"],
                 self.output_assessments,
+            )
+
+        if self.action_reason is not None:
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["actionReason"],
+                self.action_reason,
             )
 
     @classmethod
@@ -7250,6 +7580,11 @@ class GuardrailTraceAssessment:
                         )
                     )
 
+                case 3:
+                    kwargs["action_reason"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_TRACE_ASSESSMENT.members["actionReason"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -7263,7 +7598,7 @@ class PromptRouterTrace:
     A prompt router trace.
 
     :param invoked_model_id:
-    The ID of the invoked model.
+        The ID of the invoked model.
 
     """
 
@@ -7308,10 +7643,10 @@ class ConverseTrace:
     Currently, you can only trace guardrails.
 
     :param guardrail:
-    The guardrail trace object.
+        The guardrail trace object.
 
     :param prompt_router:
-    The request's prompt router.
+        The request's prompt router.
 
     """
 
@@ -7361,13 +7696,19 @@ class TokenUsage:
     The tokens used in a message API inference call.
 
     :param input_tokens:
-    The number of tokens sent in the request to the model.
+        **[Required]** - The number of tokens sent in the request to the model.
 
     :param output_tokens:
-    The number of tokens that the model generated for the request.
+        **[Required]** - The number of tokens that the model generated for the request.
 
     :param total_tokens:
-    The total of input tokens and tokens generated by the model.
+        **[Required]** - The total of input tokens and tokens generated by the model.
+
+    :param cache_read_input_tokens:
+        The number of input tokens read from the cache for the request.
+
+    :param cache_write_input_tokens:
+        The number of input tokens written to the cache for the request.
 
     """
 
@@ -7376,6 +7717,9 @@ class TokenUsage:
     output_tokens: int
 
     total_tokens: int
+
+    cache_read_input_tokens: int | None = None
+    cache_write_input_tokens: int | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOKEN_USAGE, self)
@@ -7390,6 +7734,17 @@ class TokenUsage:
         serializer.write_integer(
             _SCHEMA_TOKEN_USAGE.members["totalTokens"], self.total_tokens
         )
+        if self.cache_read_input_tokens is not None:
+            serializer.write_integer(
+                _SCHEMA_TOKEN_USAGE.members["cacheReadInputTokens"],
+                self.cache_read_input_tokens,
+            )
+
+        if self.cache_write_input_tokens is not None:
+            serializer.write_integer(
+                _SCHEMA_TOKEN_USAGE.members["cacheWriteInputTokens"],
+                self.cache_write_input_tokens,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7416,6 +7771,16 @@ class TokenUsage:
                         _SCHEMA_TOKEN_USAGE.members["totalTokens"]
                     )
 
+                case 3:
+                    kwargs["cache_read_input_tokens"] = de.read_integer(
+                        _SCHEMA_TOKEN_USAGE.members["cacheReadInputTokens"]
+                    )
+
+                case 4:
+                    kwargs["cache_write_input_tokens"] = de.read_integer(
+                        _SCHEMA_TOKEN_USAGE.members["cacheWriteInputTokens"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -7428,26 +7793,27 @@ class ConverseOperationOutput:
     """
 
     :param output:
-    The result from the call to ``Converse``.
+        **[Required]** - The result from the call to ``Converse``.
 
     :param stop_reason:
-    The reason why the model stopped generating output.
+        **[Required]** - The reason why the model stopped generating output.
 
     :param usage:
-    The total number of tokens used in the call to ``Converse``. The total includes
-    the tokens input to the model and the tokens generated by the model.
+        **[Required]** - The total number of tokens used in the call to ``Converse``.
+        The total includes the tokens input to the model and the tokens generated by the
+        model.
 
     :param metrics:
-    Metrics for the call to ``Converse``.
+        **[Required]** - Metrics for the call to ``Converse``.
 
     :param additional_model_response_fields:
-    Additional fields in the response that are unique to the model.
+        Additional fields in the response that are unique to the model.
 
     :param trace:
-    A trace object that contains information about the Guardrail behavior.
+        A trace object that contains information about the Guardrail behavior.
 
     :param performance_config:
-    Model performance settings for the request.
+        Model performance settings for the request.
 
     """
 
@@ -7552,10 +7918,10 @@ class ModelErrorException(ApiError):
     :param message: A message associated with the specific error.
 
     :param original_status_code:
-    The original status code.
+        The original status code.
 
     :param resource_name:
-    The resource name.
+        The resource name.
 
     """
 
@@ -7762,22 +8128,23 @@ class GuardrailStreamProcessingMode(StrEnum):
 @dataclass(kw_only=True)
 class GuardrailStreamConfiguration:
     """
-    Configuration information for a guardrail that you use with the `ConverseStream <>`_
+    Configuration information for a guardrail that you use with the `ConverseStream`
     action.
 
     :param guardrail_identifier:
-    The identifier for the guardrail.
+        **[Required]** - The identifier for the guardrail.
 
     :param guardrail_version:
-    The version of the guardrail.
+        **[Required]** - The version of the guardrail.
 
     :param trace:
-    The trace behavior for the guardrail.
+        The trace behavior for the guardrail.
 
     :param stream_processing_mode:
-    The processing mode.
-    The processing mode. For more information, see *Configure streaming response
-    behavior* in the *Amazon Bedrock User Guide*.
+        The processing mode.
+
+        The processing mode. For more information, see *Configure streaming response
+        behavior* in the *Amazon Bedrock User Guide*.
 
     """
 
@@ -7858,82 +8225,92 @@ class ConverseStreamInput:
     """
 
     :param model_id:
-    Specifies the model or throughput with which to run inference, or the prompt
-    resource to use in inference. The value depends on the resource that you use:
+        **[Required]** - Specifies the model or throughput with which to run inference,
+        or the prompt resource to use in inference. The value depends on the resource
+        that you use:
 
-    * If you use a base model, specify the model ID or its ARN. For a list of model
-    IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
-    in the Amazon Bedrock User Guide.
-    * If you use an inference profile, specify the inference profile ID or its ARN.
-    For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-    For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use a custom model, first purchase Provisioned Throughput for it. Then
-    specify the ARN of the resulting provisioned model. For more information, see
-    `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
-    in the Amazon Bedrock User Guide.
-    * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
-    specify the ARN of the prompt version to use.
-    The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
-    .
+        * If you use a base model, specify the model ID or its ARN. For a list of model
+          IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use an inference profile, specify the inference profile ID or its ARN.
+          For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
+          For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use a custom model, first purchase Provisioned Throughput for it. Then
+          specify the ARN of the resulting provisioned model. For more information, see
+          `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
+          specify the ARN of the prompt version to use.
+
+        The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
+        .
 
     :param messages:
-    The messages that you want to send to the model.
+        The messages that you want to send to the model.
 
     :param system:
-    A prompt that provides instructions or context to the model about the task it
-    should perform, or the persona it should adopt during the conversation.
+        A prompt that provides instructions or context to the model about the task it
+        should perform, or the persona it should adopt during the conversation.
 
     :param inference_config:
-    Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
-    support a base set of inference parameters. If you need to pass additional
-    parameters that the model supports, use the ``additionalModelRequestFields``
-    request field.
+        Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
+        support a base set of inference parameters. If you need to pass additional
+        parameters that the model supports, use the ``additionalModelRequestFields``
+        request field.
 
     :param tool_config:
-    Configuration information for the tools that the model can use when generating a
-    response.
-    For information about models that support streaming tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
-    .
+        Configuration information for the tools that the model can use when generating a
+        response.
+
+        For information about models that support streaming tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
+        .
 
     :param guardrail_config:
-    Configuration information for a guardrail that you want to use in the request.
-    If you include ``guardContent`` blocks in the ``content`` field in the
-    ``messages`` field, the guardrail operates only on those messages. If you
-    include no ``guardContent`` blocks, the guardrail operates on all messages in
-    the request body and in any included prompt resource.
+        Configuration information for a guardrail that you want to use in the request.
+        If you include ``guardContent`` blocks in the ``content`` field in the
+        ``messages`` field, the guardrail operates only on those messages. If you
+        include no ``guardContent`` blocks, the guardrail operates on all messages in
+        the request body and in any included prompt resource.
 
     :param additional_model_request_fields:
-    Additional inference parameters that the model supports, beyond the base set of
-    inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+        Additional inference parameters that the model supports, beyond the base set of
+        inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+        .
 
     :param prompt_variables:
-    Contains a map of variables in a prompt from Prompt management to objects
-    containing the values to fill in for them when running model invocation. This
-    field is ignored if you don't specify a prompt resource in the ``modelId``
-    field.
+        Contains a map of variables in a prompt from Prompt management to objects
+        containing the values to fill in for them when running model invocation. This
+        field is ignored if you don't specify a prompt resource in the ``modelId``
+        field.
 
     :param additional_model_response_field_paths:
-    Additional model parameters field paths to return in the response. ``Converse``
-    and ``ConverseStream`` return the requested fields as a JSON Pointer object in
-    the ``additionalModelResponseFields`` field. The following is example JSON for
-    ``additionalModelResponseFieldPaths``.
-    ``[ "/stop_sequence" ]``
-    For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
-    documentation.
-    ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
-    structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
-    but the requested field is not in the model response, it is ignored by
-    ``Converse``.
+        Additional model parameters field paths to return in the response. ``Converse``
+        and ``ConverseStream`` return the requested fields as a JSON Pointer object in
+        the ``additionalModelResponseFields`` field. The following is example JSON for
+        ``additionalModelResponseFieldPaths``.
+
+        ``[ "/stop_sequence" ]``
+
+        For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
+        documentation.
+
+        ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
+        structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
+        but the requested field is not in the model response, it is ignored by
+        ``Converse``.
 
     :param request_metadata:
-    Key-value pairs that you can use to filter invocation logs.
+        Key-value pairs that you can use to filter invocation logs.
 
     :param performance_config:
-    Model performance settings for the request.
+        Model performance settings for the request.
 
     """
 
@@ -8258,7 +8635,7 @@ class ToolUseBlockDelta:
     The delta for a tool use block.
 
     :param input:
-    The input for a requested tool.
+        **[Required]** - The input for a requested tool.
 
     """
 
@@ -8440,10 +8817,10 @@ class ContentBlockDeltaEvent:
     The content block delta event.
 
     :param delta:
-    The delta for a content block delta event.
+        **[Required]** - The delta for a content block delta event.
 
     :param content_block_index:
-    The block index for a content block delta event.
+        **[Required]** - The block index for a content block delta event.
 
     """
 
@@ -8494,10 +8871,10 @@ class ToolUseBlockStart:
     The start of a tool use block.
 
     :param tool_use_id:
-    The ID for the tool request.
+        **[Required]** - The ID for the tool request.
 
     :param name:
-    The name of the tool that the model is requesting to use.
+        **[Required]** - The name of the tool that the model is requesting to use.
 
     """
 
@@ -8628,10 +9005,10 @@ class ContentBlockStartEvent:
     Content block start event.
 
     :param start:
-    Start information about a content block start event.
+        **[Required]** - Start information about a content block start event.
 
     :param content_block_index:
-    The index for a content block start event.
+        **[Required]** - The index for a content block start event.
 
     """
 
@@ -8682,7 +9059,7 @@ class ContentBlockStopEvent:
     A content block stop event.
 
     :param content_block_index:
-    The index for a content block.
+        **[Required]** - The index for a content block.
 
     """
 
@@ -8725,7 +9102,7 @@ class MessageStartEvent:
     The start of a message.
 
     :param role:
-    The role for the message.
+        **[Required]** - The role for the message.
 
     """
 
@@ -8765,10 +9142,10 @@ class MessageStopEvent:
     The stop event for a message.
 
     :param stop_reason:
-    The reason why the model stopped generating output.
+        **[Required]** - The reason why the model stopped generating output.
 
     :param additional_model_response_fields:
-    The additional model response fields.
+        The additional model response fields.
 
     """
 
@@ -8824,7 +9201,7 @@ class ConverseStreamMetrics:
     Metrics for the stream.
 
     :param latency_ms:
-    The latency for the streaming request, in milliseconds.
+        **[Required]** - The latency for the streaming request, in milliseconds.
 
     """
 
@@ -8867,10 +9244,10 @@ class ConverseStreamTrace:
     Currently, you can only trace guardrails.
 
     :param guardrail:
-    The guardrail trace object.
+        The guardrail trace object.
 
     :param prompt_router:
-    The request's prompt router.
+        The request's prompt router.
 
     """
 
@@ -8921,17 +9298,17 @@ class ConverseStreamMetadataEvent:
     A conversation stream metadata event.
 
     :param usage:
-    Usage information for the conversation stream event.
+        **[Required]** - Usage information for the conversation stream event.
 
     :param metrics:
-    The metrics for the conversation stream metadata event.
+        **[Required]** - The metrics for the conversation stream metadata event.
 
     :param trace:
-    The trace object in the response from `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
-    that contains information about the guardrail behavior.
+        The trace object in the response from `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
+        that contains information about the guardrail behavior.
 
     :param performance_config:
-    Model performance configuration metadata for the conversation stream event.
+        Model performance configuration metadata for the conversation stream event.
 
     """
 
@@ -9004,10 +9381,10 @@ class ModelStreamErrorException(ApiError):
     :param message: A message associated with the specific error.
 
     :param original_status_code:
-    The original status code.
+        The original status code.
 
     :param original_message:
-    The original message.
+        The original message.
 
     """
 
@@ -9511,6 +9888,7 @@ CONVERSE_STREAM = APIOperation(
 class Trace(StrEnum):
     ENABLED = "ENABLED"
     DISABLED = "DISABLED"
+    ENABLED_FULL = "ENABLED_FULL"
 
 
 @dataclass(kw_only=True)
@@ -9518,61 +9896,69 @@ class InvokeModelInput:
     """
 
     :param body:
-    The prompt and inference parameters in the format specified in the
-    ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
-    For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
-    in the Bedrock User Guide.
+        The prompt and inference parameters in the format specified in the
+        ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
+        For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
+        in the Bedrock User Guide.
 
     :param content_type:
-    The MIME type of the input data in the request. You must specify
-    ``application/json``.
+        The MIME type of the input data in the request. You must specify
+        ``application/json``.
 
     :param accept:
-    The desired MIME type of the inference body in the response. The default value
-    is ``application/json``.
+        The desired MIME type of the inference body in the response. The default value
+        is ``application/json``.
 
     :param model_id:
-    The unique identifier of the model to invoke to run inference.
-    The ``modelId`` to provide depends on the type of model or throughput that you
-    use:
+        **[Required]** - The unique identifier of the model to invoke to run inference.
 
-    * If you use a base model, specify the model ID or its ARN. For a list of model
-    IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
-    in the Amazon Bedrock User Guide.
-    * If you use an inference profile, specify the inference profile ID or its ARN.
-    For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-    For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use a custom model, first purchase Provisioned Throughput for it. Then
-    specify the ARN of the resulting provisioned model. For more information, see
-    `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
-    specify the ARN of the imported model. You can get the model ARN from a
-    successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
-    or from the Imported models page in the Amazon Bedrock console.
+        The ``modelId`` to provide depends on the type of model or throughput that you
+        use:
+
+        * If you use a base model, specify the model ID or its ARN. For a list of model
+          IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use an inference profile, specify the inference profile ID or its ARN.
+          For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
+          For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use a custom model, first purchase Provisioned Throughput for it. Then
+          specify the ARN of the resulting provisioned model. For more information, see
+          `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
+          specify the ARN of the imported model. You can get the model ARN from a
+          successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
+          or from the Imported models page in the Amazon Bedrock console.
 
     :param trace:
-    Specifies whether to enable or disable the Bedrock trace. If enabled, you can
-    see the full Bedrock trace.
+        Specifies whether to enable or disable the Bedrock trace. If enabled, you can
+        see the full Bedrock trace.
 
     :param guardrail_identifier:
-    The unique identifier of the guardrail that you want to use. If you don't
-    provide a value, no guardrail is applied to the invocation.
-    An error will be thrown in the following situations.
+        The unique identifier of the guardrail that you want to use. If you don't
+        provide a value, no guardrail is applied to the invocation.
 
-    * You don't provide a guardrail identifier but you specify the
-    ``amazon-bedrock-guardrailConfig`` field in the request body.
-    * You enable the guardrail but the ``contentType`` isn't ``application/json``.
-    * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
+        An error will be thrown in the following situations.
+
+        * You don't provide a guardrail identifier but you specify the
+          ``amazon-bedrock-guardrailConfig`` field in the request body.
+
+        * You enable the guardrail but the ``contentType`` isn't ``application/json``.
+
+        * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
 
     :param guardrail_version:
-    The version number for the guardrail. The value can also be ``DRAFT``.
+        The version number for the guardrail. The value can also be ``DRAFT``.
 
     :param performance_config_latency:
-    Model performance settings for the request.
+        Model performance settings for the request.
 
     """
 
@@ -9653,14 +10039,15 @@ class InvokeModelOutput:
     """
 
     :param body:
-    Inference response from the model in the format specified in the ``contentType`` header. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+        **[Required]** - Inference response from the model in the format specified in
+        the ``contentType`` header. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+        .
 
     :param content_type:
-    The MIME type of the inference result.
+        **[Required]** - The MIME type of the inference result.
 
     :param performance_config_latency:
-    Model performance settings for the request.
+        Model performance settings for the request.
 
     """
 
@@ -9754,6 +10141,14 @@ INVOKE_MODEL = APIOperation(
 
 @dataclass(kw_only=True)
 class BidirectionalInputPayloadPart:
+    """
+    Payload content for the bidirectional input. The input is an audio stream.
+
+    :param bytes_:
+        The audio content for the bidirectional input.
+
+    """
+
     bytes_: bytes | None = field(repr=False, default=None)
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9791,6 +10186,11 @@ class BidirectionalInputPayloadPart:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamInputChunk:
+    """
+    The audio chunk that is used as input for the invocation step.
+
+    """
+
     value: BidirectionalInputPayloadPart
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9837,6 +10237,12 @@ InvokeModelWithBidirectionalStreamInput = Union[
     | InvokeModelWithBidirectionalStreamInputUnknown
 ]
 
+"""
+Payload content, the speech chunk, for the bidirectional input of the invocation
+step.
+
+"""
+
 
 class _InvokeModelWithBidirectionalStreamInputDeserializer:
     _result: InvokeModelWithBidirectionalStreamInput | None = None
@@ -9874,6 +10280,14 @@ class _InvokeModelWithBidirectionalStreamInputDeserializer:
 
 @dataclass(kw_only=True)
 class InvokeModelWithBidirectionalStreamOperationInput:
+    """
+
+    :param model_id:
+        **[Required]** - The model ID or ARN of the model ID to use. Currently, only
+        ``amazon.nova-sonic-v1:0`` is supported.
+
+    """
+
     model_id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9913,6 +10327,15 @@ class InvokeModelWithBidirectionalStreamOperationInput:
 
 @dataclass(kw_only=True)
 class BidirectionalOutputPayloadPart:
+    """
+    Output from the bidirectional stream. The output is speech and a text
+    transcription.
+
+    :param bytes_:
+        The speech output of the bidirectional stream.
+
+    """
+
     bytes_: bytes | None = field(repr=False, default=None)
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9950,6 +10373,11 @@ class BidirectionalOutputPayloadPart:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputChunk:
+    """
+    The speech chunk that was provided as output from the invocation step.
+
+    """
+
     value: BidirectionalOutputPayloadPart
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9971,9 +10399,7 @@ class InvokeModelWithBidirectionalStreamOutputChunk:
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputInternalServerException:
     """
-    An internal server error occurred. For troubleshooting this error, see
-    `InternalFailure <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-internal-failure>`_
-    in the Amazon Bedrock User Guide
+    The request encountered an unknown internal error.
 
     """
 
@@ -10000,7 +10426,7 @@ class InvokeModelWithBidirectionalStreamOutputInternalServerException:
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputModelStreamErrorException:
     """
-    An error occurred while streaming the response. Retry your request.
+    The request encountered an error with the model stream.
 
     """
 
@@ -10027,9 +10453,8 @@ class InvokeModelWithBidirectionalStreamOutputModelStreamErrorException:
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputValidationException:
     """
-    The input fails to satisfy the constraints specified by *Amazon Bedrock*. For
-    troubleshooting this error, see `ValidationError <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-validation-error>`_
-    in the Amazon Bedrock User Guide
+    The input fails to satisfy the constraints specified by an Amazon Web Services
+    service.
 
     """
 
@@ -10056,9 +10481,7 @@ class InvokeModelWithBidirectionalStreamOutputValidationException:
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputThrottlingException:
     """
-    Your request was denied due to exceeding the account quotas for *Amazon
-    Bedrock*. For troubleshooting this error, see `ThrottlingException <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-throttling-exception>`_
-    in the Amazon Bedrock User Guide
+    The request was denied due to request throttling.
 
     """
 
@@ -10085,8 +10508,8 @@ class InvokeModelWithBidirectionalStreamOutputThrottlingException:
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputModelTimeoutException:
     """
-    The request took too long to process. Processing time exceeded the model timeout
-    length.
+    The connection was closed because a request was not received within the timeout
+    period.
 
     """
 
@@ -10113,9 +10536,7 @@ class InvokeModelWithBidirectionalStreamOutputModelTimeoutException:
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputServiceUnavailableException:
     """
-    The service isn't currently available. For troubleshooting this error, see
-    `ServiceUnavailable <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-service-unavailable>`_
-    in the Amazon Bedrock User Guide
+    The request has failed due to a temporary failure of the server.
 
     """
 
@@ -10172,6 +10593,11 @@ InvokeModelWithBidirectionalStreamOutput = Union[
     | InvokeModelWithBidirectionalStreamOutputServiceUnavailableException
     | InvokeModelWithBidirectionalStreamOutputUnknown
 ]
+
+"""
+Output from the bidirectional stream that was used for model invocation.
+
+"""
 
 
 class _InvokeModelWithBidirectionalStreamOutputDeserializer:
@@ -10252,6 +10678,8 @@ class _InvokeModelWithBidirectionalStreamOutputDeserializer:
 
 @dataclass(kw_only=True)
 class InvokeModelWithBidirectionalStreamOperationOutput:
+    """ """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
             _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT, self
@@ -10332,61 +10760,69 @@ class InvokeModelWithResponseStreamInput:
     """
 
     :param body:
-    The prompt and inference parameters in the format specified in the
-    ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
-    For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
-    in the Bedrock User Guide.
+        The prompt and inference parameters in the format specified in the
+        ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
+        For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
+        in the Bedrock User Guide.
 
     :param content_type:
-    The MIME type of the input data in the request. You must specify
-    ``application/json``.
+        The MIME type of the input data in the request. You must specify
+        ``application/json``.
 
     :param accept:
-    The desired MIME type of the inference body in the response. The default value
-    is ``application/json``.
+        The desired MIME type of the inference body in the response. The default value
+        is ``application/json``.
 
     :param model_id:
-    The unique identifier of the model to invoke to run inference.
-    The ``modelId`` to provide depends on the type of model or throughput that you
-    use:
+        **[Required]** - The unique identifier of the model to invoke to run inference.
 
-    * If you use a base model, specify the model ID or its ARN. For a list of model
-    IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
-    in the Amazon Bedrock User Guide.
-    * If you use an inference profile, specify the inference profile ID or its ARN.
-    For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-    For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use a custom model, first purchase Provisioned Throughput for it. Then
-    specify the ARN of the resulting provisioned model. For more information, see
-    `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
-    in the Amazon Bedrock User Guide.
-    * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
-    specify the ARN of the imported model. You can get the model ARN from a
-    successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
-    or from the Imported models page in the Amazon Bedrock console.
+        The ``modelId`` to provide depends on the type of model or throughput that you
+        use:
+
+        * If you use a base model, specify the model ID or its ARN. For a list of model
+          IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use an inference profile, specify the inference profile ID or its ARN.
+          For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
+          For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use a custom model, first purchase Provisioned Throughput for it. Then
+          specify the ARN of the resulting provisioned model. For more information, see
+          `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+          in the Amazon Bedrock User Guide.
+
+        * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
+          specify the ARN of the imported model. You can get the model ARN from a
+          successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
+          or from the Imported models page in the Amazon Bedrock console.
 
     :param trace:
-    Specifies whether to enable or disable the Bedrock trace. If enabled, you can
-    see the full Bedrock trace.
+        Specifies whether to enable or disable the Bedrock trace. If enabled, you can
+        see the full Bedrock trace.
 
     :param guardrail_identifier:
-    The unique identifier of the guardrail that you want to use. If you don't
-    provide a value, no guardrail is applied to the invocation.
-    An error is thrown in the following situations.
+        The unique identifier of the guardrail that you want to use. If you don't
+        provide a value, no guardrail is applied to the invocation.
 
-    * You don't provide a guardrail identifier but you specify the
-    ``amazon-bedrock-guardrailConfig`` field in the request body.
-    * You enable the guardrail but the ``contentType`` isn't ``application/json``.
-    * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
+        An error is thrown in the following situations.
+
+        * You don't provide a guardrail identifier but you specify the
+          ``amazon-bedrock-guardrailConfig`` field in the request body.
+
+        * You enable the guardrail but the ``contentType`` isn't ``application/json``.
+
+        * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
 
     :param guardrail_version:
-    The version number for the guardrail. The value can also be ``DRAFT``.
+        The version number for the guardrail. The value can also be ``DRAFT``.
 
     :param performance_config_latency:
-    Model performance settings for the request.
+        Model performance settings for the request.
 
     """
 
@@ -10482,7 +10918,7 @@ class PayloadPart:
     Payload content included in the response.
 
     :param bytes_:
-    Base64-encoded bytes of payload data.
+        Base64-encoded bytes of payload data.
 
     """
 
@@ -10767,10 +11203,10 @@ class InvokeModelWithResponseStreamOutput:
     """
 
     :param content_type:
-    The MIME type of the inference result.
+        **[Required]** - The MIME type of the inference result.
 
     :param performance_config_latency:
-    Model performance settings for the request.
+        Model performance settings for the request.
 
     """
 
