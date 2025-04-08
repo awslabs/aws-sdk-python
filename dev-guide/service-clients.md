@@ -3,7 +3,7 @@
 To make a request to an AWS service, you first instantiate a client for that service. You can configure common settings for service clients such as timeouts, the HTTP client, and retry configuration. To create a client for Amazon Bedrock Runtime:
 
 ```
-    service_client = BedrockRuntime(
+    service_client = BedrockRuntimeClient(
         config=Config(
             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
             region = "us-east-1",

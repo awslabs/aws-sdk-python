@@ -25,7 +25,7 @@ Not all credential providers are supported yet by the experimental Amazon Bedroc
 To use a specific credentials identity resolver, set the `aws_credentials_identity_resolver` property on the service client's `Config` object to an instance of the credentials identity resolver class you want to use. The following example specifically uses the `EnvironmentCredentialsResolver()`, which fetches credentials from the standard environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
 
 ```
-    service_client = BedrockRuntime(
+    service_client = BedrockRuntimeClient(
         config=Config(
             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
             region = "us-east-1",
