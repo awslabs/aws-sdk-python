@@ -10,7 +10,7 @@ Most resources reside in a specific AWS Region and you must supply the correct R
 The Region is specified by setting the `region` property of the `Config` object to a string giving the name of the Region. For example, to specify the region `us-east-1` when creating an Amazon Bedrock Runtime client:
 
 ```
-    service_client = BedrockRuntime(
+    service_client = BedrockRuntimeClient(
         config=Config(
             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
             region = "us-east-1",
@@ -31,7 +31,7 @@ import os
 ...
 region = os.getenv('AWS_REGION', default="us-east-1")
     
-service_client = BedrockRuntime(
+service_client = BedrockRuntimeClient(
     config=Config(
         aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
         region = region,

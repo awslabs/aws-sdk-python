@@ -7,7 +7,7 @@ This chapter features a short example that asks the Amazon Titan Text Express ge
 The first thing our program does is import the service and the types we need from it:
 
 ```
-from aws_sdk_bedrock_runtime.client import BedrockRuntime, ConverseInput
+from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient, ConverseInput
 from aws_sdk_bedrock_runtime.models import Message, ContentBlockText, StopReason
 from aws_sdk_bedrock_runtime.config import Config
 
@@ -18,7 +18,7 @@ import asyncio
 
 This imports the following from the Bedrock client:
 
-1. `BedrockRuntime`, which is the class representing the Amazon Bedrock Runtime client.
+1. `BedrockRuntimeClient`, which is the class representing the Amazon Bedrock Runtime client.
 
 1. The `ConverseInput` class, which is used to specify the input values when calling the client's `converse()` function.
 
@@ -38,11 +38,11 @@ Also imported is the `asyncio` package, which is used to manage the asynchronous
 
 ## Creating the Amazon Bedrock Runtime client<a name="simple-app-create-client"></a>
 
-To create the Amazon Bedrock Runtime client, create a `BedrockRuntime` instance using a `Config` object providing the AWS Region to use. In this example, a credentials identity resolver is provided that uses the standard AWS [access keys in environment variables](https://docs.aws.amazon.com/sdkref/latest/guide/access-users.html) are used to specify credentials. 
+To create the Amazon Bedrock Runtime client, create a `BedrockRuntimeClient` instance using a `Config` object providing the AWS Region to use. In this example, a credentials identity resolver is provided that uses the standard AWS [access keys in environment variables](https://docs.aws.amazon.com/sdkref/latest/guide/access-users.html) are used to specify credentials.
 
 ```
 def get_service_client():
-    service_client = BedrockRuntime(
+    service_client = BedrockRuntimeClient(
         config=Config(
             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
             region = "us-east-1",
