@@ -3,7 +3,7 @@
 
 [project]
 name = "aws_sdk_bedrock_runtime"
-version = "0.0.1"
+version = "0.0.2"
 description = "aws_sdk_bedrock_runtime client"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -23,11 +23,11 @@ classifiers = [
 ]
 
 dependencies = [
-    "smithy_aws_core==0.0.1",
-    "smithy_aws_event_stream==0.0.1",
-    "smithy_core==0.0.1",
-    "smithy_http[awscrt]==0.0.1",
-    "smithy_json==0.0.1"
+    "smithy_aws_core<0.1.0",
+    "smithy_aws_event_stream<0.1.0",
+    "smithy_core<0.1.0",
+    "smithy_http[awscrt]<0.1.0",
+    "smithy_json<0.1.0"
 ]
 
 [project.optional-dependencies]
