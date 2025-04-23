@@ -1,5 +1,10 @@
 # Installing the experimental Amazon Bedrock Runtime client for Python<a name="installing"></a>
 
+## Prerequisites<a name="installing-prerequisites"></a>
+
+To use the experimental Amazon Bedrock Runtime client for Python, you first
+need a supported version of [Python](https://www.python.org/downloads/). The client requires Python 3.12 or later.
+
 ## Set up a virtual environment<a name="installing-virtual-env"></a>
 
 Once you have a supported version of Python installed, you should set up your workspace by creating a virtual environment and activating it:
