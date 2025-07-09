@@ -6,6 +6,9 @@ For guided options for getting started on AWS authentication for your project, s
 
 ## Credentials identity resolvers provided by the experimental Amazon Bedrock Runtime client for Python<a name="credproviders-available-credential-providers"></a>
 
+`ContainerCredentialsResolver`
+Obtains credentials from a container credential service such as the one provided with Amazon Elastic Container Service (Amazon ECS) and Amazon Elastic Kubernetes Service (Amazon EKS).
+
 `EnvironmentCredentialsResolver`  
 Resolves credentials found in the environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
 
