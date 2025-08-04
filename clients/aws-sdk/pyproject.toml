@@ -1,10 +1,10 @@
 [project]
-name = "aws-sdk-python"
+name = "aws-sdk"
 version = "0.0.1"
 description = "Meta-package containing all AWS service clients."
 readme = "README.md"
 requires-python = ">=3.12"
-keywords = ["smithy", "aws_sdk_python", "aws"]
+keywords = ["smithy", "aws_sdk", "aws_sdk_python", "aws"]
 license = {text = "Apache-2.0"}
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
