@@ -1,6 +1,6 @@
 [project]
 name = "aws-sdk"
-version = "0.0.1"
+dynamic = ["version"]
 description = "Meta-package containing all AWS service clients."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -29,6 +29,9 @@ all = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/aws_sdk/__init__.py"
 
 [tool.ruff]
 src = ["src"]
