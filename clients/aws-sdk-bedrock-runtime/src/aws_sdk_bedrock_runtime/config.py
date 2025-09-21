@@ -3,23 +3,30 @@
 from dataclasses import dataclass
 from typing import Any, Callable, TypeAlias, Union
 
+from smithy_aws_core.aio.protocols import RestJsonClientProtocol
 from smithy_aws_core.auth import SigV4AuthScheme
 from smithy_aws_core.endpoints.standard_regional import (
     StandardRegionalEndpointsResolver as _RegionalResolver,
 )
-from smithy_aws_core.identity import AWSCredentialsIdentity
-from smithy_core.aio.interfaces import EndpointResolver as _EndpointResolver
+from smithy_aws_core.identity import AWSCredentialsIdentity, AWSIdentityProperties
+from smithy_core.aio.interfaces import (
+    ClientProtocol,
+    ClientTransport,
+    EndpointResolver as _EndpointResolver,
+)
+from smithy_core.aio.interfaces.auth import AuthScheme
 from smithy_core.aio.interfaces.identity import IdentityResolver
 from smithy_core.interceptors import Interceptor
 from smithy_core.interfaces import URI
-from smithy_core.interfaces.identity import IdentityProperties
 from smithy_core.interfaces.retries import RetryStrategy
 from smithy_core.retries import SimpleRetryStrategy
+from smithy_core.shapes import ShapeID
 from smithy_http.aio.crt import AWSCRTHTTPClient
-from smithy_http.aio.interfaces import HTTPClient
-from smithy_http.aio.interfaces.auth import HTTPAuthScheme
 from smithy_http.interfaces import HTTPRequestConfiguration
 
+from ._private.schemas import (
+    AMAZON_BEDROCK_FRONTEND_SERVICE as _SCHEMA_AMAZON_BEDROCK_FRONTEND_SERVICE,
+)
 from .auth import HTTPAuthSchemeResolver
 from .models import (
     ApplyGuardrailInput,
@@ -28,6 +35,8 @@ from .models import (
     ConverseOperationOutput,
     ConverseStreamInput,
     ConverseStreamOperationOutput,
+    CountTokensOperationInput,
+    CountTokensOutput,
     GetAsyncInvokeInput,
     GetAsyncInvokeOutput,
     InvokeModelInput,
@@ -47,6 +56,7 @@ _ServiceInterceptor = Union[
     Interceptor[ApplyGuardrailInput, ApplyGuardrailOutput, Any, Any],
     Interceptor[ConverseInput, ConverseOperationOutput, Any, Any],
     Interceptor[ConverseStreamInput, ConverseStreamOperationOutput, Any, Any],
+    Interceptor[CountTokensOperationInput, CountTokensOutput, Any, Any],
     Interceptor[GetAsyncInvokeInput, GetAsyncInvokeOutput, Any, Any],
     Interceptor[InvokeModelInput, InvokeModelOutput, Any, Any],
     Interceptor[
@@ -70,44 +80,67 @@ _ServiceInterceptor = Union[
 class Config:
     """Configuration for AmazonBedrockFrontendService."""
 
+    auth_scheme_resolver: HTTPAuthSchemeResolver
+    auth_schemes: dict[ShapeID, AuthScheme[Any, Any, Any, Any]]
+    aws_access_key_id: str | None
     aws_credentials_identity_resolver: (
-        IdentityResolver[AWSCredentialsIdentity, IdentityProperties] | None
+        IdentityResolver[AWSCredentialsIdentity, AWSIdentityProperties] | None
     )
+    aws_secret_access_key: str | None
+    aws_session_token: str | None
     endpoint_resolver: _EndpointResolver
     endpoint_uri: str | URI | None
-    http_auth_scheme_resolver: HTTPAuthSchemeResolver
-    http_auth_schemes: dict[str, HTTPAuthScheme[Any, Any, Any, Any]]
-    http_client: HTTPClient
     http_request_config: HTTPRequestConfiguration | None
     interceptors: list[_ServiceInterceptor]
+    protocol: ClientProtocol[Any, Any] | None
     region: str | None
     retry_strategy: RetryStrategy
     sdk_ua_app_id: str | None
+    transport: ClientTransport[Any, Any] | None
     user_agent_extra: str | None
 
     def __init__(
         self,
         *,
+        auth_scheme_resolver: HTTPAuthSchemeResolver | None = None,
+        auth_schemes: dict[ShapeID, AuthScheme[Any, Any, Any, Any]] | None = None,
+        aws_access_key_id: str | None = None,
         aws_credentials_identity_resolver: IdentityResolver[
-            AWSCredentialsIdentity, IdentityProperties
+            AWSCredentialsIdentity, AWSIdentityProperties
         ]
         | None = None,
+        aws_secret_access_key: str | None = None,
+        aws_session_token: str | None = None,
         endpoint_resolver: _EndpointResolver | None = None,
         endpoint_uri: str | URI | None = None,
-        http_auth_scheme_resolver: HTTPAuthSchemeResolver | None = None,
-        http_auth_schemes: dict[str, HTTPAuthScheme[Any, Any, Any, Any]] | None = None,
-        http_client: HTTPClient | None = None,
         http_request_config: HTTPRequestConfiguration | None = None,
         interceptors: list[_ServiceInterceptor] | None = None,
+        protocol: ClientProtocol[Any, Any] | None = None,
         region: str | None = None,
         retry_strategy: RetryStrategy | None = None,
         sdk_ua_app_id: str | None = None,
+        transport: ClientTransport[Any, Any] | None = None,
         user_agent_extra: str | None = None,
     ):
         """Constructor.
 
+        :param auth_scheme_resolver:
+             An auth scheme resolver that determines the auth scheme for each operation.
+
+        :param auth_schemes:
+             A map of auth scheme ids to auth schemes.
+
+        :param aws_access_key_id:
+             The identifier for a secret access key.
+
         :param aws_credentials_identity_resolver:
              Resolves AWS Credentials. Required for operations that use Sigv4 Auth.
+
+        :param aws_secret_access_key:
+             A secret access key that can be used to sign requests.
+
+        :param aws_session_token:
+             An access key ID that identifies temporary security credentials.
 
         :param endpoint_resolver:
              The endpoint resolver used to resolve the final endpoint per-operation based on
@@ -116,21 +149,15 @@ class Config:
         :param endpoint_uri:
              A static URI to route requests to.
 
-        :param http_auth_scheme_resolver:
-             An http auth scheme resolver that determines the auth scheme for each operation.
-
-        :param http_auth_schemes:
-             A map of http auth scheme ids to http auth schemes.
-
-        :param http_client:
-             The HTTP client used to make requests.
-
         :param http_request_config:
              Configuration for individual HTTP requests.
 
         :param interceptors:
              The list of interceptors, which are hooks that are called during the execution
              of a request.
+
+        :param protocol:
+             The protocol to serialize and deserialize requests with.
 
         :param region:
              The AWS region to connect to. The configured region is used to determine the
@@ -142,38 +169,44 @@ class Config:
         :param sdk_ua_app_id:
              A unique and opaque application ID that is appended to the User-Agent header.
 
+        :param transport:
+             The transport to use to send requests (e.g. an HTTP client).
+
         :param user_agent_extra:
              Additional suffix to be added to the User-Agent header.
 
         """
+        self.auth_scheme_resolver = auth_scheme_resolver or HTTPAuthSchemeResolver()
+        self.auth_schemes = auth_schemes or {
+            ShapeID("aws.auth#sigv4"): SigV4AuthScheme(service="bedrock")
+        }
+        self.aws_access_key_id = aws_access_key_id
         self.aws_credentials_identity_resolver = aws_credentials_identity_resolver
+        self.aws_secret_access_key = aws_secret_access_key
+        self.aws_session_token = aws_session_token
         self.endpoint_resolver = endpoint_resolver or _RegionalResolver(
             endpoint_prefix="bedrock-runtime"
         )
         self.endpoint_uri = endpoint_uri
-        self.http_auth_scheme_resolver = (
-            http_auth_scheme_resolver or HTTPAuthSchemeResolver()
-        )
-        self.http_auth_schemes = http_auth_schemes or {
-            "aws.auth#sigv4": SigV4AuthScheme(),
-        }
-
-        self.http_client = http_client or AWSCRTHTTPClient()
         self.http_request_config = http_request_config
         self.interceptors = interceptors or []
+        self.protocol = protocol or RestJsonClientProtocol(
+            _SCHEMA_AMAZON_BEDROCK_FRONTEND_SERVICE
+        )
         self.region = region
         self.retry_strategy = retry_strategy or SimpleRetryStrategy()
         self.sdk_ua_app_id = sdk_ua_app_id
+        self.transport = transport or AWSCRTHTTPClient()
         self.user_agent_extra = user_agent_extra
 
-    def set_http_auth_scheme(self, scheme: HTTPAuthScheme[Any, Any, Any, Any]) -> None:
+    def set_auth_scheme(self, scheme: AuthScheme[Any, Any, Any, Any]) -> None:
         """Sets the implementation of an auth scheme.
 
         Using this method ensures the correct key is used.
 
         :param scheme: The auth scheme to add.
         """
-        self.http_auth_schemes[scheme.scheme_id] = scheme
+        self.auth_schemes[scheme.scheme_id] = scheme
 
 
 #

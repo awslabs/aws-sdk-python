@@ -4,11 +4,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 import logging
-from typing import Any, ClassVar, Literal, Self, Union
+from typing import Any, Literal, Self, Union
 
 from smithy_core.deserializers import ShapeDeserializer
 from smithy_core.documents import Document, TypeRegistry
-from smithy_core.exceptions import SmithyException
+from smithy_core.exceptions import ModeledError, SerializationError
 from smithy_core.schemas import APIOperation, Schema
 from smithy_core.serializers import ShapeSerializer
 from smithy_core.shapes import ShapeID
@@ -26,6 +26,14 @@ from ._private.schemas import (
     BIDIRECTIONAL_INPUT_PAYLOAD_PART as _SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART,
     BIDIRECTIONAL_OUTPUT_PAYLOAD_PART as _SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART,
     CACHE_POINT_BLOCK as _SCHEMA_CACHE_POINT_BLOCK,
+    CITATION as _SCHEMA_CITATION,
+    CITATIONS_CONFIG as _SCHEMA_CITATIONS_CONFIG,
+    CITATIONS_CONTENT_BLOCK as _SCHEMA_CITATIONS_CONTENT_BLOCK,
+    CITATIONS_DELTA as _SCHEMA_CITATIONS_DELTA,
+    CITATION_GENERATED_CONTENT as _SCHEMA_CITATION_GENERATED_CONTENT,
+    CITATION_LOCATION as _SCHEMA_CITATION_LOCATION,
+    CITATION_SOURCE_CONTENT as _SCHEMA_CITATION_SOURCE_CONTENT,
+    CITATION_SOURCE_CONTENT_DELTA as _SCHEMA_CITATION_SOURCE_CONTENT_DELTA,
     CONFLICT_EXCEPTION as _SCHEMA_CONFLICT_EXCEPTION,
     CONTENT_BLOCK as _SCHEMA_CONTENT_BLOCK,
     CONTENT_BLOCK_DELTA as _SCHEMA_CONTENT_BLOCK_DELTA,
@@ -45,13 +53,38 @@ from ._private.schemas import (
     CONVERSE_STREAM_OPERATION_OUTPUT as _SCHEMA_CONVERSE_STREAM_OPERATION_OUTPUT,
     CONVERSE_STREAM_OUTPUT as _SCHEMA_CONVERSE_STREAM_OUTPUT,
     CONVERSE_STREAM_TRACE as _SCHEMA_CONVERSE_STREAM_TRACE,
+    CONVERSE_TOKENS_REQUEST as _SCHEMA_CONVERSE_TOKENS_REQUEST,
     CONVERSE_TRACE as _SCHEMA_CONVERSE_TRACE,
+    COUNT_TOKENS as _SCHEMA_COUNT_TOKENS,
+    COUNT_TOKENS_INPUT as _SCHEMA_COUNT_TOKENS_INPUT,
+    COUNT_TOKENS_OPERATION_INPUT as _SCHEMA_COUNT_TOKENS_OPERATION_INPUT,
+    COUNT_TOKENS_OUTPUT as _SCHEMA_COUNT_TOKENS_OUTPUT,
     DOCUMENT_BLOCK as _SCHEMA_DOCUMENT_BLOCK,
+    DOCUMENT_CHAR_LOCATION as _SCHEMA_DOCUMENT_CHAR_LOCATION,
+    DOCUMENT_CHUNK_LOCATION as _SCHEMA_DOCUMENT_CHUNK_LOCATION,
+    DOCUMENT_CONTENT_BLOCK as _SCHEMA_DOCUMENT_CONTENT_BLOCK,
+    DOCUMENT_PAGE_LOCATION as _SCHEMA_DOCUMENT_PAGE_LOCATION,
     DOCUMENT_SOURCE as _SCHEMA_DOCUMENT_SOURCE,
     GET_ASYNC_INVOKE as _SCHEMA_GET_ASYNC_INVOKE,
     GET_ASYNC_INVOKE_INPUT as _SCHEMA_GET_ASYNC_INVOKE_INPUT,
     GET_ASYNC_INVOKE_OUTPUT as _SCHEMA_GET_ASYNC_INVOKE_OUTPUT,
     GUARDRAIL_ASSESSMENT as _SCHEMA_GUARDRAIL_ASSESSMENT,
+    GUARDRAIL_AUTOMATED_REASONING_FINDING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING,
+    GUARDRAIL_AUTOMATED_REASONING_IMPOSSIBLE_FINDING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_IMPOSSIBLE_FINDING,
+    GUARDRAIL_AUTOMATED_REASONING_INPUT_TEXT_REFERENCE as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INPUT_TEXT_REFERENCE,
+    GUARDRAIL_AUTOMATED_REASONING_INVALID_FINDING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INVALID_FINDING,
+    GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING,
+    GUARDRAIL_AUTOMATED_REASONING_NO_TRANSLATIONS_FINDING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_NO_TRANSLATIONS_FINDING,
+    GUARDRAIL_AUTOMATED_REASONING_POLICY_ASSESSMENT as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_POLICY_ASSESSMENT,
+    GUARDRAIL_AUTOMATED_REASONING_RULE as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_RULE,
+    GUARDRAIL_AUTOMATED_REASONING_SATISFIABLE_FINDING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SATISFIABLE_FINDING,
+    GUARDRAIL_AUTOMATED_REASONING_SCENARIO as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SCENARIO,
+    GUARDRAIL_AUTOMATED_REASONING_STATEMENT as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_STATEMENT,
+    GUARDRAIL_AUTOMATED_REASONING_TOO_COMPLEX_FINDING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TOO_COMPLEX_FINDING,
+    GUARDRAIL_AUTOMATED_REASONING_TRANSLATION as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION,
+    GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_AMBIGUOUS_FINDING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_AMBIGUOUS_FINDING,
+    GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_OPTION as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_OPTION,
+    GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING as _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING,
     GUARDRAIL_CONFIGURATION as _SCHEMA_GUARDRAIL_CONFIGURATION,
     GUARDRAIL_CONTENT_BLOCK as _SCHEMA_GUARDRAIL_CONTENT_BLOCK,
     GUARDRAIL_CONTENT_FILTER as _SCHEMA_GUARDRAIL_CONTENT_FILTER,
@@ -88,6 +121,7 @@ from ._private.schemas import (
     INVOKE_MODEL as _SCHEMA_INVOKE_MODEL,
     INVOKE_MODEL_INPUT as _SCHEMA_INVOKE_MODEL_INPUT,
     INVOKE_MODEL_OUTPUT as _SCHEMA_INVOKE_MODEL_OUTPUT,
+    INVOKE_MODEL_TOKENS_REQUEST as _SCHEMA_INVOKE_MODEL_TOKENS_REQUEST,
     INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM as _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM,
     INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_INPUT as _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_INPUT,
     INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT as _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT,
@@ -145,48 +179,25 @@ from ._private.schemas import (
 logger = logging.getLogger(__name__)
 
 
-class ServiceError(SmithyException):
-    """Base error for all errors in the service."""
+class ServiceError(ModeledError):
+    """Base error for all errors in the service.
 
-    pass
-
-
-@dataclass
-class ApiError(ServiceError):
-    """Base error for all API errors in the service."""
-
-    code: ClassVar[str]
-    fault: ClassVar[Literal["client", "server"]]
-
-    message: str
-
-    def __post_init__(self) -> None:
-        super().__init__(self.message)
-
-
-@dataclass
-class UnknownApiError(ApiError):
-    """Error representing any unknown api errors."""
-
-    code: ClassVar[str] = "Unknown"
-    fault: ClassVar[Literal["client", "server"]] = "client"
+    Some exceptions do not extend from this class, including
+    synthetic, implicit, and shared exception types.
+    """
 
 
 @dataclass(kw_only=True)
-class AccessDeniedException(ApiError):
+class AccessDeniedException(ServiceError):
     """
     The request is denied because you do not have sufficient permissions to perform
-    the requested action. For troubleshooting this error, see `AccessDeniedException <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-access-denied>`_
+    the requested action. For troubleshooting this error, see
+    ``AccessDeniedException <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-access-denied>``_
     in the Amazon Bedrock User Guide
-
-    :param message: A message associated with the specific error.
 
     """
 
-    code: ClassVar[str] = "AccessDeniedException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    fault: Literal["client", "server"] | None = "client"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_ACCESS_DENIED_EXCEPTION, self)
@@ -247,20 +258,20 @@ def _deserialize_additional_model_response_field_paths(
 
 @dataclass(kw_only=True)
 class GetAsyncInvokeInput:
-    """
-
-    :param invocation_arn:
-        **[Required]** - The invocation's ARN.
-
-    """
-
     invocation_arn: str | None = None
+    """
+    The invocation's ARN.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_ASYNC_INVOKE_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        if self.invocation_arn is not None:
+            serializer.write_string(
+                _SCHEMA_GET_ASYNC_INVOKE_INPUT.members["invocationArn"],
+                self.invocation_arn,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -289,21 +300,21 @@ class AsyncInvokeS3OutputDataConfig:
     """
     Asynchronous invocation output data settings.
 
-    :param s3_uri:
-        **[Required]** - An object URI starting with ``s3://``.
-
-    :param kms_key_id:
-        A KMS encryption key ID.
-
-    :param bucket_owner:
-        If the bucket belongs to another AWS account, specify that account's ID.
-
     """
 
     s3_uri: str
+    """
+    An object URI starting with ``s3://``.
+    """
 
     kms_key_id: str | None = None
+    """
+    A KMS encryption key ID.
+    """
     bucket_owner: str | None = None
+    """
+    If the bucket belongs to another AWS account, specify that account's ID.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG, self)
@@ -396,10 +407,10 @@ class AsyncInvokeOutputDataConfigUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -428,7 +439,9 @@ class _AsyncInvokeOutputDataConfigDeserializer:
         )
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -444,7 +457,7 @@ class _AsyncInvokeOutputDataConfigDeserializer:
 
     def _set_result(self, value: AsyncInvokeOutputDataConfig) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -458,51 +471,47 @@ class AsyncInvokeStatus(StrEnum):
 
 @dataclass(kw_only=True)
 class GetAsyncInvokeOutput:
-    """
-
-    :param invocation_arn:
-        **[Required]** - The invocation's ARN.
-
-    :param model_arn:
-        **[Required]** - The invocation's model ARN.
-
-    :param status:
-        **[Required]** - The invocation's status.
-
-    :param submit_time:
-        **[Required]** - When the invocation request was submitted.
-
-    :param output_data_config:
-        **[Required]** - Output data settings.
-
-    :param client_request_token:
-        The invocation's idempotency token.
-
-    :param failure_message:
-        An error message.
-
-    :param last_modified_time:
-        The invocation's last modified time.
-
-    :param end_time:
-        When the invocation ended.
-
-    """
-
     invocation_arn: str
+    """
+    The invocation's ARN.
+    """
 
     model_arn: str
+    """
+    The invocation's model ARN.
+    """
 
     status: str
+    """
+    The invocation's status.
+    """
 
     submit_time: datetime
+    """
+    When the invocation request was submitted.
+    """
 
     output_data_config: AsyncInvokeOutputDataConfig
+    """
+    Output data settings.
+    """
 
     client_request_token: str | None = None
+    """
+    The invocation's idempotency token.
+    """
     failure_message: str | None = field(repr=False, default=None)
+    """
+    An error message.
+    """
     last_modified_time: datetime | None = None
+    """
+    The invocation's last modified time.
+    """
     end_time: datetime | None = None
+    """
+    When the invocation ended.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT, self)
@@ -612,20 +621,15 @@ class GetAsyncInvokeOutput:
 
 
 @dataclass(kw_only=True)
-class InternalServerException(ApiError):
+class InternalServerException(ServiceError):
     """
     An internal server error occurred. For troubleshooting this error, see
-    `InternalFailure <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-internal-failure>`_
+    ``InternalFailure <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-internal-failure>``_
     in the Amazon Bedrock User Guide
-
-    :param message: A message associated with the specific error.
 
     """
 
-    code: ClassVar[str] = "InternalServerException"
-    fault: ClassVar[Literal["client", "server"]] = "server"
-
-    message: str
+    fault: Literal["client", "server"] | None = "server"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INTERNAL_SERVER_EXCEPTION, self)
@@ -659,20 +663,15 @@ class InternalServerException(ApiError):
 
 
 @dataclass(kw_only=True)
-class ThrottlingException(ApiError):
+class ThrottlingException(ServiceError):
     """
     Your request was denied due to exceeding the account quotas for *Amazon
-    Bedrock*. For troubleshooting this error, see `ThrottlingException <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-throttling-exception>`_
+    Bedrock*. For troubleshooting this error, see ``ThrottlingException <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-throttling-exception>``_
     in the Amazon Bedrock User Guide
-
-    :param message: A message associated with the specific error.
 
     """
 
-    code: ClassVar[str] = "ThrottlingException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    fault: Literal["client", "server"] | None = "client"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_THROTTLING_EXCEPTION, self)
@@ -706,20 +705,15 @@ class ThrottlingException(ApiError):
 
 
 @dataclass(kw_only=True)
-class ValidationException(ApiError):
+class ValidationException(ServiceError):
     """
     The input fails to satisfy the constraints specified by *Amazon Bedrock*. For
-    troubleshooting this error, see `ValidationError <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-validation-error>`_
+    troubleshooting this error, see ``ValidationError <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-validation-error>``_
     in the Amazon Bedrock User Guide
-
-    :param message: A message associated with the specific error.
 
     """
 
-    code: ClassVar[str] = "ValidationException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    fault: Literal["client", "server"] | None = "client"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_VALIDATION_EXCEPTION, self)
@@ -774,7 +768,10 @@ GET_ASYNC_INVOKE = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
 
 
@@ -789,45 +786,77 @@ class SortOrder(StrEnum):
 
 @dataclass(kw_only=True)
 class ListAsyncInvokesInput:
-    """
-
-    :param submit_time_after:
-        Include invocations submitted after this time.
-
-    :param submit_time_before:
-        Include invocations submitted before this time.
-
-    :param status_equals:
-        Filter invocations by status.
-
-    :param max_results:
-        The maximum number of invocations to return in one page of results.
-
-    :param next_token:
-        Specify the pagination token from a previous request to retrieve the next page
-        of results.
-
-    :param sort_by:
-        How to sort the response.
-
-    :param sort_order:
-        The sorting order for the response.
-
-    """
-
     submit_time_after: datetime | None = None
+    """
+    Include invocations submitted after this time.
+    """
     submit_time_before: datetime | None = None
+    """
+    Include invocations submitted before this time.
+    """
     status_equals: str | None = None
+    """
+    Filter invocations by status.
+    """
     max_results: int | None = None
+    """
+    The maximum number of invocations to return in one page of results.
+    """
     next_token: str | None = None
+    """
+    Specify the pagination token from a previous request to retrieve the next page
+    of results.
+    """
     sort_by: str = "SubmissionTime"
+    """
+    How to sort the response.
+    """
     sort_order: str = "Descending"
+    """
+    The sorting order for the response.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_ASYNC_INVOKES_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        if self.submit_time_after is not None:
+            serializer.write_timestamp(
+                _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["submitTimeAfter"],
+                self.submit_time_after,
+            )
+
+        if self.submit_time_before is not None:
+            serializer.write_timestamp(
+                _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["submitTimeBefore"],
+                self.submit_time_before,
+            )
+
+        if self.status_equals is not None:
+            serializer.write_string(
+                _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["statusEquals"],
+                self.status_equals,
+            )
+
+        if self.max_results is not None:
+            serializer.write_integer(
+                _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["maxResults"], self.max_results
+            )
+
+        if self.next_token is not None:
+            serializer.write_string(
+                _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["nextToken"], self.next_token
+            )
+
+        if self.sort_by is not None:
+            serializer.write_string(
+                _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["sortBy"], self.sort_by
+            )
+
+        if self.sort_order is not None:
+            serializer.write_string(
+                _SCHEMA_LIST_ASYNC_INVOKES_INPUT.members["sortOrder"], self.sort_order
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -886,48 +915,48 @@ class AsyncInvokeSummary:
     """
     A summary of an asynchronous invocation.
 
-    :param invocation_arn:
-        **[Required]** - The invocation's ARN.
-
-    :param model_arn:
-        **[Required]** - The invoked model's ARN.
-
-    :param submit_time:
-        **[Required]** - When the invocation was submitted.
-
-    :param output_data_config:
-        **[Required]** - The invocation's output data settings.
-
-    :param client_request_token:
-        The invocation's idempotency token.
-
-    :param status:
-        The invocation's status.
-
-    :param failure_message:
-        An error message.
-
-    :param last_modified_time:
-        When the invocation was last modified.
-
-    :param end_time:
-        When the invocation ended.
-
     """
 
     invocation_arn: str
+    """
+    The invocation's ARN.
+    """
 
     model_arn: str
+    """
+    The invoked model's ARN.
+    """
 
     submit_time: datetime
+    """
+    When the invocation was submitted.
+    """
 
     output_data_config: AsyncInvokeOutputDataConfig
+    """
+    The invocation's output data settings.
+    """
 
     client_request_token: str | None = None
+    """
+    The invocation's idempotency token.
+    """
     status: str | None = None
+    """
+    The invocation's status.
+    """
     failure_message: str | None = field(repr=False, default=None)
+    """
+    An error message.
+    """
     last_modified_time: datetime | None = None
+    """
+    When the invocation was last modified.
+    """
     end_time: datetime | None = None
+    """
+    When the invocation ended.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_ASYNC_INVOKE_SUMMARY, self)
@@ -1064,19 +1093,15 @@ def _deserialize_async_invoke_summaries(
 
 @dataclass(kw_only=True)
 class ListAsyncInvokesOutput:
-    """
-
-    :param next_token:
-        Specify the pagination token from a previous request to retrieve the next page
-        of results.
-
-    :param async_invoke_summaries:
-        A list of invocation summaries.
-
-    """
-
     next_token: str | None = None
+    """
+    Specify the pagination token from a previous request to retrieve the next page
+    of results.
+    """
     async_invoke_summaries: list[AsyncInvokeSummary] | None = None
+    """
+    A list of invocation summaries.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_ASYNC_INVOKES_OUTPUT, self)
@@ -1148,23 +1173,21 @@ LIST_ASYNC_INVOKES = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
 
 
 @dataclass(kw_only=True)
-class ConflictException(ApiError):
+class ConflictException(ServiceError):
     """
     Error occurred because of a conflict while performing an operation.
 
-    :param message: A message associated with the specific error.
-
     """
 
-    code: ClassVar[str] = "ConflictException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    fault: Literal["client", "server"] | None = "client"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONFLICT_EXCEPTION, self)
@@ -1198,20 +1221,15 @@ class ConflictException(ApiError):
 
 
 @dataclass(kw_only=True)
-class ResourceNotFoundException(ApiError):
+class ResourceNotFoundException(ServiceError):
     """
     The specified resource ARN was not found. For troubleshooting this error, see
-    `ResourceNotFound <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-resource-not-found>`_
+    ``ResourceNotFound <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-resource-not-found>``_
     in the Amazon Bedrock User Guide
-
-    :param message: A message associated with the specific error.
 
     """
 
-    code: ClassVar[str] = "ResourceNotFoundException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    fault: Literal["client", "server"] | None = "client"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION, self)
@@ -1247,20 +1265,15 @@ class ResourceNotFoundException(ApiError):
 
 
 @dataclass(kw_only=True)
-class ServiceQuotaExceededException(ApiError):
+class ServiceQuotaExceededException(ServiceError):
     """
     Your request exceeds the service quota for your account. You can view your
-    quotas at `Viewing service quotas <https://docs.aws.amazon.com/servicequotas/latest/userguide/gs-request-quota.html>`_.
+    quotas at ``Viewing service quotas <https://docs.aws.amazon.com/servicequotas/latest/userguide/gs-request-quota.html>``_.
     You can resubmit your request later.
-
-    :param message: A message associated with the specific error.
 
     """
 
-    code: ClassVar[str] = "ServiceQuotaExceededException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    fault: Literal["client", "server"] | None = "client"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION, self)
@@ -1297,20 +1310,15 @@ class ServiceQuotaExceededException(ApiError):
 
 
 @dataclass(kw_only=True)
-class ServiceUnavailableException(ApiError):
+class ServiceUnavailableException(ServiceError):
     """
     The service isn't currently available. For troubleshooting this error, see
-    `ServiceUnavailable <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-service-unavailable>`_
+    ``ServiceUnavailable <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-service-unavailable>``_
     in the Amazon Bedrock User Guide
-
-    :param message: A message associated with the specific error.
 
     """
 
-    code: ClassVar[str] = "ServiceUnavailableException"
-    fault: ClassVar[Literal["client", "server"]] = "server"
-
-    message: str
+    fault: Literal["client", "server"] | None = "server"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_SERVICE_UNAVAILABLE_EXCEPTION, self)
@@ -1350,17 +1358,17 @@ class Tag:
     """
     A tag.
 
-    :param key:
-        **[Required]** - The tag's key.
-
-    :param value:
-        **[Required]** - The tag's value.
-
     """
 
     key: str
+    """
+    The tag's key.
+    """
 
     value: str
+    """
+    The tag's value.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TAG, self)
@@ -1417,30 +1425,26 @@ def _deserialize_tag_list(deserializer: ShapeDeserializer, schema: Schema) -> li
 
 @dataclass(kw_only=True)
 class StartAsyncInvokeInput:
-    """
-
-    :param client_request_token:
-        Specify idempotency token to ensure that requests are not duplicated.
-
-    :param model_id:
-        **[Required]** - The model to invoke.
-
-    :param model_input:
-        **[Required]** - Input to send to the model.
-
-    :param output_data_config:
-        **[Required]** - Where to store the output.
-
-    :param tags:
-        Tags to apply to the invocation.
-
-    """
-
     client_request_token: str | None = None
+    """
+    Specify idempotency token to ensure that requests are not duplicated.
+    """
     model_id: str | None = None
+    """
+    The model to invoke.
+    """
     model_input: Document | None = field(repr=False, default=None)
+    """
+    Input to send to the model.
+    """
     output_data_config: AsyncInvokeOutputDataConfig | None = None
+    """
+    Where to store the output.
+    """
     tags: list[Tag] | None = None
+    """
+    Tags to apply to the invocation.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_START_ASYNC_INVOKE_INPUT, self)
@@ -1517,14 +1521,10 @@ class StartAsyncInvokeInput:
 
 @dataclass(kw_only=True)
 class StartAsyncInvokeOutput:
-    """
-
-    :param invocation_arn:
-        **[Required]** - The ARN of the invocation.
-
-    """
-
     invocation_arn: str
+    """
+    The ARN of the invocation.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_START_ASYNC_INVOKE_OUTPUT, self)
@@ -1591,7 +1591,10 @@ START_ASYNC_INVOKE = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
 
 
@@ -1639,10 +1642,10 @@ class GuardrailImageSourceUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1666,7 +1669,9 @@ class _GuardrailImageSourceDeserializer:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_IMAGE_SOURCE, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -1680,7 +1685,7 @@ class _GuardrailImageSourceDeserializer:
 
     def _set_result(self, value: GuardrailImageSource) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -1692,19 +1697,17 @@ class GuardrailImageBlock:
     Contain an image which user wants guarded. This block is accepted by the
     guardrails independent API.
 
-    :param format:
-        **[Required]** - The format details for the file type of the image blocked by
-        the guardrail.
-
-    :param source:
-        **[Required]** - The image source (image bytes) details of the image blocked by
-        the guardrail.
-
     """
 
     format: str
+    """
+    The format details for the file type of the image blocked by the guardrail.
+    """
 
     source: GuardrailImageSource = field(repr=False)
+    """
+    The image source (image bytes) details of the image blocked by the guardrail.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_IMAGE_BLOCK, self)
@@ -1781,17 +1784,17 @@ class GuardrailTextBlock:
     """
     The text block to be evaluated by the guardrail.
 
-    :param text:
-        **[Required]** - The input text details to be evaluated by the guardrail.
-
-    :param qualifiers:
-        The qualifiers describing the text block.
-
     """
 
     text: str
+    """
+    The input text details to be evaluated by the guardrail.
+    """
 
     qualifiers: list[str] | None = None
+    """
+    The qualifiers describing the text block.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TEXT_BLOCK, self)
@@ -1891,10 +1894,10 @@ class GuardrailContentBlockUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -1921,7 +1924,9 @@ class _GuardrailContentBlockDeserializer:
         deserializer.read_struct(_SCHEMA_GUARDRAIL_CONTENT_BLOCK, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -1938,7 +1943,7 @@ class _GuardrailContentBlockDeserializer:
 
     def _set_result(self, value: GuardrailContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -1981,44 +1986,50 @@ class GuardrailContentSource(StrEnum):
 
 @dataclass(kw_only=True)
 class ApplyGuardrailInput:
-    """
-
-    :param guardrail_identifier:
-        **[Required]** - The guardrail identifier used in the request to apply the
-        guardrail.
-
-    :param guardrail_version:
-        **[Required]** - The guardrail version used in the request to apply the
-        guardrail.
-
-    :param source:
-        **[Required]** - The source of data used in the request to apply the guardrail.
-
-    :param content:
-        **[Required]** - The content details used in the request to apply the guardrail.
-
-    :param output_scope:
-        Specifies the scope of the output that you get in the response. Set to ``FULL``
-        to return the entire output, including any detected and non-detected entries in
-        the response for enhanced debugging.
-
-        Note that the full output scope doesn't apply to word filters or regex in
-        sensitive information filters. It does apply to all other filtering policies,
-        including sensitive information with filters that can detect personally
-        identifiable information (PII).
-
-    """
-
     guardrail_identifier: str | None = None
+    """
+    The guardrail identifier used in the request to apply the guardrail.
+    """
     guardrail_version: str | None = None
+    """
+    The guardrail version used in the request to apply the guardrail.
+    """
     source: str | None = None
+    """
+    The source of data used in the request to apply the guardrail.
+    """
     content: list[GuardrailContentBlock] | None = None
+    """
+    The content details used in the request to apply the guardrail.
+    """
     output_scope: str | None = None
+    """
+    Specifies the scope of the output that you get in the response. Set to ``FULL``
+    to return the entire output, including any detected and non-detected entries in
+    the response for enhanced debugging.
+
+    Note that the full output scope doesn't apply to word filters or regex in
+    sensitive information filters. It does apply to all other filtering policies,
+    including sensitive information with filters that can detect personally
+    identifiable information (PII).
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_APPLY_GUARDRAIL_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
+        if self.guardrail_identifier is not None:
+            serializer.write_string(
+                _SCHEMA_APPLY_GUARDRAIL_INPUT.members["guardrailIdentifier"],
+                self.guardrail_identifier,
+            )
+
+        if self.guardrail_version is not None:
+            serializer.write_string(
+                _SCHEMA_APPLY_GUARDRAIL_INPUT.members["guardrailVersion"],
+                self.guardrail_version,
+            )
+
         if self.source is not None:
             serializer.write_string(
                 _SCHEMA_APPLY_GUARDRAIL_INPUT.members["source"], self.source
@@ -2083,6 +2094,1653 @@ class GuardrailAction(StrEnum):
     GUARDRAIL_INTERVENED = "GUARDRAIL_INTERVENED"
 
 
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningRule:
+    """
+    References a specific automated reasoning policy rule that was applied during
+    evaluation.
+
+    """
+
+    identifier: str | None = None
+    """
+    The unique identifier of the automated reasoning rule.
+    """
+    policy_version_arn: str | None = None
+    """
+    The ARN of the automated reasoning policy version that contains this rule.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_RULE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.identifier is not None:
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_RULE.members["identifier"],
+                self.identifier,
+            )
+
+        if self.policy_version_arn is not None:
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_RULE.members["policyVersionArn"],
+                self.policy_version_arn,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["identifier"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_RULE.members["identifier"]
+                    )
+
+                case 1:
+                    kwargs["policy_version_arn"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_RULE.members[
+                            "policyVersionArn"
+                        ]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_RULE, consumer=_consumer
+        )
+        return kwargs
+
+
+def _serialize_guardrail_automated_reasoning_rule_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[GuardrailAutomatedReasoningRule],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_guardrail_automated_reasoning_rule_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailAutomatedReasoningRule]:
+    result: list[GuardrailAutomatedReasoningRule] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(GuardrailAutomatedReasoningRule.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningStatement:
+    """
+    A logical statement that includes both formal logic representation and natural
+    language explanation.
+
+    """
+
+    logic: str | None = field(repr=False, default=None)
+    """
+    The formal logical representation of the statement.
+    """
+    natural_language: str | None = field(repr=False, default=None)
+    """
+    The natural language explanation of the logical statement.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_STATEMENT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.logic is not None:
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_STATEMENT.members["logic"],
+                self.logic,
+            )
+
+        if self.natural_language is not None:
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_STATEMENT.members[
+                    "naturalLanguage"
+                ],
+                self.natural_language,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["logic"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_STATEMENT.members["logic"]
+                    )
+
+                case 1:
+                    kwargs["natural_language"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_STATEMENT.members[
+                            "naturalLanguage"
+                        ]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_STATEMENT, consumer=_consumer
+        )
+        return kwargs
+
+
+def _serialize_guardrail_automated_reasoning_statement_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[GuardrailAutomatedReasoningStatement],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_guardrail_automated_reasoning_statement_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailAutomatedReasoningStatement]:
+    result: list[GuardrailAutomatedReasoningStatement] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(GuardrailAutomatedReasoningStatement.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+class GuardrailAutomatedReasoningLogicWarningType(StrEnum):
+    ALWAYS_FALSE = "ALWAYS_FALSE"
+    ALWAYS_TRUE = "ALWAYS_TRUE"
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningLogicWarning:
+    """
+    Identifies logical issues in the translated statements that exist independent of
+    any policy rules, such as statements that are always true or always false.
+
+    """
+
+    type: str | None = None
+    """
+    The category of the detected logical issue, such as statements that are always
+    true or always false.
+    """
+    premises: list[GuardrailAutomatedReasoningStatement] | None = None
+    """
+    The logical statements that serve as premises under which the claims are
+    validated.
+    """
+    claims: list[GuardrailAutomatedReasoningStatement] | None = None
+    """
+    The logical statements that are validated while assuming the policy and
+    premises.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.type is not None:
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING.members["type"],
+                self.type,
+            )
+
+        if self.premises is not None:
+            _serialize_guardrail_automated_reasoning_statement_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING.members["premises"],
+                self.premises,
+            )
+
+        if self.claims is not None:
+            _serialize_guardrail_automated_reasoning_statement_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING.members["claims"],
+                self.claims,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING.members[
+                            "type"
+                        ]
+                    )
+
+                case 1:
+                    kwargs["premises"] = (
+                        _deserialize_guardrail_automated_reasoning_statement_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING.members[
+                                "premises"
+                            ],
+                        )
+                    )
+
+                case 2:
+                    kwargs["claims"] = (
+                        _deserialize_guardrail_automated_reasoning_statement_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING.members[
+                                "claims"
+                            ],
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_LOGIC_WARNING, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningInputTextReference:
+    """
+    References a portion of the original input text that corresponds to logical
+    elements.
+
+    """
+
+    text: str | None = field(repr=False, default=None)
+    """
+    The specific text from the original input that this reference points to.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INPUT_TEXT_REFERENCE, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.text is not None:
+            serializer.write_string(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INPUT_TEXT_REFERENCE.members[
+                    "text"
+                ],
+                self.text,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["text"] = de.read_string(
+                        _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INPUT_TEXT_REFERENCE.members[
+                            "text"
+                        ]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INPUT_TEXT_REFERENCE,
+            consumer=_consumer,
+        )
+        return kwargs
+
+
+def _serialize_guardrail_automated_reasoning_input_text_reference_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[GuardrailAutomatedReasoningInputTextReference],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_guardrail_automated_reasoning_input_text_reference_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailAutomatedReasoningInputTextReference]:
+    result: list[GuardrailAutomatedReasoningInputTextReference] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(GuardrailAutomatedReasoningInputTextReference.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningTranslation:
+    """
+    Contains the logical translation of natural language input into formal logical
+    statements, including premises, claims, and confidence scores.
+
+    """
+
+    premises: list[GuardrailAutomatedReasoningStatement] | None = None
+    """
+    The logical statements that serve as the foundation or assumptions for the
+    claims.
+    """
+    claims: list[GuardrailAutomatedReasoningStatement] | None = None
+    """
+    The logical statements that are being validated against the premises and policy
+    rules.
+    """
+    untranslated_premises: (
+        list[GuardrailAutomatedReasoningInputTextReference] | None
+    ) = None
+    """
+    References to portions of the original input text that correspond to the
+    premises but could not be fully translated.
+    """
+    untranslated_claims: list[GuardrailAutomatedReasoningInputTextReference] | None = (
+        None
+    )
+    """
+    References to portions of the original input text that correspond to the claims
+    but could not be fully translated.
+    """
+    confidence: float | None = None
+    """
+    A confidence score between 0 and 1 indicating how certain the system is about
+    the logical translation.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.premises is not None:
+            _serialize_guardrail_automated_reasoning_statement_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members["premises"],
+                self.premises,
+            )
+
+        if self.claims is not None:
+            _serialize_guardrail_automated_reasoning_statement_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members["claims"],
+                self.claims,
+            )
+
+        if self.untranslated_premises is not None:
+            _serialize_guardrail_automated_reasoning_input_text_reference_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members[
+                    "untranslatedPremises"
+                ],
+                self.untranslated_premises,
+            )
+
+        if self.untranslated_claims is not None:
+            _serialize_guardrail_automated_reasoning_input_text_reference_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members[
+                    "untranslatedClaims"
+                ],
+                self.untranslated_claims,
+            )
+
+        if self.confidence is not None:
+            serializer.write_double(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members["confidence"],
+                self.confidence,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["premises"] = (
+                        _deserialize_guardrail_automated_reasoning_statement_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members[
+                                "premises"
+                            ],
+                        )
+                    )
+
+                case 1:
+                    kwargs["claims"] = (
+                        _deserialize_guardrail_automated_reasoning_statement_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members[
+                                "claims"
+                            ],
+                        )
+                    )
+
+                case 2:
+                    kwargs["untranslated_premises"] = (
+                        _deserialize_guardrail_automated_reasoning_input_text_reference_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members[
+                                "untranslatedPremises"
+                            ],
+                        )
+                    )
+
+                case 3:
+                    kwargs["untranslated_claims"] = (
+                        _deserialize_guardrail_automated_reasoning_input_text_reference_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members[
+                                "untranslatedClaims"
+                            ],
+                        )
+                    )
+
+                case 4:
+                    kwargs["confidence"] = de.read_double(
+                        _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION.members[
+                            "confidence"
+                        ]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningImpossibleFinding:
+    """
+    Indicates that no valid claims can be made due to logical contradictions in the
+    premises or rules.
+
+    """
+
+    translation: GuardrailAutomatedReasoningTranslation | None = None
+    """
+    The logical translation of the input that this finding evaluates.
+    """
+    contradicting_rules: list[GuardrailAutomatedReasoningRule] | None = None
+    """
+    The automated reasoning policy rules that contradict the claims and/or premises
+    in the input.
+    """
+    logic_warning: GuardrailAutomatedReasoningLogicWarning | None = None
+    """
+    Indication of a logic issue with the translation without needing to consider the
+    automated reasoning policy rules.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_IMPOSSIBLE_FINDING, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.translation is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_IMPOSSIBLE_FINDING.members[
+                    "translation"
+                ],
+                self.translation,
+            )
+
+        if self.contradicting_rules is not None:
+            _serialize_guardrail_automated_reasoning_rule_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_IMPOSSIBLE_FINDING.members[
+                    "contradictingRules"
+                ],
+                self.contradicting_rules,
+            )
+
+        if self.logic_warning is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_IMPOSSIBLE_FINDING.members[
+                    "logicWarning"
+                ],
+                self.logic_warning,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["translation"] = (
+                        GuardrailAutomatedReasoningTranslation.deserialize(de)
+                    )
+
+                case 1:
+                    kwargs["contradicting_rules"] = (
+                        _deserialize_guardrail_automated_reasoning_rule_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_IMPOSSIBLE_FINDING.members[
+                                "contradictingRules"
+                            ],
+                        )
+                    )
+
+                case 2:
+                    kwargs["logic_warning"] = (
+                        GuardrailAutomatedReasoningLogicWarning.deserialize(de)
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_IMPOSSIBLE_FINDING, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningInvalidFinding:
+    """
+    Indicates that the claims are logically false and contradictory to the
+    established rules or premises.
+
+    """
+
+    translation: GuardrailAutomatedReasoningTranslation | None = None
+    """
+    The logical translation of the input that this finding invalidates.
+    """
+    contradicting_rules: list[GuardrailAutomatedReasoningRule] | None = None
+    """
+    The automated reasoning policy rules that contradict the claims in the input.
+    """
+    logic_warning: GuardrailAutomatedReasoningLogicWarning | None = None
+    """
+    Indication of a logic issue with the translation without needing to consider the
+    automated reasoning policy rules.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INVALID_FINDING, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.translation is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INVALID_FINDING.members[
+                    "translation"
+                ],
+                self.translation,
+            )
+
+        if self.contradicting_rules is not None:
+            _serialize_guardrail_automated_reasoning_rule_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INVALID_FINDING.members[
+                    "contradictingRules"
+                ],
+                self.contradicting_rules,
+            )
+
+        if self.logic_warning is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INVALID_FINDING.members[
+                    "logicWarning"
+                ],
+                self.logic_warning,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["translation"] = (
+                        GuardrailAutomatedReasoningTranslation.deserialize(de)
+                    )
+
+                case 1:
+                    kwargs["contradicting_rules"] = (
+                        _deserialize_guardrail_automated_reasoning_rule_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INVALID_FINDING.members[
+                                "contradictingRules"
+                            ],
+                        )
+                    )
+
+                case 2:
+                    kwargs["logic_warning"] = (
+                        GuardrailAutomatedReasoningLogicWarning.deserialize(de)
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_INVALID_FINDING, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningNoTranslationsFinding:
+    """
+    Indicates that no relevant logical information could be extracted from the input
+    for validation.
+
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_NO_TRANSLATIONS_FINDING, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_NO_TRANSLATIONS_FINDING,
+            consumer=_consumer,
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningScenario:
+    """
+    Represents a logical scenario where claims can be evaluated as true or false,
+    containing specific logical assignments.
+
+    """
+
+    statements: list[GuardrailAutomatedReasoningStatement] | None = None
+    """
+    List of logical assignments and statements that define this scenario.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SCENARIO, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.statements is not None:
+            _serialize_guardrail_automated_reasoning_statement_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SCENARIO.members["statements"],
+                self.statements,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["statements"] = (
+                        _deserialize_guardrail_automated_reasoning_statement_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SCENARIO.members[
+                                "statements"
+                            ],
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SCENARIO, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningSatisfiableFinding:
+    """
+    Indicates that the claims could be either true or false depending on additional
+    assumptions not provided in the input.
+
+    """
+
+    translation: GuardrailAutomatedReasoningTranslation | None = None
+    """
+    The logical translation of the input that this finding evaluates.
+    """
+    claims_true_scenario: GuardrailAutomatedReasoningScenario | None = None
+    """
+    An example scenario demonstrating how the claims could be logically true.
+    """
+    claims_false_scenario: GuardrailAutomatedReasoningScenario | None = None
+    """
+    An example scenario demonstrating how the claims could be logically false.
+    """
+    logic_warning: GuardrailAutomatedReasoningLogicWarning | None = None
+    """
+    Indication of a logic issue with the translation without needing to consider the
+    automated reasoning policy rules.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SATISFIABLE_FINDING, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.translation is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SATISFIABLE_FINDING.members[
+                    "translation"
+                ],
+                self.translation,
+            )
+
+        if self.claims_true_scenario is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SATISFIABLE_FINDING.members[
+                    "claimsTrueScenario"
+                ],
+                self.claims_true_scenario,
+            )
+
+        if self.claims_false_scenario is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SATISFIABLE_FINDING.members[
+                    "claimsFalseScenario"
+                ],
+                self.claims_false_scenario,
+            )
+
+        if self.logic_warning is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SATISFIABLE_FINDING.members[
+                    "logicWarning"
+                ],
+                self.logic_warning,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["translation"] = (
+                        GuardrailAutomatedReasoningTranslation.deserialize(de)
+                    )
+
+                case 1:
+                    kwargs["claims_true_scenario"] = (
+                        GuardrailAutomatedReasoningScenario.deserialize(de)
+                    )
+
+                case 2:
+                    kwargs["claims_false_scenario"] = (
+                        GuardrailAutomatedReasoningScenario.deserialize(de)
+                    )
+
+                case 3:
+                    kwargs["logic_warning"] = (
+                        GuardrailAutomatedReasoningLogicWarning.deserialize(de)
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SATISFIABLE_FINDING,
+            consumer=_consumer,
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningTooComplexFinding:
+    """
+    Indicates that the input exceeds the processing capacity due to the volume or
+    complexity of the logical information.
+
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TOO_COMPLEX_FINDING, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TOO_COMPLEX_FINDING,
+            consumer=_consumer,
+        )
+        return kwargs
+
+
+def _serialize_guardrail_automated_reasoning_difference_scenario_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[GuardrailAutomatedReasoningScenario],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_guardrail_automated_reasoning_difference_scenario_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailAutomatedReasoningScenario]:
+    result: list[GuardrailAutomatedReasoningScenario] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(GuardrailAutomatedReasoningScenario.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+def _serialize_guardrail_automated_reasoning_translation_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[GuardrailAutomatedReasoningTranslation],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_guardrail_automated_reasoning_translation_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailAutomatedReasoningTranslation]:
+    result: list[GuardrailAutomatedReasoningTranslation] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(GuardrailAutomatedReasoningTranslation.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningTranslationOption:
+    """
+    Represents one possible logical interpretation of ambiguous input content.
+
+    """
+
+    translations: list[GuardrailAutomatedReasoningTranslation] | None = None
+    """
+    Example translations that provide this possible interpretation of the input.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_OPTION, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.translations is not None:
+            _serialize_guardrail_automated_reasoning_translation_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_OPTION.members[
+                    "translations"
+                ],
+                self.translations,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["translations"] = (
+                        _deserialize_guardrail_automated_reasoning_translation_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_OPTION.members[
+                                "translations"
+                            ],
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_OPTION, consumer=_consumer
+        )
+        return kwargs
+
+
+def _serialize_guardrail_automated_reasoning_translation_option_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[GuardrailAutomatedReasoningTranslationOption],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_guardrail_automated_reasoning_translation_option_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailAutomatedReasoningTranslationOption]:
+    result: list[GuardrailAutomatedReasoningTranslationOption] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(GuardrailAutomatedReasoningTranslationOption.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningTranslationAmbiguousFinding:
+    """
+    Indicates that the input has multiple valid logical interpretations, requiring
+    additional context or clarification.
+
+    """
+
+    options: list[GuardrailAutomatedReasoningTranslationOption] | None = None
+    """
+    Different logical interpretations that were detected during translation of the
+    input.
+    """
+    difference_scenarios: list[GuardrailAutomatedReasoningScenario] | None = None
+    """
+    Scenarios showing how the different translation options differ in meaning.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_AMBIGUOUS_FINDING, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.options is not None:
+            _serialize_guardrail_automated_reasoning_translation_option_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_AMBIGUOUS_FINDING.members[
+                    "options"
+                ],
+                self.options,
+            )
+
+        if self.difference_scenarios is not None:
+            _serialize_guardrail_automated_reasoning_difference_scenario_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_AMBIGUOUS_FINDING.members[
+                    "differenceScenarios"
+                ],
+                self.difference_scenarios,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["options"] = (
+                        _deserialize_guardrail_automated_reasoning_translation_option_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_AMBIGUOUS_FINDING.members[
+                                "options"
+                            ],
+                        )
+                    )
+
+                case 1:
+                    kwargs["difference_scenarios"] = (
+                        _deserialize_guardrail_automated_reasoning_difference_scenario_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_AMBIGUOUS_FINDING.members[
+                                "differenceScenarios"
+                            ],
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_TRANSLATION_AMBIGUOUS_FINDING,
+            consumer=_consumer,
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningValidFinding:
+    """
+    Indicates that the claims are definitively true and logically implied by the
+    premises, with no possible alternative interpretations.
+
+    """
+
+    translation: GuardrailAutomatedReasoningTranslation | None = None
+    """
+    The logical translation of the input that this finding validates.
+    """
+    claims_true_scenario: GuardrailAutomatedReasoningScenario | None = None
+    """
+    An example scenario demonstrating how the claims are logically true.
+    """
+    supporting_rules: list[GuardrailAutomatedReasoningRule] | None = None
+    """
+    The automated reasoning policy rules that support why this result is considered
+    valid.
+    """
+    logic_warning: GuardrailAutomatedReasoningLogicWarning | None = None
+    """
+    Indication of a logic issue with the translation without needing to consider the
+    automated reasoning policy rules.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.translation is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING.members[
+                    "translation"
+                ],
+                self.translation,
+            )
+
+        if self.claims_true_scenario is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING.members[
+                    "claimsTrueScenario"
+                ],
+                self.claims_true_scenario,
+            )
+
+        if self.supporting_rules is not None:
+            _serialize_guardrail_automated_reasoning_rule_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING.members[
+                    "supportingRules"
+                ],
+                self.supporting_rules,
+            )
+
+        if self.logic_warning is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING.members[
+                    "logicWarning"
+                ],
+                self.logic_warning,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["translation"] = (
+                        GuardrailAutomatedReasoningTranslation.deserialize(de)
+                    )
+
+                case 1:
+                    kwargs["claims_true_scenario"] = (
+                        GuardrailAutomatedReasoningScenario.deserialize(de)
+                    )
+
+                case 2:
+                    kwargs["supporting_rules"] = (
+                        _deserialize_guardrail_automated_reasoning_rule_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING.members[
+                                "supportingRules"
+                            ],
+                        )
+                    )
+
+                case 3:
+                    kwargs["logic_warning"] = (
+                        GuardrailAutomatedReasoningLogicWarning.deserialize(de)
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_VALID_FINDING, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass
+class GuardrailAutomatedReasoningFindingValid:
+    """
+    Contains the result when the automated reasoning evaluation determines that the
+    claims in the input are logically valid and definitively true based on the
+    provided premises and policy rules.
+
+    """
+
+    value: GuardrailAutomatedReasoningValidFinding
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING.members["valid"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=GuardrailAutomatedReasoningValidFinding.deserialize(deserializer)
+        )
+
+
+@dataclass
+class GuardrailAutomatedReasoningFindingInvalid:
+    """
+    Contains the result when the automated reasoning evaluation determines that the
+    claims in the input are logically invalid and contradict the established
+    premises or policy rules.
+
+    """
+
+    value: GuardrailAutomatedReasoningInvalidFinding
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING.members["invalid"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=GuardrailAutomatedReasoningInvalidFinding.deserialize(deserializer)
+        )
+
+
+@dataclass
+class GuardrailAutomatedReasoningFindingSatisfiable:
+    """
+    Contains the result when the automated reasoning evaluation determines that the
+    claims in the input could be either true or false depending on additional
+    assumptions not provided in the input context.
+
+    """
+
+    value: GuardrailAutomatedReasoningSatisfiableFinding
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING.members["satisfiable"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=GuardrailAutomatedReasoningSatisfiableFinding.deserialize(
+                deserializer
+            )
+        )
+
+
+@dataclass
+class GuardrailAutomatedReasoningFindingImpossible:
+    """
+    Contains the result when the automated reasoning evaluation determines that no
+    valid logical conclusions can be drawn due to contradictions in the premises or
+    policy rules themselves.
+
+    """
+
+    value: GuardrailAutomatedReasoningImpossibleFinding
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING.members["impossible"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=GuardrailAutomatedReasoningImpossibleFinding.deserialize(deserializer)
+        )
+
+
+@dataclass
+class GuardrailAutomatedReasoningFindingTranslationAmbiguous:
+    """
+    Contains the result when the automated reasoning evaluation detects that the
+    input has multiple valid logical interpretations, requiring additional context
+    or clarification to proceed with validation.
+
+    """
+
+    value: GuardrailAutomatedReasoningTranslationAmbiguousFinding
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING.members[
+                "translationAmbiguous"
+            ],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=GuardrailAutomatedReasoningTranslationAmbiguousFinding.deserialize(
+                deserializer
+            )
+        )
+
+
+@dataclass
+class GuardrailAutomatedReasoningFindingTooComplex:
+    """
+    Contains the result when the automated reasoning evaluation cannot process the
+    input due to its complexity or volume exceeding the system's processing capacity
+    for logical analysis.
+
+    """
+
+    value: GuardrailAutomatedReasoningTooComplexFinding
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING.members["tooComplex"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=GuardrailAutomatedReasoningTooComplexFinding.deserialize(deserializer)
+        )
+
+
+@dataclass
+class GuardrailAutomatedReasoningFindingNoTranslations:
+    """
+    Contains the result when the automated reasoning evaluation cannot extract any
+    relevant logical information from the input that can be validated against the
+    policy rules.
+
+    """
+
+    value: GuardrailAutomatedReasoningNoTranslationsFinding
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING.members["noTranslations"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=GuardrailAutomatedReasoningNoTranslationsFinding.deserialize(
+                deserializer
+            )
+        )
+
+
+@dataclass
+class GuardrailAutomatedReasoningFindingUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+GuardrailAutomatedReasoningFinding = Union[
+    GuardrailAutomatedReasoningFindingValid
+    | GuardrailAutomatedReasoningFindingInvalid
+    | GuardrailAutomatedReasoningFindingSatisfiable
+    | GuardrailAutomatedReasoningFindingImpossible
+    | GuardrailAutomatedReasoningFindingTranslationAmbiguous
+    | GuardrailAutomatedReasoningFindingTooComplex
+    | GuardrailAutomatedReasoningFindingNoTranslations
+    | GuardrailAutomatedReasoningFindingUnknown
+]
+
+"""
+Represents a logical validation result from automated reasoning policy
+evaluation. The finding indicates whether claims in the input are logically
+valid, invalid, satisfiable, impossible, or have other logical issues.
+
+"""
+
+
+class _GuardrailAutomatedReasoningFindingDeserializer:
+    _result: GuardrailAutomatedReasoningFinding | None = None
+
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> GuardrailAutomatedReasoningFinding:
+        self._result = None
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_FINDING, self._consumer
+        )
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(
+                    GuardrailAutomatedReasoningFindingValid.deserialize(de)
+                )
+
+            case 1:
+                self._set_result(
+                    GuardrailAutomatedReasoningFindingInvalid.deserialize(de)
+                )
+
+            case 2:
+                self._set_result(
+                    GuardrailAutomatedReasoningFindingSatisfiable.deserialize(de)
+                )
+
+            case 3:
+                self._set_result(
+                    GuardrailAutomatedReasoningFindingImpossible.deserialize(de)
+                )
+
+            case 4:
+                self._set_result(
+                    GuardrailAutomatedReasoningFindingTranslationAmbiguous.deserialize(
+                        de
+                    )
+                )
+
+            case 5:
+                self._set_result(
+                    GuardrailAutomatedReasoningFindingTooComplex.deserialize(de)
+                )
+
+            case 6:
+                self._set_result(
+                    GuardrailAutomatedReasoningFindingNoTranslations.deserialize(de)
+                )
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: GuardrailAutomatedReasoningFinding) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+def _serialize_guardrail_automated_reasoning_finding_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[GuardrailAutomatedReasoningFinding],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_guardrail_automated_reasoning_finding_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[GuardrailAutomatedReasoningFinding]:
+    result: list[GuardrailAutomatedReasoningFinding] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(
+                _GuardrailAutomatedReasoningFindingDeserializer().deserialize(d)
+            )
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class GuardrailAutomatedReasoningPolicyAssessment:
+    """
+    Contains the results of automated reasoning policy evaluation, including logical
+    findings about the validity of claims made in the input content.
+
+    """
+
+    findings: list[GuardrailAutomatedReasoningFinding] | None = None
+    """
+    List of logical validation results produced by evaluating the input content
+    against automated reasoning policies.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_POLICY_ASSESSMENT, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.findings is not None:
+            _serialize_guardrail_automated_reasoning_finding_list(
+                serializer,
+                _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_POLICY_ASSESSMENT.members[
+                    "findings"
+                ],
+                self.findings,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["findings"] = (
+                        _deserialize_guardrail_automated_reasoning_finding_list(
+                            de,
+                            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_POLICY_ASSESSMENT.members[
+                                "findings"
+                            ],
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GUARDRAIL_AUTOMATED_REASONING_POLICY_ASSESSMENT, consumer=_consumer
+        )
+        return kwargs
+
+
 class GuardrailContentPolicyAction(StrEnum):
     BLOCKED = "BLOCKED"
     NONE = "NONE"
@@ -2116,31 +3774,31 @@ class GuardrailContentFilter:
     """
     The content filter for a guardrail.
 
-    :param type:
-        **[Required]** - The guardrail type.
-
-    :param confidence:
-        **[Required]** - The guardrail confidence.
-
-    :param action:
-        **[Required]** - The guardrail action.
-
-    :param filter_strength:
-        The filter strength setting for the guardrail content filter.
-
-    :param detected:
-        Indicates whether content that breaches the guardrail configuration is detected.
-
     """
 
     type: str
+    """
+    The guardrail type.
+    """
 
     confidence: str
+    """
+    The guardrail confidence.
+    """
 
     action: str
+    """
+    The guardrail action.
+    """
 
     filter_strength: str | None = None
+    """
+    The filter strength setting for the guardrail content filter.
+    """
     detected: bool | None = None
+    """
+    Indicates whether content that breaches the guardrail configuration is detected.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_FILTER, self)
@@ -2238,12 +3896,12 @@ class GuardrailContentPolicyAssessment:
     """
     An assessment of a content policy for a guardrail.
 
-    :param filters:
-        **[Required]** - The content policy filters.
-
     """
 
     filters: list[GuardrailContentFilter]
+    """
+    The content policy filters.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT, self)
@@ -2295,36 +3953,35 @@ class GuardrailContextualGroundingFilter:
     """
     The details for the guardrails contextual grounding filter.
 
-    :param type:
-        **[Required]** - The contextual grounding filter type.
-
-    :param threshold:
-        **[Required]** - The threshold used by contextual grounding filter to determine
-        whether the content is grounded or not.
-
-    :param score:
-        **[Required]** - The score generated by contextual grounding filter.
-
-    :param action:
-        **[Required]** - The action performed by the guardrails contextual grounding
-        filter.
-
-    :param detected:
-        Indicates whether content that fails the contextual grounding evaluation
-        (grounding or relevance score less than the corresponding threshold) was
-        detected.
-
     """
 
     type: str
+    """
+    The contextual grounding filter type.
+    """
 
     threshold: float
+    """
+    The threshold used by contextual grounding filter to determine whether the
+    content is grounded or not.
+    """
 
     score: float
+    """
+    The score generated by contextual grounding filter.
+    """
 
     action: str
+    """
+    The action performed by the guardrails contextual grounding filter.
+    """
 
     detected: bool | None = None
+    """
+    Indicates whether content that fails the contextual grounding evaluation
+    (grounding or relevance score less than the corresponding threshold) was
+    detected.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTEXTUAL_GROUNDING_FILTER, self)
@@ -2429,12 +4086,12 @@ class GuardrailContextualGroundingPolicyAssessment:
     """
     The policy assessment details for the guardrails contextual grounding filter.
 
-    :param filters:
-        The filter details for the guardrails contextual grounding filter.
-
     """
 
     filters: list[GuardrailContextualGroundingFilter] | None = None
+    """
+    The filter details for the guardrails contextual grounding filter.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
@@ -2485,17 +4142,17 @@ class GuardrailImageCoverage:
     """
     The details of the guardrail image coverage.
 
-    :param guarded:
-        The count (integer) of images guardrails guarded.
-
-    :param total:
-        Represents the total number of images (integer) that were in the request
-        (guarded and unguarded).
-
     """
 
     guarded: int | None = None
+    """
+    The count (integer) of images guardrails guarded.
+    """
     total: int | None = None
+    """
+    Represents the total number of images (integer) that were in the request
+    (guarded and unguarded).
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_IMAGE_COVERAGE, self)
@@ -2543,16 +4200,16 @@ class GuardrailTextCharactersCoverage:
     """
     The guardrail coverage for the text characters.
 
-    :param guarded:
-        The text characters that were guarded by the guardrail coverage.
-
-    :param total:
-        The total text characters by the guardrail coverage.
-
     """
 
     guarded: int | None = None
+    """
+    The text characters that were guarded by the guardrail coverage.
+    """
     total: int | None = None
+    """
+    The total text characters by the guardrail coverage.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE, self)
@@ -2603,17 +4260,17 @@ class GuardrailCoverage:
     """
     The action of the guardrail coverage details.
 
-    :param text_characters:
-        The text characters of the guardrail coverage details.
-
-    :param images:
-        The guardrail coverage for images (the number of images that guardrails
-        guarded).
-
     """
 
     text_characters: GuardrailTextCharactersCoverage | None = None
+    """
+    The text characters of the guardrail coverage details.
+    """
     images: GuardrailImageCoverage | None = None
+    """
+    The guardrail coverage for images (the number of images that guardrails
+    guarded).
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_COVERAGE, self)
@@ -2660,45 +4317,51 @@ class GuardrailUsage:
     """
     The details on the use of the guardrail.
 
-    :param topic_policy_units:
-        **[Required]** - The topic policy units processed by the guardrail.
-
-    :param content_policy_units:
-        **[Required]** - The content policy units processed by the guardrail.
-
-    :param word_policy_units:
-        **[Required]** - The word policy units processed by the guardrail.
-
-    :param sensitive_information_policy_units:
-        **[Required]** - The sensitive information policy units processed by the
-        guardrail.
-
-    :param sensitive_information_policy_free_units:
-        **[Required]** - The sensitive information policy free units processed by the
-        guardrail.
-
-    :param contextual_grounding_policy_units:
-        **[Required]** - The contextual grounding policy units processed by the
-        guardrail.
-
-    :param content_policy_image_units:
-        The content policy image units processed by the guardrail.
-
     """
 
     topic_policy_units: int
+    """
+    The topic policy units processed by the guardrail.
+    """
 
     content_policy_units: int
+    """
+    The content policy units processed by the guardrail.
+    """
 
     word_policy_units: int
+    """
+    The word policy units processed by the guardrail.
+    """
 
     sensitive_information_policy_units: int
+    """
+    The sensitive information policy units processed by the guardrail.
+    """
 
     sensitive_information_policy_free_units: int
+    """
+    The sensitive information policy free units processed by the guardrail.
+    """
 
     contextual_grounding_policy_units: int
+    """
+    The contextual grounding policy units processed by the guardrail.
+    """
 
     content_policy_image_units: int | None = None
+    """
+    The content policy image units processed by the guardrail.
+    """
+    automated_reasoning_policy_units: int | None = None
+    """
+    The number of text units processed by the automated reasoning policy.
+    """
+    automated_reasoning_policies: int | None = None
+    """
+    The number of automated reasoning policies that were processed during the
+    guardrail evaluation.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_USAGE, self)
@@ -2730,6 +4393,18 @@ class GuardrailUsage:
             serializer.write_integer(
                 _SCHEMA_GUARDRAIL_USAGE.members["contentPolicyImageUnits"],
                 self.content_policy_image_units,
+            )
+
+        if self.automated_reasoning_policy_units is not None:
+            serializer.write_integer(
+                _SCHEMA_GUARDRAIL_USAGE.members["automatedReasoningPolicyUnits"],
+                self.automated_reasoning_policy_units,
+            )
+
+        if self.automated_reasoning_policies is not None:
+            serializer.write_integer(
+                _SCHEMA_GUARDRAIL_USAGE.members["automatedReasoningPolicies"],
+                self.automated_reasoning_policies,
             )
 
     @classmethod
@@ -2783,6 +4458,16 @@ class GuardrailUsage:
                         _SCHEMA_GUARDRAIL_USAGE.members["contentPolicyImageUnits"]
                     )
 
+                case 7:
+                    kwargs["automated_reasoning_policy_units"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members["automatedReasoningPolicyUnits"]
+                    )
+
+                case 8:
+                    kwargs["automated_reasoning_policies"] = de.read_integer(
+                        _SCHEMA_GUARDRAIL_USAGE.members["automatedReasoningPolicies"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -2795,20 +4480,20 @@ class GuardrailInvocationMetrics:
     """
     The invocation metrics for the guardrail.
 
-    :param guardrail_processing_latency:
-        The processing latency details for the guardrail invocation metrics.
-
-    :param usage:
-        The usage details for the guardrail invocation metrics.
-
-    :param guardrail_coverage:
-        The coverage details for the guardrail invocation metrics.
-
     """
 
     guardrail_processing_latency: int | None = None
+    """
+    The processing latency details for the guardrail invocation metrics.
+    """
     usage: GuardrailUsage | None = None
+    """
+    The usage details for the guardrail invocation metrics.
+    """
     guardrail_coverage: GuardrailCoverage | None = None
+    """
+    The coverage details for the guardrail invocation metrics.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_INVOCATION_METRICS, self)
@@ -2910,28 +4595,28 @@ class GuardrailPiiEntityFilter:
     """
     A Personally Identifiable Information (PII) entity configured in a guardrail.
 
-    :param match:
-        **[Required]** - The PII entity filter match.
-
-    :param type:
-        **[Required]** - The PII entity filter type.
-
-    :param action:
-        **[Required]** - The PII entity filter action.
-
-    :param detected:
-        Indicates whether personally identifiable information (PII) that breaches the
-        guardrail configuration is detected.
-
     """
 
     match: str
+    """
+    The PII entity filter match.
+    """
 
     type: str
+    """
+    The PII entity filter type.
+    """
 
     action: str
+    """
+    The PII entity filter action.
+    """
 
     detected: bool | None = None
+    """
+    Indicates whether personally identifiable information (PII) that breaches the
+    guardrail configuration is detected.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_PII_ENTITY_FILTER, self)
@@ -3020,30 +4705,30 @@ class GuardrailRegexFilter:
     """
     A Regex filter configured in a guardrail.
 
-    :param action:
-        **[Required]** - The region filter action.
-
-    :param name:
-        The regex filter name.
-
-    :param match:
-        The regesx filter match.
-
-    :param regex:
-        The regex query.
-
-    :param detected:
-        Indicates whether custom regex entities that breach the guardrail configuration
-        are detected.
-
     """
 
     action: str
+    """
+    The region filter action.
+    """
 
     name: str | None = None
+    """
+    The regex filter name.
+    """
     match: str | None = None
+    """
+    The regesx filter match.
+    """
     regex: str | None = None
+    """
+    The regex query.
+    """
     detected: bool | None = None
+    """
+    Indicates whether custom regex entities that breach the guardrail configuration
+    are detected.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_REGEX_FILTER, self)
@@ -3144,17 +4829,17 @@ class GuardrailSensitiveInformationPolicyAssessment:
     """
     The assessment for aPersonally Identifiable Information (PII) policy.
 
-    :param pii_entities:
-        **[Required]** - The PII entities in the assessment.
-
-    :param regexes:
-        **[Required]** - The regex queries in the assessment.
-
     """
 
     pii_entities: list[GuardrailPiiEntityFilter]
+    """
+    The PII entities in the assessment.
+    """
 
     regexes: list[GuardrailRegexFilter]
+    """
+    The regex queries in the assessment.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
@@ -3229,30 +4914,29 @@ class GuardrailTopic:
     """
     Information about a topic guardrail.
 
-    :param name:
-        **[Required]** - The name for the guardrail.
-
-    :param type:
-        **[Required]** - The type behavior that the guardrail should perform when the
-        model detects the topic.
-
-    :param action:
-        **[Required]** - The action the guardrail should take when it intervenes on a
-        topic.
-
-    :param detected:
-        Indicates whether topic content that breaches the guardrail configuration is
-        detected.
-
     """
 
     name: str
+    """
+    The name for the guardrail.
+    """
 
     type: str
+    """
+    The type behavior that the guardrail should perform when the model detects the
+    topic.
+    """
 
     action: str
+    """
+    The action the guardrail should take when it intervenes on a topic.
+    """
 
     detected: bool | None = None
+    """
+    Indicates whether topic content that breaches the guardrail configuration is
+    detected.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TOPIC, self)
@@ -3333,12 +5017,12 @@ class GuardrailTopicPolicyAssessment:
     """
     A behavior assessment of a topic policy.
 
-    :param topics:
-        **[Required]** - The topics in the assessment.
-
     """
 
     topics: list[GuardrailTopic]
+    """
+    The topics in the assessment.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT, self)
@@ -3384,23 +5068,23 @@ class GuardrailCustomWord:
     """
     A custom word configured in a guardrail.
 
-    :param match:
-        **[Required]** - The match for the custom word.
-
-    :param action:
-        **[Required]** - The action for the custom word.
-
-    :param detected:
-        Indicates whether custom word content that breaches the guardrail configuration
-        is detected.
-
     """
 
     match: str
+    """
+    The match for the custom word.
+    """
 
     action: str
+    """
+    The action for the custom word.
+    """
 
     detected: bool | None = None
+    """
+    Indicates whether custom word content that breaches the guardrail configuration
+    is detected.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CUSTOM_WORD, self)
@@ -3483,28 +5167,28 @@ class GuardrailManagedWord:
     """
     A managed word configured in a guardrail.
 
-    :param match:
-        **[Required]** - The match for the managed word.
-
-    :param type:
-        **[Required]** - The type for the managed word.
-
-    :param action:
-        **[Required]** - The action for the managed word.
-
-    :param detected:
-        Indicates whether managed word content that breaches the guardrail configuration
-        is detected.
-
     """
 
     match: str
+    """
+    The match for the managed word.
+    """
 
     type: str
+    """
+    The type for the managed word.
+    """
 
     action: str
+    """
+    The action for the managed word.
+    """
 
     detected: bool | None = None
+    """
+    Indicates whether managed word content that breaches the guardrail configuration
+    is detected.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_MANAGED_WORD, self)
@@ -3591,17 +5275,17 @@ class GuardrailWordPolicyAssessment:
     """
     The word policy assessment.
 
-    :param custom_words:
-        **[Required]** - Custom words in the assessment.
-
-    :param managed_word_lists:
-        **[Required]** - Managed word lists in the assessment.
-
     """
 
     custom_words: list[GuardrailCustomWord]
+    """
+    Custom words in the assessment.
+    """
 
     managed_word_lists: list[GuardrailManagedWord]
+    """
+    Managed word lists in the assessment.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT, self)
@@ -3659,36 +5343,43 @@ class GuardrailAssessment:
     A behavior assessment of the guardrail policies used in a call to the Converse
     API.
 
-    :param topic_policy:
-        The topic policy.
-
-    :param content_policy:
-        The content policy.
-
-    :param word_policy:
-        The word policy.
-
-    :param sensitive_information_policy:
-        The sensitive information policy.
-
-    :param contextual_grounding_policy:
-        The contextual grounding policy used for the guardrail assessment.
-
-    :param invocation_metrics:
-        The invocation metrics for the guardrail assessment.
-
     """
 
     topic_policy: GuardrailTopicPolicyAssessment | None = None
+    """
+    The topic policy.
+    """
     content_policy: GuardrailContentPolicyAssessment | None = None
+    """
+    The content policy.
+    """
     word_policy: GuardrailWordPolicyAssessment | None = None
+    """
+    The word policy.
+    """
     sensitive_information_policy: (
         GuardrailSensitiveInformationPolicyAssessment | None
     ) = None
+    """
+    The sensitive information policy.
+    """
     contextual_grounding_policy: GuardrailContextualGroundingPolicyAssessment | None = (
         None
     )
+    """
+    The contextual grounding policy used for the guardrail assessment.
+    """
+    automated_reasoning_policy: GuardrailAutomatedReasoningPolicyAssessment | None = (
+        None
+    )
+    """
+    The automated reasoning policy assessment results, including logical validation
+    findings for the input content.
+    """
     invocation_metrics: GuardrailInvocationMetrics | None = None
+    """
+    The invocation metrics for the guardrail assessment.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_ASSESSMENT, self)
@@ -3720,6 +5411,12 @@ class GuardrailAssessment:
             serializer.write_struct(
                 _SCHEMA_GUARDRAIL_ASSESSMENT.members["contextualGroundingPolicy"],
                 self.contextual_grounding_policy,
+            )
+
+        if self.automated_reasoning_policy is not None:
+            serializer.write_struct(
+                _SCHEMA_GUARDRAIL_ASSESSMENT.members["automatedReasoningPolicy"],
+                self.automated_reasoning_policy,
             )
 
         if self.invocation_metrics is not None:
@@ -3764,6 +5461,11 @@ class GuardrailAssessment:
                     )
 
                 case 5:
+                    kwargs["automated_reasoning_policy"] = (
+                        GuardrailAutomatedReasoningPolicyAssessment.deserialize(de)
+                    )
+
+                case 6:
                     kwargs["invocation_metrics"] = (
                         GuardrailInvocationMetrics.deserialize(de)
                     )
@@ -3805,12 +5507,12 @@ class GuardrailOutputContent:
     """
     The output content produced by the guardrail.
 
-    :param text:
-        The specific text for the output content produced by the guardrail.
-
     """
 
     text: str | None = None
+    """
+    The specific text for the output content produced by the guardrail.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_OUTPUT_CONTENT, self)
@@ -3870,38 +5572,34 @@ def _deserialize_guardrail_output_content_list(
 
 @dataclass(kw_only=True)
 class ApplyGuardrailOutput:
-    """
-
-    :param usage:
-        **[Required]** - The usage details in the response from the guardrail.
-
-    :param action:
-        **[Required]** - The action taken in the response from the guardrail.
-
-    :param outputs:
-        **[Required]** - The output details in the response from the guardrail.
-
-    :param assessments:
-        **[Required]** - The assessment details in the response from the guardrail.
-
-    :param action_reason:
-        The reason for the action taken when harmful content is detected.
-
-    :param guardrail_coverage:
-        The guardrail coverage details in the apply guardrail response.
-
-    """
-
     usage: GuardrailUsage
+    """
+    The usage details in the response from the guardrail.
+    """
 
     action: str
+    """
+    The action taken in the response from the guardrail.
+    """
 
     outputs: list[GuardrailOutputContent]
+    """
+    The output details in the response from the guardrail.
+    """
 
     assessments: list[GuardrailAssessment]
+    """
+    The assessment details in the response from the guardrail.
+    """
 
     action_reason: str | None = None
+    """
+    The reason for the action taken when harmful content is detected.
+    """
     guardrail_coverage: GuardrailCoverage | None = None
+    """
+    The guardrail coverage details in the apply guardrail response.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_APPLY_GUARDRAIL_OUTPUT, self)
@@ -4004,7 +5702,10 @@ APPLY_GUARDRAIL = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
 
 
@@ -4017,25 +5718,25 @@ class GuardrailTrace(StrEnum):
 @dataclass(kw_only=True)
 class GuardrailConfiguration:
     """
-    Configuration information for a guardrail that you use with the `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
+    Configuration information for a guardrail that you use with the ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_
     operation.
-
-    :param guardrail_identifier:
-        **[Required]** - The identifier for the guardrail.
-
-    :param guardrail_version:
-        **[Required]** - The version of the guardrail.
-
-    :param trace:
-        The trace behavior for the guardrail.
 
     """
 
     guardrail_identifier: str
+    """
+    The identifier for the guardrail.
+    """
 
     guardrail_version: str
+    """
+    The version of the guardrail.
+    """
 
     trace: str = "disabled"
+    """
+    The trace behavior for the guardrail.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONFIGURATION, self)
@@ -4114,51 +5815,50 @@ def _deserialize_non_empty_string_list(
 @dataclass(kw_only=True)
 class InferenceConfiguration:
     """
-    Base inference parameters to pass to a model in a call to `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-    or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_.
-    For more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+    Base inference parameters to pass to a model in a call to ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_
+    or ``ConverseStream
+    <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>``*. For more information, see ``Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>``* .
 
     If you need to pass additional parameters that the model supports, use the
-    ``additionalModelRequestFields`` request field in the call to ``Converse`` or ``ConverseStream``. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+    ``additionalModelRequestFields`` request field in the call to ``Converse`` or ``ConverseStream``. For more information, see ``Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>``_
     .
-
-    :param max_tokens:
-        The maximum number of tokens to allow in the generated response. The default
-        value is the maximum allowed value for the model that you are using. For more
-        information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-        .
-
-    :param temperature:
-        The likelihood of the model selecting higher-probability options while
-        generating a response. A lower value makes the model more likely to choose
-        higher-probability options, while a higher value makes the model more likely to
-        choose lower-probability options.
-
-        The default value is the default value for the model that you are using. For
-        more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-        .
-
-    :param top_p:
-        The percentage of most-likely candidates that the model considers for the next
-        token. For example, if you choose a value of 0.8 for ``topP``, the model selects
-        from the top 80% of the probability distribution of tokens that could be next in
-        the sequence.
-
-        The default value is the default value for the model that you are using. For
-        more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-        .
-
-    :param stop_sequences:
-        A list of stop sequences. A stop sequence is a sequence of characters that
-        causes the model to stop generating the response.
 
     """
 
     max_tokens: int | None = None
+    """
+    The maximum number of tokens to allow in the generated response. The default
+    value is the maximum allowed value for the model that you are using. For more
+    information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+    .
+    """
     temperature: float | None = None
+    """
+    The likelihood of the model selecting higher-probability options while
+    generating a response. A lower value makes the model more likely to choose
+    higher-probability options, while a higher value makes the model more likely to
+    choose lower-probability options.
+
+    The default value is the default value for the model that you are using. For
+    more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+    .
+    """
     top_p: float | None = None
+    """
+    The percentage of most-likely candidates that the model considers for the next
+    token. For example, if you choose a value of 0.8 for ``topP``, the model selects
+    from the top 80% of the probability distribution of tokens that could be next in
+    the sequence.
+
+    The default value is the default value for the model that you are using. For
+    more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+    .
+    """
     stop_sequences: list[str] | None = None
+    """
+    A list of stop sequences. A stop sequence is a sequence of characters that
+    causes the model to stop generating the response.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INFERENCE_CONFIGURATION, self)
@@ -4232,12 +5932,12 @@ class CachePointBlock:
     """
     Defines a section of content to be cached for reuse in subsequent API calls.
 
-    :param type:
-        **[Required]** - Specifies the type of cache point within the CachePointBlock.
-
     """
 
     type: str
+    """
+    Specifies the type of cache point within the CachePointBlock.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CACHE_POINT_BLOCK, self)
@@ -4267,6 +5967,803 @@ class CachePointBlock:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class DocumentCharLocation:
+    """
+    Specifies a character-level location within a document, providing precise
+    positioning information for cited content using start and end character indices.
+
+    """
+
+    document_index: int | None = None
+    """
+    The index of the document within the array of documents provided in the request.
+    """
+    start: int | None = None
+    """
+    The starting character position of the cited content within the document.
+    """
+    end: int | None = None
+    """
+    The ending character position of the cited content within the document.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_CHAR_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.document_index is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_CHAR_LOCATION.members["documentIndex"],
+                self.document_index,
+            )
+
+        if self.start is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_CHAR_LOCATION.members["start"], self.start
+            )
+
+        if self.end is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_CHAR_LOCATION.members["end"], self.end
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["document_index"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_CHAR_LOCATION.members["documentIndex"]
+                    )
+
+                case 1:
+                    kwargs["start"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_CHAR_LOCATION.members["start"]
+                    )
+
+                case 2:
+                    kwargs["end"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_CHAR_LOCATION.members["end"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DOCUMENT_CHAR_LOCATION, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class DocumentChunkLocation:
+    """
+    Specifies a chunk-level location within a document, providing positioning
+    information for cited content using logical document segments or chunks.
+
+    """
+
+    document_index: int | None = None
+    """
+    The index of the document within the array of documents provided in the request.
+    """
+    start: int | None = None
+    """
+    The starting chunk identifier or index of the cited content within the document.
+    """
+    end: int | None = None
+    """
+    The ending chunk identifier or index of the cited content within the document.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_CHUNK_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.document_index is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_CHUNK_LOCATION.members["documentIndex"],
+                self.document_index,
+            )
+
+        if self.start is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_CHUNK_LOCATION.members["start"], self.start
+            )
+
+        if self.end is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_CHUNK_LOCATION.members["end"], self.end
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["document_index"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_CHUNK_LOCATION.members["documentIndex"]
+                    )
+
+                case 1:
+                    kwargs["start"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_CHUNK_LOCATION.members["start"]
+                    )
+
+                case 2:
+                    kwargs["end"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_CHUNK_LOCATION.members["end"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DOCUMENT_CHUNK_LOCATION, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class DocumentPageLocation:
+    """
+    Specifies a page-level location within a document, providing positioning
+    information for cited content using page numbers.
+
+    """
+
+    document_index: int | None = None
+    """
+    The index of the document within the array of documents provided in the request.
+    """
+    start: int | None = None
+    """
+    The starting page number of the cited content within the document.
+    """
+    end: int | None = None
+    """
+    The ending page number of the cited content within the document.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_PAGE_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.document_index is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_PAGE_LOCATION.members["documentIndex"],
+                self.document_index,
+            )
+
+        if self.start is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_PAGE_LOCATION.members["start"], self.start
+            )
+
+        if self.end is not None:
+            serializer.write_integer(
+                _SCHEMA_DOCUMENT_PAGE_LOCATION.members["end"], self.end
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["document_index"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_PAGE_LOCATION.members["documentIndex"]
+                    )
+
+                case 1:
+                    kwargs["start"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_PAGE_LOCATION.members["start"]
+                    )
+
+                case 2:
+                    kwargs["end"] = de.read_integer(
+                        _SCHEMA_DOCUMENT_PAGE_LOCATION.members["end"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DOCUMENT_PAGE_LOCATION, consumer=_consumer)
+        return kwargs
+
+
+@dataclass
+class CitationLocationDocumentChar:
+    """
+    The character-level location within the document where the cited content is
+    found.
+
+    """
+
+    value: DocumentCharLocation
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CITATION_LOCATION.members["documentChar"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=DocumentCharLocation.deserialize(deserializer))
+
+
+@dataclass
+class CitationLocationDocumentPage:
+    """
+    The page-level location within the document where the cited content is found.
+
+    """
+
+    value: DocumentPageLocation
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CITATION_LOCATION.members["documentPage"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=DocumentPageLocation.deserialize(deserializer))
+
+
+@dataclass
+class CitationLocationDocumentChunk:
+    """
+    The chunk-level location within the document where the cited content is found,
+    typically used for documents that have been segmented into logical chunks.
+
+    """
+
+    value: DocumentChunkLocation
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CITATION_LOCATION.members["documentChunk"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=DocumentChunkLocation.deserialize(deserializer))
+
+
+@dataclass
+class CitationLocationUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+CitationLocation = Union[
+    CitationLocationDocumentChar
+    | CitationLocationDocumentPage
+    | CitationLocationDocumentChunk
+    | CitationLocationUnknown
+]
+
+"""
+Specifies the precise location within a source document where cited content can
+be found. This can include character-level positions, page numbers, or document
+chunks depending on the document type and indexing method.
+
+"""
+
+
+class _CitationLocationDeserializer:
+    _result: CitationLocation | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> CitationLocation:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_CITATION_LOCATION, self._consumer)
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(CitationLocationDocumentChar.deserialize(de))
+
+            case 1:
+                self._set_result(CitationLocationDocumentPage.deserialize(de))
+
+            case 2:
+                self._set_result(CitationLocationDocumentChunk.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: CitationLocation) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+@dataclass
+class CitationSourceContentText:
+    """
+    The text content from the source document that is being cited.
+
+    """
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION_SOURCE_CONTENT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_CITATION_SOURCE_CONTENT.members["text"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_CITATION_SOURCE_CONTENT.members["text"]
+            )
+        )
+
+
+@dataclass
+class CitationSourceContentUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+CitationSourceContent = Union[CitationSourceContentText | CitationSourceContentUnknown]
+
+"""
+Contains the actual text content from a source document that is being cited or
+referenced in the model's response.
+
+"""
+
+
+class _CitationSourceContentDeserializer:
+    _result: CitationSourceContent | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> CitationSourceContent:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_CITATION_SOURCE_CONTENT, self._consumer)
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(CitationSourceContentText.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: CitationSourceContent) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+def _serialize_citation_source_content_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[CitationSourceContent]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_citation_source_content_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[CitationSourceContent]:
+    result: list[CitationSourceContent] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(_CitationSourceContentDeserializer().deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class Citation:
+    """
+    Contains information about a citation that references a specific source
+    document. Citations provide traceability between the model's generated response
+    and the source documents that informed that response.
+
+    """
+
+    title: str | None = None
+    """
+    The title or identifier of the source document being cited.
+    """
+    source_content: list[CitationSourceContent] | None = None
+    """
+    The specific content from the source document that was referenced or cited in
+    the generated response.
+    """
+    location: CitationLocation | None = None
+    """
+    The precise location within the source document where the cited content can be
+    found, including character positions, page numbers, or chunk identifiers.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.title is not None:
+            serializer.write_string(_SCHEMA_CITATION.members["title"], self.title)
+
+        if self.source_content is not None:
+            _serialize_citation_source_content_list(
+                serializer,
+                _SCHEMA_CITATION.members["sourceContent"],
+                self.source_content,
+            )
+
+        if self.location is not None:
+            serializer.write_struct(_SCHEMA_CITATION.members["location"], self.location)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["title"] = de.read_string(_SCHEMA_CITATION.members["title"])
+
+                case 1:
+                    kwargs["source_content"] = (
+                        _deserialize_citation_source_content_list(
+                            de, _SCHEMA_CITATION.members["sourceContent"]
+                        )
+                    )
+
+                case 2:
+                    kwargs["location"] = _CitationLocationDeserializer().deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CITATION, consumer=_consumer)
+        return kwargs
+
+
+def _serialize_citations(
+    serializer: ShapeSerializer, schema: Schema, value: list[Citation]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_citations(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[Citation]:
+    result: list[Citation] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(Citation.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass
+class CitationGeneratedContentText:
+    """
+    The text content that was generated by the model and is supported by the
+    associated citation.
+
+    """
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION_GENERATED_CONTENT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_CITATION_GENERATED_CONTENT.members["text"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_CITATION_GENERATED_CONTENT.members["text"]
+            )
+        )
+
+
+@dataclass
+class CitationGeneratedContentUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+CitationGeneratedContent = Union[
+    CitationGeneratedContentText | CitationGeneratedContentUnknown
+]
+
+"""
+Contains the generated text content that corresponds to or is supported by a
+citation from a source document.
+
+"""
+
+
+class _CitationGeneratedContentDeserializer:
+    _result: CitationGeneratedContent | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> CitationGeneratedContent:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_CITATION_GENERATED_CONTENT, self._consumer)
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(CitationGeneratedContentText.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: CitationGeneratedContent) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+def _serialize_citation_generated_content_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[CitationGeneratedContent]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_citation_generated_content_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[CitationGeneratedContent]:
+    result: list[CitationGeneratedContent] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(_CitationGeneratedContentDeserializer().deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class CitationsContentBlock:
+    """
+    A content block that contains both generated text and associated citation
+    information. This block type is returned when document citations are enabled,
+    providing traceability between the generated content and the source documents
+    that informed the response.
+
+    """
+
+    content: list[CitationGeneratedContent] | None = None
+    """
+    The generated content that is supported by the associated citations.
+    """
+    citations: list[Citation] | None = None
+    """
+    An array of citations that reference the source documents used to generate the
+    associated content.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATIONS_CONTENT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.content is not None:
+            _serialize_citation_generated_content_list(
+                serializer,
+                _SCHEMA_CITATIONS_CONTENT_BLOCK.members["content"],
+                self.content,
+            )
+
+        if self.citations is not None:
+            _serialize_citations(
+                serializer,
+                _SCHEMA_CITATIONS_CONTENT_BLOCK.members["citations"],
+                self.citations,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["content"] = _deserialize_citation_generated_content_list(
+                        de, _SCHEMA_CITATIONS_CONTENT_BLOCK.members["content"]
+                    )
+
+                case 1:
+                    kwargs["citations"] = _deserialize_citations(
+                        de, _SCHEMA_CITATIONS_CONTENT_BLOCK.members["citations"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CITATIONS_CONTENT_BLOCK, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class CitationsConfig:
+    """
+    Configuration settings for enabling and controlling document citations in
+    Converse API responses. When enabled, the model can include citation information
+    that links generated content back to specific source documents.
+
+    """
+
+    enabled: bool
+    """
+    Specifies whether document citations should be included in the model's response.
+    When set to true, the model can generate citations that reference the source
+    documents used to inform the response.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATIONS_CONFIG, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_boolean(
+            _SCHEMA_CITATIONS_CONFIG.members["enabled"], self.enabled
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["enabled"] = de.read_boolean(
+                        _SCHEMA_CITATIONS_CONFIG.members["enabled"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CITATIONS_CONFIG, consumer=_consumer)
+        return kwargs
+
+
 class DocumentFormat(StrEnum):
     PDF = "pdf"
     CSV = "csv"
@@ -4277,6 +6774,171 @@ class DocumentFormat(StrEnum):
     HTML = "html"
     TXT = "txt"
     MD = "md"
+
+
+@dataclass
+class DocumentContentBlockText:
+    """
+    The text content of the document.
+
+    """
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_CONTENT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_DOCUMENT_CONTENT_BLOCK.members["text"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_DOCUMENT_CONTENT_BLOCK.members["text"]
+            )
+        )
+
+
+@dataclass
+class DocumentContentBlockUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+DocumentContentBlock = Union[DocumentContentBlockText | DocumentContentBlockUnknown]
+
+"""
+Contains the actual content of a document that can be processed by the model and
+potentially cited in the response.
+
+"""
+
+
+class _DocumentContentBlockDeserializer:
+    _result: DocumentContentBlock | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> DocumentContentBlock:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_DOCUMENT_CONTENT_BLOCK, self._consumer)
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(DocumentContentBlockText.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: DocumentContentBlock) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+def _serialize_document_content_blocks(
+    serializer: ShapeSerializer, schema: Schema, value: list[DocumentContentBlock]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_document_content_blocks(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[DocumentContentBlock]:
+    result: list[DocumentContentBlock] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(_DocumentContentBlockDeserializer().deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class S3Location:
+    """
+    A storage location in an Amazon S3 bucket.
+
+    """
+
+    uri: str
+    """
+    An object URI starting with ``s3://``.
+    """
+
+    bucket_owner: str | None = None
+    """
+    If the bucket belongs to another AWS account, specify that account's ID.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_S3_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_S3_LOCATION.members["uri"], self.uri)
+        if self.bucket_owner is not None:
+            serializer.write_string(
+                _SCHEMA_S3_LOCATION.members["bucketOwner"], self.bucket_owner
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["uri"] = de.read_string(_SCHEMA_S3_LOCATION.members["uri"])
+
+                case 1:
+                    kwargs["bucket_owner"] = de.read_string(
+                        _SCHEMA_S3_LOCATION.members["bucketOwner"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_S3_LOCATION, consumer=_consumer)
+        return kwargs
 
 
 @dataclass
@@ -4303,6 +6965,79 @@ class DocumentSourceBytes:
 
 
 @dataclass
+class DocumentSourceS3Location:
+    """
+    The location of a document object in an Amazon S3 bucket. To see which models
+    support S3 uploads, see `Supported models and features for Converse <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html>`_
+    .
+
+    """
+
+    value: S3Location
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_SOURCE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_DOCUMENT_SOURCE.members["s3Location"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=S3Location.deserialize(deserializer))
+
+
+@dataclass
+class DocumentSourceText:
+    """
+    The text content of the document source.
+
+    """
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_SOURCE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DOCUMENT_SOURCE.members["text"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_string(_SCHEMA_DOCUMENT_SOURCE.members["text"])
+        )
+
+
+@dataclass
+class DocumentSourceContent:
+    """
+    The structured content of the document source, which may include various content
+    blocks such as text, images, or other document elements.
+
+    """
+
+    value: list[DocumentContentBlock]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_SOURCE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        _serialize_document_content_blocks(
+            serializer, _SCHEMA_DOCUMENT_SOURCE.members["content"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=_deserialize_document_content_blocks(
+                deserializer, _SCHEMA_DOCUMENT_SOURCE.members["content"]
+            )
+        )
+
+
+@dataclass
 class DocumentSourceUnknown:
     """Represents an unknown variant.
 
@@ -4315,17 +7050,23 @@ class DocumentSourceUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
 
-DocumentSource = Union[DocumentSourceBytes | DocumentSourceUnknown]
+DocumentSource = Union[
+    DocumentSourceBytes
+    | DocumentSourceS3Location
+    | DocumentSourceText
+    | DocumentSourceContent
+    | DocumentSourceUnknown
+]
 
 """
 Contains the content of a document.
@@ -4341,7 +7082,9 @@ class _DocumentSourceDeserializer:
         deserializer.read_struct(_SCHEMA_DOCUMENT_SOURCE, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -4350,12 +7093,21 @@ class _DocumentSourceDeserializer:
             case 0:
                 self._set_result(DocumentSourceBytes.deserialize(de))
 
+            case 1:
+                self._set_result(DocumentSourceS3Location.deserialize(de))
+
+            case 2:
+                self._set_result(DocumentSourceText.deserialize(de))
+
+            case 3:
+                self._set_result(DocumentSourceContent.deserialize(de))
+
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: DocumentSource) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -4366,38 +7118,47 @@ class DocumentBlock:
     """
     A document to include in a message.
 
-    :param format:
-        **[Required]** - The format of a document, or its extension.
-
-    :param name:
-        **[Required]** - A name for the document. The name can only contain the
-        following characters:
-
-        * Alphanumeric characters
-
-        * Whitespace characters (no more than one in a row)
-
-        * Hyphens
-
-        * Parentheses
-
-        * Square brackets
-
-        .. note::
-            This field is vulnerable to prompt injections, because the model might
-            inadvertently interpret it as instructions. Therefore, we recommend that you
-            specify a neutral name.
-
-    :param source:
-        **[Required]** - Contains the content of the document.
-
     """
 
-    format: str
-
     name: str
+    """
+    A name for the document. The name can only contain the following characters:
+
+    * Alphanumeric characters
+
+    * Whitespace characters (no more than one in a row)
+
+    * Hyphens
+
+    * Parentheses
+
+    * Square brackets
+
+    .. note::
+        This field is vulnerable to prompt injections, because the model might
+        inadvertently interpret it as instructions. Therefore, we recommend that you
+        specify a neutral name.
+    """
 
     source: DocumentSource
+    """
+    Contains the content of the document.
+    """
+
+    format: str = "txt"
+    """
+    The format of a document, or its extension.
+    """
+    context: str | None = None
+    """
+    Contextual information about how the document should be processed or interpreted
+    by the model when generating citations.
+    """
+    citations: CitationsConfig | None = None
+    """
+    Configuration settings that control how citations should be generated for this
+    specific document.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DOCUMENT_BLOCK, self)
@@ -4406,6 +7167,15 @@ class DocumentBlock:
         serializer.write_string(_SCHEMA_DOCUMENT_BLOCK.members["format"], self.format)
         serializer.write_string(_SCHEMA_DOCUMENT_BLOCK.members["name"], self.name)
         serializer.write_struct(_SCHEMA_DOCUMENT_BLOCK.members["source"], self.source)
+        if self.context is not None:
+            serializer.write_string(
+                _SCHEMA_DOCUMENT_BLOCK.members["context"], self.context
+            )
+
+        if self.citations is not None:
+            serializer.write_struct(
+                _SCHEMA_DOCUMENT_BLOCK.members["citations"], self.citations
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4429,6 +7199,14 @@ class DocumentBlock:
 
                 case 2:
                     kwargs["source"] = _DocumentSourceDeserializer().deserialize(de)
+
+                case 3:
+                    kwargs["context"] = de.read_string(
+                        _SCHEMA_DOCUMENT_BLOCK.members["context"]
+                    )
+
+                case 4:
+                    kwargs["citations"] = CitationsConfig.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4481,10 +7259,10 @@ class GuardrailConverseImageSourceUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4513,7 +7291,9 @@ class _GuardrailConverseImageSourceDeserializer:
         )
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -4527,7 +7307,7 @@ class _GuardrailConverseImageSourceDeserializer:
 
     def _set_result(self, value: GuardrailConverseImageSource) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -4538,19 +7318,17 @@ class GuardrailConverseImageBlock:
     """
     An image block that contains images that you want to assess with a guardrail.
 
-    :param format:
-        **[Required]** - The format details for the image type of the guardrail converse
-        image block.
-
-    :param source:
-        **[Required]** - The image source (image bytes) of the guardrail converse image
-        block.
-
     """
 
     format: str
+    """
+    The format details for the image type of the guardrail converse image block.
+    """
 
     source: GuardrailConverseImageSource = field(repr=False)
+    """
+    The image source (image bytes) of the guardrail converse image block.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK, self)
@@ -4628,19 +7406,19 @@ def _deserialize_guardrail_converse_content_qualifier_list(
 class GuardrailConverseTextBlock:
     """
     A text block that contains text that you want to assess with a guardrail. For
-    more information, see `GuardrailConverseContentBlock`.
-
-    :param text:
-        **[Required]** - The text that you want to guard.
-
-    :param qualifiers:
-        The qualifier details for the guardrails contextual grounding filter.
+    more information, see ``GuardrailConverseContentBlock``.
 
     """
 
     text: str
+    """
+    The text that you want to guard.
+    """
 
     qualifiers: list[str] | None = None
+    """
+    The qualifier details for the guardrails contextual grounding filter.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK, self)
@@ -4745,10 +7523,10 @@ class GuardrailConverseContentBlockUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -4782,7 +7560,9 @@ class _GuardrailConverseContentBlockDeserializer:
         )
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -4799,7 +7579,7 @@ class _GuardrailConverseContentBlockDeserializer:
 
     def _set_result(self, value: GuardrailConverseContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -4834,6 +7614,28 @@ class ImageSourceBytes:
 
 
 @dataclass
+class ImageSourceS3Location:
+    """
+    The location of an image object in an Amazon S3 bucket. To see which models
+    support S3 uploads, see `Supported models and features for Converse <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html>`_
+    .
+
+    """
+
+    value: S3Location
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMAGE_SOURCE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMAGE_SOURCE.members["s3Location"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=S3Location.deserialize(deserializer))
+
+
+@dataclass
 class ImageSourceUnknown:
     """Represents an unknown variant.
 
@@ -4846,17 +7648,17 @@ class ImageSourceUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
 
-ImageSource = Union[ImageSourceBytes | ImageSourceUnknown]
+ImageSource = Union[ImageSourceBytes | ImageSourceS3Location | ImageSourceUnknown]
 
 """
 The source for an image.
@@ -4872,7 +7674,9 @@ class _ImageSourceDeserializer:
         deserializer.read_struct(_SCHEMA_IMAGE_SOURCE, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -4881,12 +7685,15 @@ class _ImageSourceDeserializer:
             case 0:
                 self._set_result(ImageSourceBytes.deserialize(de))
 
+            case 1:
+                self._set_result(ImageSourceS3Location.deserialize(de))
+
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: ImageSource) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -4897,17 +7704,17 @@ class ImageBlock:
     """
     Image content for a message.
 
-    :param format:
-        **[Required]** - The format of the image.
-
-    :param source:
-        **[Required]** - The source for the image.
-
     """
 
     format: str
+    """
+    The format of the image.
+    """
 
     source: ImageSource
+    """
+    The source for the image.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_IMAGE_BLOCK, self)
@@ -4946,19 +7753,19 @@ class ReasoningTextBlock:
     """
     Contains the reasoning that the model used to return the output.
 
-    :param text:
-        **[Required]** - The reasoning that the model used to return the output.
-
-    :param signature:
-        A token that verifies that the reasoning text was generated by the model. If you
-        pass a reasoning block back to the API in a multi-turn conversation, include the
-        text and its signature unmodified.
-
     """
 
     text: str
+    """
+    The reasoning that the model used to return the output.
+    """
 
     signature: str | None = None
+    """
+    A token that verifies that the reasoning text was generated by the model. If you
+    pass a reasoning block back to the API in a multi-turn conversation, include the
+    text and its signature unmodified.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_REASONING_TEXT_BLOCK, self)
@@ -5059,10 +7866,10 @@ class ReasoningContentBlockUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5092,7 +7899,9 @@ class _ReasoningContentBlockDeserializer:
         deserializer.read_struct(_SCHEMA_REASONING_CONTENT_BLOCK, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -5109,7 +7918,7 @@ class _ReasoningContentBlockDeserializer:
 
     def _set_result(self, value: ReasoningContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -5125,58 +7934,6 @@ class VideoFormat(StrEnum):
     MPG = "mpg"
     WMV = "wmv"
     THREE_GP = "three_gp"
-
-
-@dataclass(kw_only=True)
-class S3Location:
-    """
-    A storage location in an S3 bucket.
-
-    :param uri:
-        **[Required]** - An object URI starting with ``s3://``.
-
-    :param bucket_owner:
-        If the bucket belongs to another AWS account, specify that account's ID.
-
-    """
-
-    uri: str
-
-    bucket_owner: str | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_S3_LOCATION, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_S3_LOCATION.members["uri"], self.uri)
-        if self.bucket_owner is not None:
-            serializer.write_string(
-                _SCHEMA_S3_LOCATION.members["bucketOwner"], self.bucket_owner
-            )
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["uri"] = de.read_string(_SCHEMA_S3_LOCATION.members["uri"])
-
-                case 1:
-                    kwargs["bucket_owner"] = de.read_string(
-                        _SCHEMA_S3_LOCATION.members["bucketOwner"]
-                    )
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_S3_LOCATION, consumer=_consumer)
-        return kwargs
 
 
 @dataclass
@@ -5202,7 +7959,9 @@ class VideoSourceBytes:
 @dataclass
 class VideoSourceS3Location:
     """
-    The location of a video object in an S3 bucket.
+    The location of a video object in an Amazon S3 bucket. To see which models
+    support S3 uploads, see `Supported models and features for Converse <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html>`_
+    .
 
     """
 
@@ -5232,10 +7991,10 @@ class VideoSourceUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5260,7 +8019,9 @@ class _VideoSourceDeserializer:
         deserializer.read_struct(_SCHEMA_VIDEO_SOURCE, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -5277,7 +8038,7 @@ class _VideoSourceDeserializer:
 
     def _set_result(self, value: VideoSource) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -5288,17 +8049,17 @@ class VideoBlock:
     """
     A video block.
 
-    :param format:
-        **[Required]** - The block's format.
-
-    :param source:
-        **[Required]** - The block's source.
-
     """
 
     format: str
+    """
+    The block's format.
+    """
 
     source: VideoSource
+    """
+    The block's source.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_VIDEO_BLOCK, self)
@@ -5466,10 +8227,10 @@ class ToolResultContentBlockUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5499,7 +8260,9 @@ class _ToolResultContentBlockDeserializer:
         deserializer.read_struct(_SCHEMA_TOOL_RESULT_CONTENT_BLOCK, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -5525,7 +8288,7 @@ class _ToolResultContentBlockDeserializer:
 
     def _set_result(self, value: ToolResultContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -5567,25 +8330,25 @@ class ToolResultBlock:
     A tool result block that contains the results for a tool request that the model
     previously made.
 
-    :param tool_use_id:
-        **[Required]** - The ID of the tool request that this is the result for.
-
-    :param content:
-        **[Required]** - The content for tool result content block.
-
-    :param status:
-        The status for the tool result content block.
-
-        .. note::
-            This field is only supported Anthropic Claude 3 models.
-
     """
 
     tool_use_id: str
+    """
+    The ID of the tool request that this is the result for.
+    """
 
     content: list[ToolResultContentBlock]
+    """
+    The content for tool result content block.
+    """
 
     status: str | None = None
+    """
+    The status for the tool result content block.
+
+    .. note::
+        This field is only supported Anthropic Claude 3 models.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_RESULT_BLOCK, self)
@@ -5641,22 +8404,22 @@ class ToolUseBlock:
     requesting be run., The model uses the result from the tool to generate a
     response.
 
-    :param tool_use_id:
-        **[Required]** - The ID for the tool request.
-
-    :param name:
-        **[Required]** - The name of the tool that the model wants to use.
-
-    :param input:
-        **[Required]** - The input to pass to the tool.
-
     """
 
     tool_use_id: str
+    """
+    The ID for the tool request.
+    """
 
     name: str
+    """
+    The name of the tool that the model wants to use.
+    """
 
     input: Document
+    """
+    The input to pass to the tool.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK, self)
@@ -5899,6 +8662,29 @@ class ContentBlockReasoningContent:
 
 
 @dataclass
+class ContentBlockCitationsContent:
+    """
+    A content block that contains both generated text and associated citation
+    information, providing traceability between the response and source documents.
+
+    """
+
+    value: CitationsContentBlock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK.members["citationsContent"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=CitationsContentBlock.deserialize(deserializer))
+
+
+@dataclass
 class ContentBlockUnknown:
     """Represents an unknown variant.
 
@@ -5911,10 +8697,10 @@ class ContentBlockUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5931,6 +8717,7 @@ ContentBlock = Union[
     | ContentBlockGuardContent
     | ContentBlockCachePoint
     | ContentBlockReasoningContent
+    | ContentBlockCitationsContent
     | ContentBlockUnknown
 ]
 
@@ -5951,7 +8738,9 @@ class _ContentBlockDeserializer:
         deserializer.read_struct(_SCHEMA_CONTENT_BLOCK, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -5984,12 +8773,15 @@ class _ContentBlockDeserializer:
             case 8:
                 self._set_result(ContentBlockReasoningContent.deserialize(de))
 
+            case 9:
+                self._set_result(ContentBlockCitationsContent.deserialize(de))
+
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: ContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -6028,32 +8820,32 @@ class ConversationRole(StrEnum):
 @dataclass(kw_only=True)
 class Message:
     """
-    A message input, or returned from, a call to `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-    or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
+    A message input, or returned from, a call to ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_
+    or ``ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>``_
     .
-
-    :param role:
-        **[Required]** - The role that the message plays in the message.
-
-    :param content:
-        **[Required]** - The message content. Note the following restrictions:
-
-        * You can include up to 20 images. Each image's size, height, and width must be
-          no more than 3.75 MB, 8000 px, and 8000 px, respectively.
-
-        * You can include up to five documents. Each document's size must be no more
-          than 4.5 MB.
-
-        * If you include a ``ContentBlock`` with a ``document`` field in the array, you
-          must also include a ``ContentBlock`` with a ``text`` field.
-
-        * You can only include images and documents if the ``role`` is ``user``.
 
     """
 
     role: str
+    """
+    The role that the message plays in the message.
+    """
 
     content: list[ContentBlock]
+    """
+    The message content. Note the following restrictions:
+
+    * You can include up to 20 images. Each image's size, height, and width must be
+      no more than 3.75 MB, 8000 px, and 8000 px, respectively.
+
+    * You can include up to five documents. Each document's size must be no more
+      than 4.5 MB.
+
+    * If you include a ``ContentBlock`` with a ``document`` field in the array, you
+      must also include a ``ContentBlock`` with a ``text`` field.
+
+    * You can only include images and documents if the ``role`` is ``user``.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MESSAGE, self)
@@ -6124,12 +8916,12 @@ class PerformanceConfiguration:
     """
     Performance settings for a model.
 
-    :param latency:
-        To use a latency-optimized version of the model, set to ``optimized``.
-
     """
 
     latency: str = "standard"
+    """
+    To use a latency-optimized version of the model, set to ``optimized``.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PERFORMANCE_CONFIGURATION, self)
@@ -6200,10 +8992,10 @@ class PromptVariableValuesUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6229,7 +9021,9 @@ class _PromptVariableValuesDeserializer:
         deserializer.read_struct(_SCHEMA_PROMPT_VARIABLE_VALUES, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -6243,7 +9037,7 @@ class _PromptVariableValuesDeserializer:
 
     def _set_result(self, value: PromptVariableValues) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -6389,10 +9183,10 @@ class SystemContentBlockUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6420,7 +9214,9 @@ class _SystemContentBlockDeserializer:
         deserializer.read_struct(_SCHEMA_SYSTEM_CONTENT_BLOCK, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -6440,7 +9236,7 @@ class _SystemContentBlockDeserializer:
 
     def _set_result(self, value: SystemContentBlock) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -6539,15 +9335,14 @@ class SpecificToolChoice:
     The model must request a specific tool. For example, ``{"tool" : {"name" : "Your
     tool name"}}``.
 
-    .. note::
-        This field is only supported by Anthropic Claude 3 models.
-
-    :param name:
-        **[Required]** - The name of the tool that the model must request.
+    .. note:: This field is only supported by Anthropic Claude 3 models.
 
     """
 
     name: str
+    """
+    The name of the tool that the model must request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_SPECIFIC_TOOL_CHOICE, self)
@@ -6652,10 +9447,10 @@ class ToolChoiceUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6680,7 +9475,9 @@ class _ToolChoiceDeserializer:
         deserializer.read_struct(_SCHEMA_TOOL_CHOICE, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -6700,7 +9497,7 @@ class _ToolChoiceDeserializer:
 
     def _set_result(self, value: ToolChoice) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -6742,10 +9539,10 @@ class ToolInputSchemaUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6768,7 +9565,9 @@ class _ToolInputSchemaDeserializer:
         deserializer.read_struct(_SCHEMA_TOOL_INPUT_SCHEMA, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -6782,7 +9581,7 @@ class _ToolInputSchemaDeserializer:
 
     def _set_result(self, value: ToolInputSchema) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -6793,22 +9592,22 @@ class ToolSpecification:
     """
     The specification for the tool.
 
-    :param name:
-        **[Required]** - The name for the tool.
-
-    :param input_schema:
-        **[Required]** - The input schema for the tool in JSON format.
-
-    :param description:
-        The description for the tool.
-
     """
 
     name: str
+    """
+    The name for the tool.
+    """
 
     input_schema: ToolInputSchema
+    """
+    The input schema for the tool in JSON format.
+    """
 
     description: str | None = None
+    """
+    The description for the tool.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_SPECIFICATION, self)
@@ -6909,10 +9708,10 @@ class ToolUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6937,7 +9736,9 @@ class _ToolDeserializer:
         deserializer.read_struct(_SCHEMA_TOOL, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -6954,7 +9755,7 @@ class _ToolDeserializer:
 
     def _set_result(self, value: Tool) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -6987,20 +9788,20 @@ def _deserialize_tools(deserializer: ShapeDeserializer, schema: Schema) -> list[
 class ToolConfiguration:
     """
     Configuration information for the tools that you pass to a model. For more
-    information, see `Tool use (function calling) <https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html>`_
+    information, see ``Tool use (function calling) <https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html>``_
     in the Amazon Bedrock User Guide.
-
-    :param tools:
-        **[Required]** - An array of tools that you want to pass to a model.
-
-    :param tool_choice:
-        If supported by model, forces the model to request a tool.
 
     """
 
     tools: list[Tool]
+    """
+    An array of tools that you want to pass to a model.
+    """
 
     tool_choice: ToolChoice | None = None
+    """
+    If supported by model, forces the model to request a tool.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_CONFIGURATION, self)
@@ -7041,116 +9842,116 @@ class ToolConfiguration:
 
 @dataclass(kw_only=True)
 class ConverseInput:
-    """
-
-    :param model_id:
-        **[Required]** - Specifies the model or throughput with which to run inference,
-        or the prompt resource to use in inference. The value depends on the resource
-        that you use:
-
-        * If you use a base model, specify the model ID or its ARN. For a list of model
-          IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use an inference profile, specify the inference profile ID or its ARN.
-          For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-          For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use a custom model, first purchase Provisioned Throughput for it. Then
-          specify the ARN of the resulting provisioned model. For more information, see
-          `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
-          specify the ARN of the prompt version to use.
-
-        The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
-        .
-
-    :param messages:
-        The messages that you want to send to the model.
-
-    :param system:
-        A prompt that provides instructions or context to the model about the task it
-        should perform, or the persona it should adopt during the conversation.
-
-    :param inference_config:
-        Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
-        support a base set of inference parameters. If you need to pass additional
-        parameters that the model supports, use the ``additionalModelRequestFields``
-        request field.
-
-    :param tool_config:
-        Configuration information for the tools that the model can use when generating a
-        response.
-
-        For information about models that support tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
-        .
-
-    :param guardrail_config:
-        Configuration information for a guardrail that you want to use in the request.
-        If you include ``guardContent`` blocks in the ``content`` field in the
-        ``messages`` field, the guardrail operates only on those messages. If you
-        include no ``guardContent`` blocks, the guardrail operates on all messages in
-        the request body and in any included prompt resource.
-
-    :param additional_model_request_fields:
-        Additional inference parameters that the model supports, beyond the base set of
-        inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-        .
-
-    :param prompt_variables:
-        Contains a map of variables in a prompt from Prompt management to objects
-        containing the values to fill in for them when running model invocation. This
-        field is ignored if you don't specify a prompt resource in the ``modelId``
-        field.
-
-    :param additional_model_response_field_paths:
-        Additional model parameters field paths to return in the response. ``Converse``
-        and ``ConverseStream`` return the requested fields as a JSON Pointer object in
-        the ``additionalModelResponseFields`` field. The following is example JSON for
-        ``additionalModelResponseFieldPaths``.
-
-        ``[ "/stop_sequence" ]``
-
-        For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
-        documentation.
-
-        ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
-        structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
-        but the requested field is not in the model response, it is ignored by
-        ``Converse``.
-
-    :param request_metadata:
-        Key-value pairs that you can use to filter invocation logs.
-
-    :param performance_config:
-        Model performance settings for the request.
-
-    """
-
     model_id: str | None = None
+    """
+    Specifies the model or throughput with which to run inference, or the prompt
+    resource to use in inference. The value depends on the resource that you use:
+
+    * If you use a base model, specify the model ID or its ARN. For a list of model
+      IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use an inference profile, specify the inference profile ID or its ARN.
+      For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
+      For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use a custom model, first purchase Provisioned Throughput for it. Then
+      specify the ARN of the resulting provisioned model. For more information, see
+      `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
+      specify the ARN of the prompt version to use.
+
+    The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
+    .
+    """
     messages: list[Message] | None = None
+    """
+    The messages that you want to send to the model.
+    """
     system: list[SystemContentBlock] | None = None
+    """
+    A prompt that provides instructions or context to the model about the task it
+    should perform, or the persona it should adopt during the conversation.
+    """
     inference_config: InferenceConfiguration | None = None
+    """
+    Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
+    support a base set of inference parameters. If you need to pass additional
+    parameters that the model supports, use the ``additionalModelRequestFields``
+    request field.
+    """
     tool_config: ToolConfiguration | None = None
+    """
+    Configuration information for the tools that the model can use when generating a
+    response.
+
+    For information about models that support tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
+    .
+    """
     guardrail_config: GuardrailConfiguration | None = None
+    """
+    Configuration information for a guardrail that you want to use in the request.
+    If you include ``guardContent`` blocks in the ``content`` field in the
+    ``messages`` field, the guardrail operates only on those messages. If you
+    include no ``guardContent`` blocks, the guardrail operates on all messages in
+    the request body and in any included prompt resource.
+    """
     additional_model_request_fields: Document | None = None
+    """
+    Additional inference parameters that the model supports, beyond the base set of
+    inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+    .
+    """
     prompt_variables: dict[str, PromptVariableValues] | None = field(
         repr=False, default=None
     )
+    """
+    Contains a map of variables in a prompt from Prompt management to objects
+    containing the values to fill in for them when running model invocation. This
+    field is ignored if you don't specify a prompt resource in the ``modelId``
+    field.
+    """
     additional_model_response_field_paths: list[str] | None = None
+    """
+    Additional model parameters field paths to return in the response. ``Converse``
+    and ``ConverseStream`` return the requested fields as a JSON Pointer object in
+    the ``additionalModelResponseFields`` field. The following is example JSON for
+    ``additionalModelResponseFieldPaths``.
+
+    ``[ "/stop_sequence" ]``
+
+    For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
+    documentation.
+
+    ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
+    structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
+    but the requested field is not in the model response, it is ignored by
+    ``Converse``.
+    """
     request_metadata: dict[str, str] | None = field(repr=False, default=None)
+    """
+    Key-value pairs that you can use to filter invocation logs.
+    """
     performance_config: PerformanceConfiguration | None = None
+    """
+    Model performance settings for the request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
+        if self.model_id is not None:
+            serializer.write_string(
+                _SCHEMA_CONVERSE_INPUT.members["modelId"], self.model_id
+            )
+
         if self.messages is not None:
             _serialize_messages(
                 serializer, _SCHEMA_CONVERSE_INPUT.members["messages"], self.messages
@@ -7283,15 +10084,15 @@ class ConverseInput:
 @dataclass(kw_only=True)
 class ConverseMetrics:
     """
-    Metrics for a call to `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
+    Metrics for a call to ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_
     .
-
-    :param latency_ms:
-        **[Required]** - The latency of the call to ``Converse``, in milliseconds.
 
     """
 
     latency_ms: int
+    """
+    The latency of the call to ``Converse``, in milliseconds.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_METRICS, self)
@@ -7356,10 +10157,10 @@ class ConverseOutputUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7383,7 +10184,9 @@ class _ConverseOutputDeserializer:
         deserializer.read_struct(_SCHEMA_CONVERSE_OUTPUT, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -7397,7 +10200,7 @@ class _ConverseOutputDeserializer:
 
     def _set_result(self, value: ConverseOutput) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -7497,26 +10300,26 @@ def _deserialize_guardrail_assessment_list_map(
 @dataclass(kw_only=True)
 class GuardrailTraceAssessment:
     """
-    A Top level guardrail trace object. For more information, see `ConverseTrace`.
-
-    :param model_output:
-        The output from the model.
-
-    :param input_assessment:
-        The input assessment.
-
-    :param output_assessments:
-        the output assessments.
-
-    :param action_reason:
-        Provides the reason for the action taken when harmful content is detected.
+    A Top level guardrail trace object. For more information, see ``ConverseTrace``.
 
     """
 
     model_output: list[str] | None = None
+    """
+    The output from the model.
+    """
     input_assessment: dict[str, GuardrailAssessment] | None = None
+    """
+    The input assessment.
+    """
     output_assessments: dict[str, list[GuardrailAssessment]] | None = None
+    """
+    the output assessments.
+    """
     action_reason: str | None = None
+    """
+    Provides the reason for the action taken when harmful content is detected.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TRACE_ASSESSMENT, self)
@@ -7597,12 +10400,12 @@ class PromptRouterTrace:
     """
     A prompt router trace.
 
-    :param invoked_model_id:
-        The ID of the invoked model.
-
     """
 
     invoked_model_id: str | None = None
+    """
+    The ID of the invoked model.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PROMPT_ROUTER_TRACE, self)
@@ -7639,19 +10442,19 @@ class PromptRouterTrace:
 @dataclass(kw_only=True)
 class ConverseTrace:
     """
-    The trace object in a response from `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_.
+    The trace object in a response from ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_.
     Currently, you can only trace guardrails.
-
-    :param guardrail:
-        The guardrail trace object.
-
-    :param prompt_router:
-        The request's prompt router.
 
     """
 
     guardrail: GuardrailTraceAssessment | None = None
+    """
+    The guardrail trace object.
+    """
     prompt_router: PromptRouterTrace | None = None
+    """
+    The request's prompt router.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_TRACE, self)
@@ -7695,31 +10498,31 @@ class TokenUsage:
     """
     The tokens used in a message API inference call.
 
-    :param input_tokens:
-        **[Required]** - The number of tokens sent in the request to the model.
-
-    :param output_tokens:
-        **[Required]** - The number of tokens that the model generated for the request.
-
-    :param total_tokens:
-        **[Required]** - The total of input tokens and tokens generated by the model.
-
-    :param cache_read_input_tokens:
-        The number of input tokens read from the cache for the request.
-
-    :param cache_write_input_tokens:
-        The number of input tokens written to the cache for the request.
-
     """
 
     input_tokens: int
+    """
+    The number of tokens sent in the request to the model.
+    """
 
     output_tokens: int
+    """
+    The number of tokens that the model generated for the request.
+    """
 
     total_tokens: int
+    """
+    The total of input tokens and tokens generated by the model.
+    """
 
     cache_read_input_tokens: int | None = None
+    """
+    The number of input tokens read from the cache for the request.
+    """
     cache_write_input_tokens: int | None = None
+    """
+    The number of input tokens written to the cache for the request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOKEN_USAGE, self)
@@ -7790,44 +10593,39 @@ class TokenUsage:
 
 @dataclass(kw_only=True)
 class ConverseOperationOutput:
-    """
-
-    :param output:
-        **[Required]** - The result from the call to ``Converse``.
-
-    :param stop_reason:
-        **[Required]** - The reason why the model stopped generating output.
-
-    :param usage:
-        **[Required]** - The total number of tokens used in the call to ``Converse``.
-        The total includes the tokens input to the model and the tokens generated by the
-        model.
-
-    :param metrics:
-        **[Required]** - Metrics for the call to ``Converse``.
-
-    :param additional_model_response_fields:
-        Additional fields in the response that are unique to the model.
-
-    :param trace:
-        A trace object that contains information about the Guardrail behavior.
-
-    :param performance_config:
-        Model performance settings for the request.
-
-    """
-
     output: ConverseOutput
+    """
+    The result from the call to ``Converse``.
+    """
 
     stop_reason: str
+    """
+    The reason why the model stopped generating output.
+    """
 
     usage: TokenUsage
+    """
+    The total number of tokens used in the call to ``Converse``. The total includes
+    the tokens input to the model and the tokens generated by the model.
+    """
 
     metrics: ConverseMetrics
+    """
+    Metrics for the call to ``Converse``.
+    """
 
     additional_model_response_fields: Document | None = None
+    """
+    Additional fields in the response that are unique to the model.
+    """
     trace: ConverseTrace | None = None
+    """
+    A trace object that contains information about the Guardrail behavior.
+    """
     performance_config: PerformanceConfiguration | None = None
+    """
+    Model performance settings for the request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT, self)
@@ -7911,26 +10709,22 @@ class ConverseOperationOutput:
 
 
 @dataclass(kw_only=True)
-class ModelErrorException(ApiError):
+class ModelErrorException(ServiceError):
     """
     The request failed due to an error while processing the model.
 
-    :param message: A message associated with the specific error.
-
-    :param original_status_code:
-        The original status code.
-
-    :param resource_name:
-        The resource name.
-
     """
 
-    code: ClassVar[str] = "ModelErrorException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
+    fault: Literal["client", "server"] | None = "client"
 
-    message: str
     original_status_code: int | None = None
+    """
+    The original status code.
+    """
     resource_name: str | None = None
+    """
+    The resource name.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MODEL_ERROR_EXCEPTION, self)
@@ -7986,21 +10780,17 @@ class ModelErrorException(ApiError):
 
 
 @dataclass(kw_only=True)
-class ModelNotReadyException(ApiError):
+class ModelNotReadyException(ServiceError):
     """
     The model specified in the request is not ready to serve inference requests. The
     AWS SDK will automatically retry the operation up to 5 times. For information
-    about configuring automatic retries, see `Retry behavior <https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html>`_
+    about configuring automatic retries, see ``Retry behavior <https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html>``_
     in the *AWS SDKs and Tools* reference guide.
-
-    :param message: A message associated with the specific error.
 
     """
 
-    code: ClassVar[str] = "ModelNotReadyException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    fault: Literal["client", "server"] | None = "client"
+    is_retry_safe: bool | None = True
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MODEL_NOT_READY_EXCEPTION, self)
@@ -8034,19 +10824,14 @@ class ModelNotReadyException(ApiError):
 
 
 @dataclass(kw_only=True)
-class ModelTimeoutException(ApiError):
+class ModelTimeoutException(ServiceError):
     """
     The request took too long to process. Processing time exceeded the model timeout
     length.
 
-    :param message: A message associated with the specific error.
-
     """
 
-    code: ClassVar[str] = "ModelTimeoutException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
+    fault: Literal["client", "server"] | None = "client"
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MODEL_TIMEOUT_EXCEPTION, self)
@@ -8116,7 +10901,10 @@ CONVERSE = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
 
 
@@ -8128,32 +10916,32 @@ class GuardrailStreamProcessingMode(StrEnum):
 @dataclass(kw_only=True)
 class GuardrailStreamConfiguration:
     """
-    Configuration information for a guardrail that you use with the `ConverseStream`
-    action.
-
-    :param guardrail_identifier:
-        **[Required]** - The identifier for the guardrail.
-
-    :param guardrail_version:
-        **[Required]** - The version of the guardrail.
-
-    :param trace:
-        The trace behavior for the guardrail.
-
-    :param stream_processing_mode:
-        The processing mode.
-
-        The processing mode. For more information, see *Configure streaming response
-        behavior* in the *Amazon Bedrock User Guide*.
+    Configuration information for a guardrail that you use with the
+    ``ConverseStream`` action.
 
     """
 
     guardrail_identifier: str
+    """
+    The identifier for the guardrail.
+    """
 
     guardrail_version: str
+    """
+    The version of the guardrail.
+    """
 
     trace: str = "disabled"
+    """
+    The trace behavior for the guardrail.
+    """
     stream_processing_mode: str = "sync"
+    """
+    The processing mode.
+
+    The processing mode. For more information, see *Configure streaming response
+    behavior* in the *Amazon Bedrock User Guide*.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_STREAM_CONFIGURATION, self)
@@ -8222,116 +11010,116 @@ class GuardrailStreamConfiguration:
 
 @dataclass(kw_only=True)
 class ConverseStreamInput:
-    """
-
-    :param model_id:
-        **[Required]** - Specifies the model or throughput with which to run inference,
-        or the prompt resource to use in inference. The value depends on the resource
-        that you use:
-
-        * If you use a base model, specify the model ID or its ARN. For a list of model
-          IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use an inference profile, specify the inference profile ID or its ARN.
-          For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-          For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use a custom model, first purchase Provisioned Throughput for it. Then
-          specify the ARN of the resulting provisioned model. For more information, see
-          `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
-          specify the ARN of the prompt version to use.
-
-        The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
-        .
-
-    :param messages:
-        The messages that you want to send to the model.
-
-    :param system:
-        A prompt that provides instructions or context to the model about the task it
-        should perform, or the persona it should adopt during the conversation.
-
-    :param inference_config:
-        Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
-        support a base set of inference parameters. If you need to pass additional
-        parameters that the model supports, use the ``additionalModelRequestFields``
-        request field.
-
-    :param tool_config:
-        Configuration information for the tools that the model can use when generating a
-        response.
-
-        For information about models that support streaming tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
-        .
-
-    :param guardrail_config:
-        Configuration information for a guardrail that you want to use in the request.
-        If you include ``guardContent`` blocks in the ``content`` field in the
-        ``messages`` field, the guardrail operates only on those messages. If you
-        include no ``guardContent`` blocks, the guardrail operates on all messages in
-        the request body and in any included prompt resource.
-
-    :param additional_model_request_fields:
-        Additional inference parameters that the model supports, beyond the base set of
-        inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-        .
-
-    :param prompt_variables:
-        Contains a map of variables in a prompt from Prompt management to objects
-        containing the values to fill in for them when running model invocation. This
-        field is ignored if you don't specify a prompt resource in the ``modelId``
-        field.
-
-    :param additional_model_response_field_paths:
-        Additional model parameters field paths to return in the response. ``Converse``
-        and ``ConverseStream`` return the requested fields as a JSON Pointer object in
-        the ``additionalModelResponseFields`` field. The following is example JSON for
-        ``additionalModelResponseFieldPaths``.
-
-        ``[ "/stop_sequence" ]``
-
-        For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
-        documentation.
-
-        ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
-        structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
-        but the requested field is not in the model response, it is ignored by
-        ``Converse``.
-
-    :param request_metadata:
-        Key-value pairs that you can use to filter invocation logs.
-
-    :param performance_config:
-        Model performance settings for the request.
-
-    """
-
     model_id: str | None = None
+    """
+    Specifies the model or throughput with which to run inference, or the prompt
+    resource to use in inference. The value depends on the resource that you use:
+
+    * If you use a base model, specify the model ID or its ARN. For a list of model
+      IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use an inference profile, specify the inference profile ID or its ARN.
+      For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
+      For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use a custom model, first purchase Provisioned Throughput for it. Then
+      specify the ARN of the resulting provisioned model. For more information, see
+      `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
+      specify the ARN of the prompt version to use.
+
+    The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
+    .
+    """
     messages: list[Message] | None = None
+    """
+    The messages that you want to send to the model.
+    """
     system: list[SystemContentBlock] | None = None
+    """
+    A prompt that provides instructions or context to the model about the task it
+    should perform, or the persona it should adopt during the conversation.
+    """
     inference_config: InferenceConfiguration | None = None
+    """
+    Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
+    support a base set of inference parameters. If you need to pass additional
+    parameters that the model supports, use the ``additionalModelRequestFields``
+    request field.
+    """
     tool_config: ToolConfiguration | None = None
+    """
+    Configuration information for the tools that the model can use when generating a
+    response.
+
+    For information about models that support streaming tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
+    .
+    """
     guardrail_config: GuardrailStreamConfiguration | None = None
+    """
+    Configuration information for a guardrail that you want to use in the request.
+    If you include ``guardContent`` blocks in the ``content`` field in the
+    ``messages`` field, the guardrail operates only on those messages. If you
+    include no ``guardContent`` blocks, the guardrail operates on all messages in
+    the request body and in any included prompt resource.
+    """
     additional_model_request_fields: Document | None = None
+    """
+    Additional inference parameters that the model supports, beyond the base set of
+    inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+    .
+    """
     prompt_variables: dict[str, PromptVariableValues] | None = field(
         repr=False, default=None
     )
+    """
+    Contains a map of variables in a prompt from Prompt management to objects
+    containing the values to fill in for them when running model invocation. This
+    field is ignored if you don't specify a prompt resource in the ``modelId``
+    field.
+    """
     additional_model_response_field_paths: list[str] | None = None
+    """
+    Additional model parameters field paths to return in the response. ``Converse``
+    and ``ConverseStream`` return the requested fields as a JSON Pointer object in
+    the ``additionalModelResponseFields`` field. The following is example JSON for
+    ``additionalModelResponseFieldPaths``.
+
+    ``[ "/stop_sequence" ]``
+
+    For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
+    documentation.
+
+    ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
+    structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
+    but the requested field is not in the model response, it is ignored by
+    ``Converse``.
+    """
     request_metadata: dict[str, str] | None = field(repr=False, default=None)
+    """
+    Key-value pairs that you can use to filter invocation logs.
+    """
     performance_config: PerformanceConfiguration | None = None
+    """
+    Model performance settings for the request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
+        if self.model_id is not None:
+            serializer.write_string(
+                _SCHEMA_CONVERSE_STREAM_INPUT.members["modelId"], self.model_id
+            )
+
         if self.messages is not None:
             _serialize_messages(
                 serializer,
@@ -8471,6 +11259,156 @@ class ConverseStreamInput:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class CitationSourceContentDelta:
+    """
+    Contains incremental updates to the source content text during streaming
+    responses, allowing clients to build up the cited content progressively.
+
+    """
+
+    text: str | None = None
+    """
+    An incremental update to the text content from the source document that is being
+    cited.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION_SOURCE_CONTENT_DELTA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.text is not None:
+            serializer.write_string(
+                _SCHEMA_CITATION_SOURCE_CONTENT_DELTA.members["text"], self.text
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["text"] = de.read_string(
+                        _SCHEMA_CITATION_SOURCE_CONTENT_DELTA.members["text"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_CITATION_SOURCE_CONTENT_DELTA, consumer=_consumer
+        )
+        return kwargs
+
+
+def _serialize_citation_source_content_list_delta(
+    serializer: ShapeSerializer, schema: Schema, value: list[CitationSourceContentDelta]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_citation_source_content_list_delta(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[CitationSourceContentDelta]:
+    result: list[CitationSourceContentDelta] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(CitationSourceContentDelta.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class CitationsDelta:
+    """
+    Contains incremental updates to citation information during streaming responses.
+    This allows clients to build up citation data progressively as the response is
+    generated.
+
+    """
+
+    title: str | None = None
+    """
+    The title or identifier of the source document being cited.
+    """
+    source_content: list[CitationSourceContentDelta] | None = None
+    """
+    The specific content from the source document that was referenced or cited in
+    the generated response.
+    """
+    location: CitationLocation | None = None
+    """
+    Specifies the precise location within a source document where cited content can
+    be found. This can include character-level positions, page numbers, or document
+    chunks depending on the document type and indexing method.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATIONS_DELTA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.title is not None:
+            serializer.write_string(
+                _SCHEMA_CITATIONS_DELTA.members["title"], self.title
+            )
+
+        if self.source_content is not None:
+            _serialize_citation_source_content_list_delta(
+                serializer,
+                _SCHEMA_CITATIONS_DELTA.members["sourceContent"],
+                self.source_content,
+            )
+
+        if self.location is not None:
+            serializer.write_struct(
+                _SCHEMA_CITATIONS_DELTA.members["location"], self.location
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["title"] = de.read_string(
+                        _SCHEMA_CITATIONS_DELTA.members["title"]
+                    )
+
+                case 1:
+                    kwargs["source_content"] = (
+                        _deserialize_citation_source_content_list_delta(
+                            de, _SCHEMA_CITATIONS_DELTA.members["sourceContent"]
+                        )
+                    )
+
+                case 2:
+                    kwargs["location"] = _CitationLocationDeserializer().deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CITATIONS_DELTA, consumer=_consumer)
+        return kwargs
+
+
 @dataclass
 class ReasoningContentBlockDeltaText:
     """
@@ -8565,10 +11503,10 @@ class ReasoningContentBlockDeltaUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8601,7 +11539,9 @@ class _ReasoningContentBlockDeltaDeserializer:
         deserializer.read_struct(_SCHEMA_REASONING_CONTENT_BLOCK_DELTA, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -8623,7 +11563,7 @@ class _ReasoningContentBlockDeltaDeserializer:
 
     def _set_result(self, value: ReasoningContentBlockDelta) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -8634,12 +11574,12 @@ class ToolUseBlockDelta:
     """
     The delta for a tool use block.
 
-    :param input:
-        **[Required]** - The input for a requested tool.
-
     """
 
     input: str
+    """
+    The input for a requested tool.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK_DELTA, self)
@@ -8742,6 +11682,29 @@ class ContentBlockDeltaReasoningContent:
 
 
 @dataclass
+class ContentBlockDeltaCitation:
+    """
+    Incremental citation information that is streamed as part of the response
+    generation process.
+
+    """
+
+    value: CitationsDelta
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_DELTA.members["citation"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=CitationsDelta.deserialize(deserializer))
+
+
+@dataclass
 class ContentBlockDeltaUnknown:
     """Represents an unknown variant.
 
@@ -8754,10 +11717,10 @@ class ContentBlockDeltaUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8768,6 +11731,7 @@ ContentBlockDelta = Union[
     ContentBlockDeltaText
     | ContentBlockDeltaToolUse
     | ContentBlockDeltaReasoningContent
+    | ContentBlockDeltaCitation
     | ContentBlockDeltaUnknown
 ]
 
@@ -8785,7 +11749,9 @@ class _ContentBlockDeltaDeserializer:
         deserializer.read_struct(_SCHEMA_CONTENT_BLOCK_DELTA, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -8800,12 +11766,15 @@ class _ContentBlockDeltaDeserializer:
             case 2:
                 self._set_result(ContentBlockDeltaReasoningContent.deserialize(de))
 
+            case 3:
+                self._set_result(ContentBlockDeltaCitation.deserialize(de))
+
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: ContentBlockDelta) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -8816,17 +11785,17 @@ class ContentBlockDeltaEvent:
     """
     The content block delta event.
 
-    :param delta:
-        **[Required]** - The delta for a content block delta event.
-
-    :param content_block_index:
-        **[Required]** - The block index for a content block delta event.
-
     """
 
     delta: ContentBlockDelta
+    """
+    The delta for a content block delta event.
+    """
 
     content_block_index: int
+    """
+    The block index for a content block delta event.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA_EVENT, self)
@@ -8870,17 +11839,17 @@ class ToolUseBlockStart:
     """
     The start of a tool use block.
 
-    :param tool_use_id:
-        **[Required]** - The ID for the tool request.
-
-    :param name:
-        **[Required]** - The name of the tool that the model is requesting to use.
-
     """
 
     tool_use_id: str
+    """
+    The ID for the tool request.
+    """
 
     name: str
+    """
+    The name of the tool that the model is requesting to use.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK_START, self)
@@ -8953,10 +11922,10 @@ class ContentBlockStartUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8979,7 +11948,9 @@ class _ContentBlockStartDeserializer:
         deserializer.read_struct(_SCHEMA_CONTENT_BLOCK_START, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -8993,7 +11964,7 @@ class _ContentBlockStartDeserializer:
 
     def _set_result(self, value: ContentBlockStart) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -9004,17 +11975,17 @@ class ContentBlockStartEvent:
     """
     Content block start event.
 
-    :param start:
-        **[Required]** - Start information about a content block start event.
-
-    :param content_block_index:
-        **[Required]** - The index for a content block start event.
-
     """
 
     start: ContentBlockStart
+    """
+    Start information about a content block start event.
+    """
 
     content_block_index: int
+    """
+    The index for a content block start event.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_START_EVENT, self)
@@ -9058,12 +12029,12 @@ class ContentBlockStopEvent:
     """
     A content block stop event.
 
-    :param content_block_index:
-        **[Required]** - The index for a content block.
-
     """
 
     content_block_index: int
+    """
+    The index for a content block.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_STOP_EVENT, self)
@@ -9101,12 +12072,12 @@ class MessageStartEvent:
     """
     The start of a message.
 
-    :param role:
-        **[Required]** - The role for the message.
-
     """
 
     role: str
+    """
+    The role for the message.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MESSAGE_START_EVENT, self)
@@ -9141,17 +12112,17 @@ class MessageStopEvent:
     """
     The stop event for a message.
 
-    :param stop_reason:
-        **[Required]** - The reason why the model stopped generating output.
-
-    :param additional_model_response_fields:
-        The additional model response fields.
-
     """
 
     stop_reason: str
+    """
+    The reason why the model stopped generating output.
+    """
 
     additional_model_response_fields: Document | None = None
+    """
+    The additional model response fields.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MESSAGE_STOP_EVENT, self)
@@ -9200,12 +12171,12 @@ class ConverseStreamMetrics:
     """
     Metrics for the stream.
 
-    :param latency_ms:
-        **[Required]** - The latency for the streaming request, in milliseconds.
-
     """
 
     latency_ms: int
+    """
+    The latency for the streaming request, in milliseconds.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METRICS, self)
@@ -9240,19 +12211,19 @@ class ConverseStreamMetrics:
 @dataclass(kw_only=True)
 class ConverseStreamTrace:
     """
-    The trace object in a response from `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_.
+    The trace object in a response from ``ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>``_.
     Currently, you can only trace guardrails.
-
-    :param guardrail:
-        The guardrail trace object.
-
-    :param prompt_router:
-        The request's prompt router.
 
     """
 
     guardrail: GuardrailTraceAssessment | None = None
+    """
+    The guardrail trace object.
+    """
     prompt_router: PromptRouterTrace | None = None
+    """
+    The request's prompt router.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_TRACE, self)
@@ -9297,27 +12268,27 @@ class ConverseStreamMetadataEvent:
     """
     A conversation stream metadata event.
 
-    :param usage:
-        **[Required]** - Usage information for the conversation stream event.
-
-    :param metrics:
-        **[Required]** - The metrics for the conversation stream metadata event.
-
-    :param trace:
-        The trace object in the response from `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
-        that contains information about the guardrail behavior.
-
-    :param performance_config:
-        Model performance configuration metadata for the conversation stream event.
-
     """
 
     usage: TokenUsage
+    """
+    Usage information for the conversation stream event.
+    """
 
     metrics: ConverseStreamMetrics
+    """
+    The metrics for the conversation stream metadata event.
+    """
 
     trace: ConverseStreamTrace | None = None
+    """
+    The trace object in the response from `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
+    that contains information about the guardrail behavior.
+    """
     performance_config: PerformanceConfiguration | None = None
+    """
+    Model performance configuration metadata for the conversation stream event.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METADATA_EVENT, self)
@@ -9374,26 +12345,22 @@ class ConverseStreamMetadataEvent:
 
 
 @dataclass(kw_only=True)
-class ModelStreamErrorException(ApiError):
+class ModelStreamErrorException(ServiceError):
     """
     An error occurred while streaming the response. Retry your request.
 
-    :param message: A message associated with the specific error.
-
-    :param original_status_code:
-        The original status code.
-
-    :param original_message:
-        The original message.
-
     """
 
-    code: ClassVar[str] = "ModelStreamErrorException"
-    fault: ClassVar[Literal["client", "server"]] = "client"
+    fault: Literal["client", "server"] | None = "client"
 
-    message: str
     original_status_code: int | None = None
+    """
+    The original status code.
+    """
     original_message: str | None = None
+    """
+    The original message.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION, self)
@@ -9716,10 +12683,10 @@ class ConverseStreamOutputUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9755,7 +12722,9 @@ class _ConverseStreamOutputDeserializer:
         deserializer.read_struct(_SCHEMA_CONVERSE_STREAM_OUTPUT, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -9809,7 +12778,7 @@ class _ConverseStreamOutputDeserializer:
 
     def _set_result(self, value: ConverseStreamOutput) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -9817,8 +12786,6 @@ class _ConverseStreamOutputDeserializer:
 
 @dataclass(kw_only=True)
 class ConverseStreamOperationOutput:
-    """ """
-
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OPERATION_OUTPUT, self)
 
@@ -9881,7 +12848,10 @@ CONVERSE_STREAM = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
 
 
@@ -9893,89 +12863,124 @@ class Trace(StrEnum):
 
 @dataclass(kw_only=True)
 class InvokeModelInput:
-    """
-
-    :param body:
-        The prompt and inference parameters in the format specified in the
-        ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
-        For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
-        in the Bedrock User Guide.
-
-    :param content_type:
-        The MIME type of the input data in the request. You must specify
-        ``application/json``.
-
-    :param accept:
-        The desired MIME type of the inference body in the response. The default value
-        is ``application/json``.
-
-    :param model_id:
-        **[Required]** - The unique identifier of the model to invoke to run inference.
-
-        The ``modelId`` to provide depends on the type of model or throughput that you
-        use:
-
-        * If you use a base model, specify the model ID or its ARN. For a list of model
-          IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use an inference profile, specify the inference profile ID or its ARN.
-          For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-          For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use a custom model, first purchase Provisioned Throughput for it. Then
-          specify the ARN of the resulting provisioned model. For more information, see
-          `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
-          specify the ARN of the imported model. You can get the model ARN from a
-          successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
-          or from the Imported models page in the Amazon Bedrock console.
-
-    :param trace:
-        Specifies whether to enable or disable the Bedrock trace. If enabled, you can
-        see the full Bedrock trace.
-
-    :param guardrail_identifier:
-        The unique identifier of the guardrail that you want to use. If you don't
-        provide a value, no guardrail is applied to the invocation.
-
-        An error will be thrown in the following situations.
-
-        * You don't provide a guardrail identifier but you specify the
-          ``amazon-bedrock-guardrailConfig`` field in the request body.
-
-        * You enable the guardrail but the ``contentType`` isn't ``application/json``.
-
-        * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
-
-    :param guardrail_version:
-        The version number for the guardrail. The value can also be ``DRAFT``.
-
-    :param performance_config_latency:
-        Model performance settings for the request.
-
-    """
-
     body: bytes | None = field(repr=False, default=None)
+    """
+    The prompt and inference parameters in the format specified in the
+    ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
+    For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
+    in the Bedrock User Guide.
+    """
     content_type: str | None = None
+    """
+    The MIME type of the input data in the request. You must specify
+    ``application/json``.
+    """
     accept: str | None = None
+    """
+    The desired MIME type of the inference body in the response. The default value
+    is ``application/json``.
+    """
     model_id: str | None = None
+    """
+    The unique identifier of the model to invoke to run inference.
+
+    The ``modelId`` to provide depends on the type of model or throughput that you
+    use:
+
+    * If you use a base model, specify the model ID or its ARN. For a list of model
+      IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use an inference profile, specify the inference profile ID or its ARN.
+      For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
+      For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use a custom model, specify the ARN of the custom model deployment (for
+      on-demand inference) or the ARN of your provisioned model (for Provisioned
+      Throughput). For more information, see `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
+      specify the ARN of the imported model. You can get the model ARN from a
+      successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
+      or from the Imported models page in the Amazon Bedrock console.
+    """
     trace: str | None = None
+    """
+    Specifies whether to enable or disable the Bedrock trace. If enabled, you can
+    see the full Bedrock trace.
+    """
     guardrail_identifier: str | None = None
+    """
+    The unique identifier of the guardrail that you want to use. If you don't
+    provide a value, no guardrail is applied to the invocation.
+
+    An error will be thrown in the following situations.
+
+    * You don't provide a guardrail identifier but you specify the
+      ``amazon-bedrock-guardrailConfig`` field in the request body.
+
+    * You enable the guardrail but the ``contentType`` isn't ``application/json``.
+
+    * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
+    """
     guardrail_version: str | None = None
+    """
+    The version number for the guardrail. The value can also be ``DRAFT``.
+    """
     performance_config_latency: str = "standard"
+    """
+    Model performance settings for the request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INVOKE_MODEL_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        if self.body is not None:
+            serializer.write_blob(_SCHEMA_INVOKE_MODEL_INPUT.members["body"], self.body)
+
+        if self.content_type is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_INPUT.members["contentType"], self.content_type
+            )
+
+        if self.accept is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_INPUT.members["accept"], self.accept
+            )
+
+        if self.model_id is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_INPUT.members["modelId"], self.model_id
+            )
+
+        if self.trace is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_INPUT.members["trace"], self.trace
+            )
+
+        if self.guardrail_identifier is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_INPUT.members["guardrailIdentifier"],
+                self.guardrail_identifier,
+            )
+
+        if self.guardrail_version is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_INPUT.members["guardrailVersion"],
+                self.guardrail_version,
+            )
+
+        if self.performance_config_latency is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_INPUT.members["performanceConfigLatency"],
+                self.performance_config_latency,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10036,32 +13041,35 @@ class InvokeModelInput:
 
 @dataclass(kw_only=True)
 class InvokeModelOutput:
-    """
-
-    :param body:
-        **[Required]** - Inference response from the model in the format specified in
-        the ``contentType`` header. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-        .
-
-    :param content_type:
-        **[Required]** - The MIME type of the inference result.
-
-    :param performance_config_latency:
-        Model performance settings for the request.
-
-    """
-
     body: bytes = field(repr=False)
+    """
+    Inference response from the model in the format specified in the ``contentType`` header. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+    .
+    """
 
     content_type: str
+    """
+    The MIME type of the inference result.
+    """
 
     performance_config_latency: str | None = None
+    """
+    Model performance settings for the request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INVOKE_MODEL_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        serializer.write_blob(_SCHEMA_INVOKE_MODEL_OUTPUT.members["body"], self.body)
+        serializer.write_string(
+            _SCHEMA_INVOKE_MODEL_OUTPUT.members["contentType"], self.content_type
+        )
+        if self.performance_config_latency is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_OUTPUT.members["performanceConfigLatency"],
+                self.performance_config_latency,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10135,7 +13143,10 @@ INVOKE_MODEL = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
 
 
@@ -10144,12 +13155,12 @@ class BidirectionalInputPayloadPart:
     """
     Payload content for the bidirectional input. The input is an audio stream.
 
-    :param bytes_:
-        The audio content for the bidirectional input.
-
     """
 
     bytes_: bytes | None = field(repr=False, default=None)
+    """
+    The audio content for the bidirectional input.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART, self)
@@ -10222,10 +13233,10 @@ class InvokeModelWithBidirectionalStreamInputUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10256,7 +13267,9 @@ class _InvokeModelWithBidirectionalStreamInputDeserializer:
         )
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -10272,7 +13285,7 @@ class _InvokeModelWithBidirectionalStreamInputDeserializer:
 
     def _set_result(self, value: InvokeModelWithBidirectionalStreamInput) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -10280,15 +13293,11 @@ class _InvokeModelWithBidirectionalStreamInputDeserializer:
 
 @dataclass(kw_only=True)
 class InvokeModelWithBidirectionalStreamOperationInput:
-    """
-
-    :param model_id:
-        **[Required]** - The model ID or ARN of the model ID to use. Currently, only
-        ``amazon.nova-sonic-v1:0`` is supported.
-
-    """
-
     model_id: str | None = None
+    """
+    The model ID or ARN of the model ID to use. Currently, only
+    ``amazon.nova-sonic-v1:0`` is supported.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
@@ -10296,7 +13305,13 @@ class InvokeModelWithBidirectionalStreamOperationInput:
         )
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        if self.model_id is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_INPUT.members[
+                    "modelId"
+                ],
+                self.model_id,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10331,12 +13346,12 @@ class BidirectionalOutputPayloadPart:
     Output from the bidirectional stream. The output is speech and a text
     transcription.
 
-    :param bytes_:
-        The speech output of the bidirectional stream.
-
     """
 
     bytes_: bytes | None = field(repr=False, default=None)
+    """
+    The speech output of the bidirectional stream.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART, self)
@@ -10573,10 +13588,10 @@ class InvokeModelWithBidirectionalStreamOutputUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10612,7 +13627,9 @@ class _InvokeModelWithBidirectionalStreamOutputDeserializer:
         )
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -10670,7 +13687,7 @@ class _InvokeModelWithBidirectionalStreamOutputDeserializer:
 
     def _set_result(self, value: InvokeModelWithBidirectionalStreamOutput) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -10678,8 +13695,6 @@ class _InvokeModelWithBidirectionalStreamOutputDeserializer:
 
 @dataclass(kw_only=True)
 class InvokeModelWithBidirectionalStreamOperationOutput:
-    """ """
-
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
             _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT, self
@@ -10751,95 +13766,146 @@ INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
 
 
 @dataclass(kw_only=True)
 class InvokeModelWithResponseStreamInput:
-    """
-
-    :param body:
-        The prompt and inference parameters in the format specified in the
-        ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
-        For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
-        in the Bedrock User Guide.
-
-    :param content_type:
-        The MIME type of the input data in the request. You must specify
-        ``application/json``.
-
-    :param accept:
-        The desired MIME type of the inference body in the response. The default value
-        is ``application/json``.
-
-    :param model_id:
-        **[Required]** - The unique identifier of the model to invoke to run inference.
-
-        The ``modelId`` to provide depends on the type of model or throughput that you
-        use:
-
-        * If you use a base model, specify the model ID or its ARN. For a list of model
-          IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use an inference profile, specify the inference profile ID or its ARN.
-          For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-          For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use a custom model, first purchase Provisioned Throughput for it. Then
-          specify the ARN of the resulting provisioned model. For more information, see
-          `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
-          in the Amazon Bedrock User Guide.
-
-        * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
-          specify the ARN of the imported model. You can get the model ARN from a
-          successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
-          or from the Imported models page in the Amazon Bedrock console.
-
-    :param trace:
-        Specifies whether to enable or disable the Bedrock trace. If enabled, you can
-        see the full Bedrock trace.
-
-    :param guardrail_identifier:
-        The unique identifier of the guardrail that you want to use. If you don't
-        provide a value, no guardrail is applied to the invocation.
-
-        An error is thrown in the following situations.
-
-        * You don't provide a guardrail identifier but you specify the
-          ``amazon-bedrock-guardrailConfig`` field in the request body.
-
-        * You enable the guardrail but the ``contentType`` isn't ``application/json``.
-
-        * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
-
-    :param guardrail_version:
-        The version number for the guardrail. The value can also be ``DRAFT``.
-
-    :param performance_config_latency:
-        Model performance settings for the request.
-
-    """
-
     body: bytes | None = field(repr=False, default=None)
+    """
+    The prompt and inference parameters in the format specified in the
+    ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
+    For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
+    in the Bedrock User Guide.
+    """
     content_type: str | None = None
+    """
+    The MIME type of the input data in the request. You must specify
+    ``application/json``.
+    """
     accept: str | None = None
+    """
+    The desired MIME type of the inference body in the response. The default value
+    is ``application/json``.
+    """
     model_id: str | None = None
+    """
+    The unique identifier of the model to invoke to run inference.
+
+    The ``modelId`` to provide depends on the type of model or throughput that you
+    use:
+
+    * If you use a base model, specify the model ID or its ARN. For a list of model
+      IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use an inference profile, specify the inference profile ID or its ARN.
+      For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
+      For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use a custom model, specify the ARN of the custom model deployment (for
+      on-demand inference) or the ARN of your provisioned model (for Provisioned
+      Throughput). For more information, see `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+      in the Amazon Bedrock User Guide.
+
+    * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
+      specify the ARN of the imported model. You can get the model ARN from a
+      successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
+      or from the Imported models page in the Amazon Bedrock console.
+    """
     trace: str | None = None
+    """
+    Specifies whether to enable or disable the Bedrock trace. If enabled, you can
+    see the full Bedrock trace.
+    """
     guardrail_identifier: str | None = None
+    """
+    The unique identifier of the guardrail that you want to use. If you don't
+    provide a value, no guardrail is applied to the invocation.
+
+    An error is thrown in the following situations.
+
+    * You don't provide a guardrail identifier but you specify the
+      ``amazon-bedrock-guardrailConfig`` field in the request body.
+
+    * You enable the guardrail but the ``contentType`` isn't ``application/json``.
+
+    * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
+    """
     guardrail_version: str | None = None
+    """
+    The version number for the guardrail. The value can also be ``DRAFT``.
+    """
     performance_config_latency: str = "standard"
+    """
+    Model performance settings for the request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        if self.body is not None:
+            serializer.write_blob(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["body"],
+                self.body,
+            )
+
+        if self.content_type is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["contentType"],
+                self.content_type,
+            )
+
+        if self.accept is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["accept"],
+                self.accept,
+            )
+
+        if self.model_id is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["modelId"],
+                self.model_id,
+            )
+
+        if self.trace is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members["trace"],
+                self.trace,
+            )
+
+        if self.guardrail_identifier is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                    "guardrailIdentifier"
+                ],
+                self.guardrail_identifier,
+            )
+
+        if self.guardrail_version is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                    "guardrailVersion"
+                ],
+                self.guardrail_version,
+            )
+
+        if self.performance_config_latency is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT.members[
+                    "performanceConfigLatency"
+                ],
+                self.performance_config_latency,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10917,12 +13983,12 @@ class PayloadPart:
     """
     Payload content included in the response.
 
-    :param bytes_:
-        Base64-encoded bytes of payload data.
-
     """
 
     bytes_: bytes | None = field(repr=False, default=None)
+    """
+    Base64-encoded bytes of payload data.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PAYLOAD_PART, self)
@@ -11121,10 +14187,10 @@ class ResponseStreamUnknown:
     tag: str
 
     def serialize(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     def serialize_members(self, serializer: ShapeSerializer):
-        raise SmithyException("Unknown union variants may not be serialized.")
+        raise SerializationError("Unknown union variants may not be serialized.")
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -11156,7 +14222,9 @@ class _ResponseStreamDeserializer:
         deserializer.read_struct(_SCHEMA_RESPONSE_STREAM, self._consumer)
 
         if self._result is None:
-            raise SmithyException("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -11192,7 +14260,7 @@ class _ResponseStreamDeserializer:
 
     def _set_result(self, value: ResponseStream) -> None:
         if self._result is not None:
-            raise SmithyException(
+            raise SerializationError(
                 "Unions must have exactly one value, but found more than one."
             )
         self._result = value
@@ -11200,25 +14268,31 @@ class _ResponseStreamDeserializer:
 
 @dataclass(kw_only=True)
 class InvokeModelWithResponseStreamOutput:
-    """
-
-    :param content_type:
-        **[Required]** - The MIME type of the inference result.
-
-    :param performance_config_latency:
-        Model performance settings for the request.
-
-    """
-
     content_type: str
+    """
+    The MIME type of the inference result.
+    """
 
     performance_config_latency: str | None = None
+    """
+    Model performance settings for the request.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        serializer.write_string(
+            _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT.members["contentType"],
+            self.content_type,
+        )
+        if self.performance_config_latency is not None:
+            serializer.write_string(
+                _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT.members[
+                    "performanceConfigLatency"
+                ],
+                self.performance_config_latency,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -11296,5 +14370,378 @@ INVOKE_MODEL_WITH_RESPONSE_STREAM = APIOperation(
             ): ValidationException,
         }
     ),
-    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
+)
+
+
+@dataclass(kw_only=True)
+class ConverseTokensRequest:
+    """
+    The inputs from a ``Converse`` API request for token counting.
+
+    This structure mirrors the input format for the ``Converse`` operation, allowing
+    you to count tokens for conversation-based inference requests.
+
+    """
+
+    messages: list[Message] | None = None
+    """
+    An array of messages to count tokens for.
+    """
+    system: list[SystemContentBlock] | None = None
+    """
+    The system content blocks to count tokens for. System content provides
+    instructions or context to the model about how it should behave or respond. The
+    token count will include any system content provided.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONVERSE_TOKENS_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.messages is not None:
+            _serialize_messages(
+                serializer,
+                _SCHEMA_CONVERSE_TOKENS_REQUEST.members["messages"],
+                self.messages,
+            )
+
+        if self.system is not None:
+            _serialize_system_content_blocks(
+                serializer,
+                _SCHEMA_CONVERSE_TOKENS_REQUEST.members["system"],
+                self.system,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["messages"] = _deserialize_messages(
+                        de, _SCHEMA_CONVERSE_TOKENS_REQUEST.members["messages"]
+                    )
+
+                case 1:
+                    kwargs["system"] = _deserialize_system_content_blocks(
+                        de, _SCHEMA_CONVERSE_TOKENS_REQUEST.members["system"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CONVERSE_TOKENS_REQUEST, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class InvokeModelTokensRequest:
+    """
+    The body of an ``InvokeModel`` API request for token counting. This structure
+    mirrors the input format for the ``InvokeModel`` operation, allowing you to
+    count tokens for raw text inference requests.
+
+    """
+
+    body: bytes = field(repr=False)
+    """
+    The request body to count tokens for, formatted according to the model's
+    expected input format. To learn about the input format for different models, see
+    `Model inference parameters and responses <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
+    .
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_INVOKE_MODEL_TOKENS_REQUEST, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_blob(
+            _SCHEMA_INVOKE_MODEL_TOKENS_REQUEST.members["body"], self.body
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["body"] = de.read_blob(
+                        _SCHEMA_INVOKE_MODEL_TOKENS_REQUEST.members["body"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_MODEL_TOKENS_REQUEST, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass
+class CountTokensInputInvokeModel:
+    """
+    An ``InvokeModel`` request for which to count tokens. Use this field when you
+    want to count tokens for a raw text input that would be sent to the
+    ``InvokeModel`` operation.
+
+    """
+
+    value: InvokeModelTokensRequest
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_COUNT_TOKENS_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_COUNT_TOKENS_INPUT.members["invokeModel"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=InvokeModelTokensRequest.deserialize(deserializer))
+
+
+@dataclass
+class CountTokensInputConverse:
+    """
+    A ``Converse`` request for which to count tokens. Use this field when you want
+    to count tokens for a conversation-based input that would be sent to the
+    ``Converse`` operation.
+
+    """
+
+    value: ConverseTokensRequest
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_COUNT_TOKENS_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_COUNT_TOKENS_INPUT.members["converse"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=ConverseTokensRequest.deserialize(deserializer))
+
+
+@dataclass
+class CountTokensInputUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+CountTokensInput = Union[
+    CountTokensInputInvokeModel | CountTokensInputConverse | CountTokensInputUnknown
+]
+
+"""
+The input value for token counting. The value should be either an
+``InvokeModel`` or ``Converse`` request body.
+
+"""
+
+
+class _CountTokensInputDeserializer:
+    _result: CountTokensInput | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> CountTokensInput:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_COUNT_TOKENS_INPUT, self._consumer)
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(CountTokensInputInvokeModel.deserialize(de))
+
+            case 1:
+                self._set_result(CountTokensInputConverse.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: CountTokensInput) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+@dataclass(kw_only=True)
+class CountTokensOperationInput:
+    model_id: str | None = None
+    """
+    The unique identifier or ARN of the foundation model to use for token counting.
+    Each model processes tokens differently, so the token count is specific to the
+    model you specify.
+    """
+    input: CountTokensInput | None = None
+    """
+    The input for which to count tokens. The structure of this parameter depends on
+    whether you're counting tokens for an ``InvokeModel`` or ``Converse`` request:
+
+    * For ``InvokeModel`` requests, provide the request body in the ``invokeModel``
+      field
+
+    * For ``Converse`` requests, provide the messages and system content in the
+      ``converse`` field
+
+    The input format must be compatible with the model specified in the ``modelId``
+    parameter.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_COUNT_TOKENS_OPERATION_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.model_id is not None:
+            serializer.write_string(
+                _SCHEMA_COUNT_TOKENS_OPERATION_INPUT.members["modelId"], self.model_id
+            )
+
+        if self.input is not None:
+            serializer.write_struct(
+                _SCHEMA_COUNT_TOKENS_OPERATION_INPUT.members["input"], self.input
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["model_id"] = de.read_string(
+                        _SCHEMA_COUNT_TOKENS_OPERATION_INPUT.members["modelId"]
+                    )
+
+                case 1:
+                    kwargs["input"] = _CountTokensInputDeserializer().deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_COUNT_TOKENS_OPERATION_INPUT, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class CountTokensOutput:
+    input_tokens: int
+    """
+    The number of tokens in the provided input according to the specified model's
+    tokenization rules. This count represents the number of input tokens that would
+    be processed if the same input were sent to the model in an inference request.
+    Use this value to estimate costs and ensure your inputs stay within model token
+    limits.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_COUNT_TOKENS_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_integer(
+            _SCHEMA_COUNT_TOKENS_OUTPUT.members["inputTokens"], self.input_tokens
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["input_tokens"] = de.read_integer(
+                        _SCHEMA_COUNT_TOKENS_OUTPUT.members["inputTokens"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_COUNT_TOKENS_OUTPUT, consumer=_consumer)
+        return kwargs
+
+
+COUNT_TOKENS = APIOperation(
+    input=CountTokensOperationInput,
+    output=CountTokensOutput,
+    schema=_SCHEMA_COUNT_TOKENS,
+    input_schema=_SCHEMA_COUNT_TOKENS_OPERATION_INPUT,
+    output_schema=_SCHEMA_COUNT_TOKENS_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceUnavailableException"
+            ): ServiceUnavailableException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[
+        ShapeID("aws.auth#sigv4"),
+        ShapeID("smithy.api#httpBearerAuth"),
+    ],
 )
