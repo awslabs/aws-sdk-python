@@ -4,7 +4,7 @@ Sphinx is used for documentation. You can generate HTML locally with the
 following:
 
 ```
-$ uv pip install ".[docs]"
+$ uv pip install --group docs .
 $ cd docs
 $ make html
 ```

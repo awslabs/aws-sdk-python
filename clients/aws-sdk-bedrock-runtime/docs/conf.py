@@ -7,12 +7,9 @@ sys.path.insert(0, os.path.abspath(".."))
 
 project = "Amazon Bedrock Runtime"
 author = "Amazon Web Services"
-release = "0.0.1"
+release = "0.1.0"
 
-extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.viewcode",
-]
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.viewcode"]
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -22,10 +19,6 @@ autodoc_default_options = {
 }
 
 html_theme = "pydata_sphinx_theme"
-html_theme_options = {
-    "logo": {
-        "text": "Amazon Bedrock Runtime",
-    }
-}
+html_theme_options = {"logo": {"text": "Amazon Bedrock Runtime"}}
 
 autodoc_typehints = "description"
