@@ -1,5 +1,5 @@
 [project]
-name = "aws-sdk"
+name = "aws-sdk-python"
 dynamic = ["version"]
 description = "Meta-package containing all AWS service clients."
 readme = "README.md"
@@ -23,7 +23,7 @@ dependencies = []
 [project.optional-dependencies]
 bedrock_runtime = ["aws_sdk_bedrock_runtime==0.0.2"]
 all = [
-    "aws_sdk[bedrock_runtime]",
+    "aws_sdk_python[bedrock_runtime]",
 ]
 
 [build-system]
@@ -31,7 +31,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-path = "src/aws_sdk/__init__.py"
+path = "src/aws_sdk_python/__init__.py"
 
 [tool.ruff]
 src = ["src"]
