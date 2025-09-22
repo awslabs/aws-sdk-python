@@ -21,7 +21,7 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-bedrock_runtime = ["aws_sdk_bedrock_runtime==0.0.2"]
+bedrock_runtime = ["aws_sdk_bedrock_runtime==0.1.0"]
 all = [
     "aws_sdk_python[bedrock_runtime]",
 ]
