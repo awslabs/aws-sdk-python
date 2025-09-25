@@ -56,7 +56,5 @@ class ResponseTestHTTPClient:
     ) -> _HTTPResponse:
         # Pre-construct the response from the request and return it
         return _HTTPResponse(
-            status=self.status,
-            fields=self.fields,
-            body=async_list([self.body]),
+            status=self.status, fields=self.fields, body=async_list([self.body])
         )
