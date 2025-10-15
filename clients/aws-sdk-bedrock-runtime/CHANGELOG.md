@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Breaking
+- Removed unused `serialize.py` and `deserialize.py` modules.
+
 ## v0.1.0
 
 ### API Changes
