@@ -16,12 +16,13 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13"
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14"
 ]
 dependencies = []
 
 [project.optional-dependencies]
-bedrock_runtime = ["aws_sdk_bedrock_runtime==0.1.0"]
+bedrock_runtime = ["aws_sdk_bedrock_runtime==0.1.1"]
 all = [
     "aws_sdk_python[bedrock_runtime]",
 ]
