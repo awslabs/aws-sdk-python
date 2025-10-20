@@ -5695,6 +5695,9 @@ APPLY_GUARDRAIL = APIOperation(
                 "com.amazonaws.bedrockruntime#ServiceQuotaExceededException"
             ): ServiceQuotaExceededException,
             ShapeID(
+                "com.amazonaws.bedrockruntime#ServiceUnavailableException"
+            ): ServiceUnavailableException,
+            ShapeID(
                 "com.amazonaws.bedrockruntime#ThrottlingException"
             ): ThrottlingException,
             ShapeID(
@@ -10213,6 +10216,7 @@ class StopReason(StrEnum):
     STOP_SEQUENCE = "stop_sequence"
     GUARDRAIL_INTERVENED = "guardrail_intervened"
     CONTENT_FILTERED = "content_filtered"
+    MODEL_CONTEXT_WINDOW_EXCEEDED = "model_context_window_exceeded"
 
 
 def _serialize_guardrail_assessment_map(
