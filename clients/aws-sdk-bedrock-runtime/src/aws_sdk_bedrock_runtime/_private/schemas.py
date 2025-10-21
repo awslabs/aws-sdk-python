@@ -3124,6 +3124,15 @@ STOP_REASON = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="content_filtered")
             ],
         },
+        "MODEL_CONTEXT_WINDOW_EXCEEDED": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"),
+                    value="model_context_window_exceeded",
+                )
+            ],
+        },
     },
 )
 
