@@ -5,7 +5,7 @@
 ## v0.1.1
 
 ### API Changes
-* New stop reason (`MODEL_CONTEXT_WINDOW_EXCEEDED`) for Converse and ConverseStream.
+* New stop reason for Converse and ConverseStream
 
 ### Enhancements
 * Improvements to the underlying AWS CRT HTTP client result in a signifigant decrease in CPU usage. Addresses [aws-sdk-python#11](https://github.com/awslabs/aws-sdk-python/issues/11).
