@@ -2269,10 +2269,16 @@ DOCUMENT_PAGE_LOCATION = Schema.collection(
     },
 )
 
+WEB_LOCATION = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#WebLocation"),
+    members={"url": {"target": STRING}, "domain": {"target": STRING}},
+)
+
 CITATION_LOCATION = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#CitationLocation"),
     shape_type=ShapeType.UNION,
     members={
+        "web": {"target": WEB_LOCATION},
         "documentChar": {"target": DOCUMENT_CHAR_LOCATION},
         "documentPage": {"target": DOCUMENT_PAGE_LOCATION},
         "documentChunk": {"target": DOCUMENT_CHUNK_LOCATION},
@@ -2749,6 +2755,7 @@ TOOL_RESULT_BLOCK = Schema.collection(
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
         "status": {"target": TOOL_RESULT_STATUS},
+        "type": {"target": STRING},
     },
 )
 
@@ -2762,6 +2769,19 @@ TOOL_NAME = Schema(
         ),
         Trait.new(id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z0-9_-]+$"),
     ],
+)
+
+TOOL_USE_TYPE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ToolUseType"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "SERVER_TOOL_USE": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="server_tool_use")
+            ],
+        }
+    },
 )
 
 TOOL_USE_BLOCK = Schema.collection(
@@ -2779,6 +2799,7 @@ TOOL_USE_BLOCK = Schema.collection(
             "target": DOCUMENT,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "type": {"target": TOOL_USE_TYPE},
     },
 )
 
@@ -2981,6 +3002,16 @@ TOOL_CHOICE = Schema.collection(
     },
 )
 
+SYSTEM_TOOL = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#SystemTool"),
+    members={
+        "name": {
+            "target": TOOL_NAME,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        }
+    },
+)
+
 TOOL_INPUT_SCHEMA = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#ToolInputSchema"),
     shape_type=ShapeType.UNION,
@@ -3007,6 +3038,7 @@ TOOL = Schema.collection(
     shape_type=ShapeType.UNION,
     members={
         "toolSpec": {"target": TOOL_SPECIFICATION},
+        "systemTool": {"target": SYSTEM_TOOL},
         "cachePoint": {"target": CACHE_POINT_BLOCK},
     },
 )
@@ -3440,6 +3472,18 @@ REASONING_CONTENT_BLOCK_DELTA = Schema.collection(
     },
 )
 
+TOOL_RESULT_BLOCK_DELTA = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ToolResultBlockDelta"),
+    shape_type=ShapeType.UNION,
+    members={"text": {"target": STRING}},
+)
+
+TOOL_RESULT_BLOCKS_DELTA = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ToolResultBlocksDelta"),
+    shape_type=ShapeType.LIST,
+    members={"member": {"target": TOOL_RESULT_BLOCK_DELTA}},
+)
+
 TOOL_USE_BLOCK_DELTA = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#ToolUseBlockDelta"),
     members={
@@ -3456,6 +3500,7 @@ CONTENT_BLOCK_DELTA = Schema.collection(
     members={
         "text": {"target": STRING},
         "toolUse": {"target": TOOL_USE_BLOCK_DELTA},
+        "toolResult": {"target": TOOL_RESULT_BLOCKS_DELTA},
         "reasoningContent": {"target": REASONING_CONTENT_BLOCK_DELTA},
         "citation": {"target": CITATIONS_DELTA},
     },
@@ -3475,6 +3520,18 @@ CONTENT_BLOCK_DELTA_EVENT = Schema.collection(
     },
 )
 
+TOOL_RESULT_BLOCK_START = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ToolResultBlockStart"),
+    members={
+        "toolUseId": {
+            "target": TOOL_USE_ID,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "type": {"target": STRING},
+        "status": {"target": TOOL_RESULT_STATUS},
+    },
+)
+
 TOOL_USE_BLOCK_START = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#ToolUseBlockStart"),
     members={
@@ -3486,13 +3543,17 @@ TOOL_USE_BLOCK_START = Schema.collection(
             "target": TOOL_NAME,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "type": {"target": TOOL_USE_TYPE},
     },
 )
 
 CONTENT_BLOCK_START = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#ContentBlockStart"),
     shape_type=ShapeType.UNION,
-    members={"toolUse": {"target": TOOL_USE_BLOCK_START}},
+    members={
+        "toolUse": {"target": TOOL_USE_BLOCK_START},
+        "toolResult": {"target": TOOL_RESULT_BLOCK_START},
+    },
 )
 
 CONTENT_BLOCK_START_EVENT = Schema.collection(
@@ -4617,7 +4678,7 @@ AMAZON_BEDROCK_FRONTEND_SERVICE = Schema(
                                     "builtIn": "AWS::Region",
                                     "required": False,
                                     "documentation": "The AWS region used to dispatch the request.",
-                                    "type": "String",
+                                    "type": "string",
                                 }
                             ),
                             "UseDualStack": MappingProxyType(
@@ -4626,7 +4687,7 @@ AMAZON_BEDROCK_FRONTEND_SERVICE = Schema(
                                     "required": True,
                                     "default": False,
                                     "documentation": "When true, use the dual-stack endpoint. If the configured endpoint does not support dual-stack, dispatching the request MAY return an error.",
-                                    "type": "Boolean",
+                                    "type": "boolean",
                                 }
                             ),
                             "UseFIPS": MappingProxyType(
@@ -4635,7 +4696,7 @@ AMAZON_BEDROCK_FRONTEND_SERVICE = Schema(
                                     "required": True,
                                     "default": False,
                                     "documentation": "When true, send this request to the FIPS-compliant regional endpoint. If the configured endpoint does not have a FIPS compliant endpoint, dispatching the request will return an error.",
-                                    "type": "Boolean",
+                                    "type": "boolean",
                                 }
                             ),
                             "Endpoint": MappingProxyType(
@@ -4643,7 +4704,7 @@ AMAZON_BEDROCK_FRONTEND_SERVICE = Schema(
                                     "builtIn": "SDK::Endpoint",
                                     "required": False,
                                     "documentation": "Override the endpoint used to send this request",
-                                    "type": "String",
+                                    "type": "string",
                                 }
                             ),
                         }

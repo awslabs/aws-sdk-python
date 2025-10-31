@@ -57,19 +57,23 @@ logger = logging.getLogger(__name__)
 
 
 class BedrockRuntimeClient:
-    """
-    Describes the API operations for running inference using Amazon Bedrock models.
-
-    :param config: Optional configuration for the client. Here you can set things like the
-        endpoint for HTTP services or auth credentials.
-
-    :param plugins: A list of callables that modify the configuration dynamically. These
-        can be used to set defaults, for example.
+    """Describes the API operations for running inference using Amazon Bedrock
+    models.
     """
 
     def __init__(
         self, config: Config | None = None, plugins: list[Plugin] | None = None
     ):
+        """Constructor for `BedrockRuntimeClient`.
+
+        Args:
+            config:
+                Optional configuration for the client. Here you can set things like
+                the endpoint for HTTP services or auth credentials.
+            plugins:
+                A list of callables that modify the configuration dynamically. These
+                can be used to set defaults, for example.
+        """
         self._config = config or Config()
 
         client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
@@ -82,19 +86,25 @@ class BedrockRuntimeClient:
     async def apply_guardrail(
         self, input: ApplyGuardrailInput, plugins: list[Plugin] | None = None
     ) -> ApplyGuardrailOutput:
-        """
-        The action to apply a guardrail.
+        """The action to apply a guardrail.
 
-        For troubleshooting some of the common errors you might encounter when using the
-        ``ApplyGuardrail`` API, see `Troubleshooting Amazon Bedrock API Error Codes <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html>`_
+        For troubleshooting some of the common errors you might encounter when
+        using the `ApplyGuardrail` API, see [Troubleshooting Amazon Bedrock API
+        Error
+        Codes](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html)
         in the Amazon Bedrock User Guide
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `ApplyGuardrailInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An instance of `ApplyGuardrailOutput`.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -123,52 +133,68 @@ class BedrockRuntimeClient:
     async def converse(
         self, input: ConverseInput, plugins: list[Plugin] | None = None
     ) -> ConverseOperationOutput:
-        """
-        Sends messages to the specified Amazon Bedrock model. ``Converse`` provides a
-        consistent interface that works with all models that support messages. This
-        allows you to write code once and use it with different models. If a model has
-        unique inference parameters, you can also pass those unique parameters to the
-        model.
+        """Sends messages to the specified Amazon Bedrock model. `Converse`
+        provides a consistent interface that works with all models that support
+        messages. This allows you to write code once and use it with different
+        models. If a model has unique inference parameters, you can also pass
+        those unique parameters to the model.
 
-        Amazon Bedrock doesn't store any text, images, or documents that you provide as
-        content. The data is only used to generate the response.
+        Amazon Bedrock doesn't store any text, images, or documents that you
+        provide as content. The data is only used to generate the response.
 
-        You can submit a prompt by including it in the ``messages`` field, specifying
-        the ``modelId`` of a foundation model or inference profile to run inference on
-        it, and including any other fields that are relevant to your use case.
+        You can submit a prompt by including it in the `messages` field,
+        specifying the `modelId` of a foundation model or inference profile to
+        run inference on it, and including any other fields that are relevant to
+        your use case.
 
-        You can also submit a prompt from Prompt management by specifying the ARN of the
-        prompt version and including a map of variables to values in the
-        ``promptVariables`` field. You can append more messages to the prompt by using the ``messages`` field. If you use a prompt from Prompt management, you can't include the following fields in the request: ``additionalModelRequestFields``, ``inferenceConfig``, ``system``, or ``toolConfig``. Instead, these fields must be defined through Prompt management. For more information, see `Use a prompt from Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-use.html>`_
-        .
+        You can also submit a prompt from Prompt management by specifying the
+        ARN of the prompt version and including a map of variables to values in
+        the `promptVariables` field. You can append more messages to the prompt
+        by using the `messages` field. If you use a prompt from Prompt
+        management, you can't include the following fields in the request:
+        `additionalModelRequestFields`, `inferenceConfig`, `system`, or
+        `toolConfig`. Instead, these fields must be defined through Prompt
+        management. For more information, see [Use a prompt from Prompt
+        management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-use.html).
 
-        For information about the Converse API, see *Use the Converse API* in the
-        *Amazon Bedrock User Guide*. To use a guardrail, see *Use a guardrail with the
-        Converse API* in the *Amazon Bedrock User Guide*. To use a tool with a model,
-        see *Tool use (Function calling)* in the *Amazon Bedrock User Guide*
+        For information about the Converse API, see *Use the Converse API* in
+        the *Amazon Bedrock User Guide*. To use a guardrail, see *Use a
+        guardrail with the Converse API* in the *Amazon Bedrock User Guide*. To
+        use a tool with a model, see *Tool use (Function calling)* in the
+        *Amazon Bedrock User Guide*
 
-        For example code, see *Converse API examples* in the *Amazon Bedrock User
-        Guide*.
+        For example code, see *Converse API examples* in the *Amazon Bedrock
+        User Guide*.
 
-        This operation requires permission for the ``bedrock:InvokeModel`` action.
+        This operation requires permission for the `bedrock:InvokeModel` action.
 
-        .. important::
-            To deny all inference access to resources that you specify in the modelId field,
-            you need to deny access to the ``bedrock:InvokeModel`` and ``bedrock:InvokeModelWithResponseStream`` actions. Doing this also denies access to the resource through the base inference actions (`InvokeModel <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html>`_
-            and `InvokeModelWithResponseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html>`_).
-            For more information see `Deny access for inference on specific models <https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference>`_
-            .
+        Warning:
+            To deny all inference access to resources that you specify in the
+            modelId field, you need to deny access to the `bedrock:InvokeModel` and
+            `bedrock:InvokeModelWithResponseStream` actions. Doing this also denies
+            access to the resource through the base inference actions
+            ([InvokeModel](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html)
+            and
+            [InvokeModelWithResponseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html)).
+            For more information see [Deny access for inference on specific
+            models](https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference).
 
-        For troubleshooting some of the common errors you might encounter when using the
-        ``Converse`` API, see `Troubleshooting Amazon Bedrock API Error Codes <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html>`_
+        For troubleshooting some of the common errors you might encounter when
+        using the `Converse` API, see [Troubleshooting Amazon Bedrock API Error
+        Codes](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html)
         in the Amazon Bedrock User Guide
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `ConverseInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An instance of `ConverseOperationOutput`.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -197,60 +223,81 @@ class BedrockRuntimeClient:
     async def converse_stream(
         self, input: ConverseStreamInput, plugins: list[Plugin] | None = None
     ) -> OutputEventStream[ConverseStreamOutput, ConverseStreamOperationOutput]:
-        """
-        Sends messages to the specified Amazon Bedrock model and returns the response in
-        a stream. ``ConverseStream`` provides a consistent API that works with all
-        Amazon Bedrock models that support messages. This allows you to write code once
-        and use it with different models. Should a model have unique inference
-        parameters, you can also pass those unique parameters to the model.
+        """Sends messages to the specified Amazon Bedrock model and returns the
+        response in a stream. `ConverseStream` provides a consistent API that
+        works with all Amazon Bedrock models that support messages. This allows
+        you to write code once and use it with different models. Should a model
+        have unique inference parameters, you can also pass those unique
+        parameters to the model.
 
-        To find out if a model supports streaming, call `GetFoundationModel <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetFoundationModel.html>`_
-        and check the ``responseStreamingSupported`` field in the response.
+        To find out if a model supports streaming, call
+        [GetFoundationModel](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetFoundationModel.html)
+        and check the `responseStreamingSupported` field in the response.
 
-        .. note::
-            The CLI doesn't support streaming operations in Amazon Bedrock, including
-            ``ConverseStream``.
+        Note:
+            The CLI doesn't support streaming operations in Amazon Bedrock,
+            including `ConverseStream`.
 
-        Amazon Bedrock doesn't store any text, images, or documents that you provide as
-        content. The data is only used to generate the response.
+        Amazon Bedrock doesn't store any text, images, or documents that you
+        provide as content. The data is only used to generate the response.
 
-        You can submit a prompt by including it in the ``messages`` field, specifying
-        the ``modelId`` of a foundation model or inference profile to run inference on
-        it, and including any other fields that are relevant to your use case.
+        You can submit a prompt by including it in the `messages` field,
+        specifying the `modelId` of a foundation model or inference profile to
+        run inference on it, and including any other fields that are relevant to
+        your use case.
 
-        You can also submit a prompt from Prompt management by specifying the ARN of the
-        prompt version and including a map of variables to values in the
-        ``promptVariables`` field. You can append more messages to the prompt by using the ``messages`` field. If you use a prompt from Prompt management, you can't include the following fields in the request: ``additionalModelRequestFields``, ``inferenceConfig``, ``system``, or ``toolConfig``. Instead, these fields must be defined through Prompt management. For more information, see `Use a prompt from Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-use.html>`_
-        .
+        You can also submit a prompt from Prompt management by specifying the
+        ARN of the prompt version and including a map of variables to values in
+        the `promptVariables` field. You can append more messages to the prompt
+        by using the `messages` field. If you use a prompt from Prompt
+        management, you can't include the following fields in the request:
+        `additionalModelRequestFields`, `inferenceConfig`, `system`, or
+        `toolConfig`. Instead, these fields must be defined through Prompt
+        management. For more information, see [Use a prompt from Prompt
+        management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-use.html).
 
-        For information about the Converse API, see *Use the Converse API* in the
-        *Amazon Bedrock User Guide*. To use a guardrail, see *Use a guardrail with the
-        Converse API* in the *Amazon Bedrock User Guide*. To use a tool with a model,
-        see *Tool use (Function calling)* in the *Amazon Bedrock User Guide*
+        For information about the Converse API, see *Use the Converse API* in
+        the *Amazon Bedrock User Guide*. To use a guardrail, see *Use a
+        guardrail with the Converse API* in the *Amazon Bedrock User Guide*. To
+        use a tool with a model, see *Tool use (Function calling)* in the
+        *Amazon Bedrock User Guide*
 
-        For example code, see *Conversation streaming example* in the *Amazon Bedrock
-        User Guide*.
+        For example code, see *Conversation streaming example* in the *Amazon
+        Bedrock User Guide*.
 
         This operation requires permission for the
-        ``bedrock:InvokeModelWithResponseStream`` action.
+        `bedrock:InvokeModelWithResponseStream` action.
 
-        .. important::
-            To deny all inference access to resources that you specify in the modelId field,
-            you need to deny access to the ``bedrock:InvokeModel`` and ``bedrock:InvokeModelWithResponseStream`` actions. Doing this also denies access to the resource through the base inference actions (`InvokeModel <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html>`_
-            and `InvokeModelWithResponseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html>`_).
-            For more information see `Deny access for inference on specific models <https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference>`_
-            .
+        Warning:
+            To deny all inference access to resources that you specify in the
+            modelId field, you need to deny access to the `bedrock:InvokeModel` and
+            `bedrock:InvokeModelWithResponseStream` actions. Doing this also denies
+            access to the resource through the base inference actions
+            ([InvokeModel](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html)
+            and
+            [InvokeModelWithResponseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html)).
+            For more information see [Deny access for inference on specific
+            models](https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference).
 
-        For troubleshooting some of the common errors you might encounter when using the
-        ``ConverseStream`` API, see `Troubleshooting Amazon Bedrock API Error Codes <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html>`_
+        For troubleshooting some of the common errors you might encounter when
+        using the `ConverseStream` API, see [Troubleshooting Amazon Bedrock API
+        Error
+        Codes](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html)
         in the Amazon Bedrock User Guide
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `ConverseStreamInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An `OutputEventStream` for server-to-client streaming of
+                `ConverseStreamOutput` events with initial `ConverseStreamOperationOutput`
+                response.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -281,43 +328,47 @@ class BedrockRuntimeClient:
     async def count_tokens(
         self, input: CountTokensOperationInput, plugins: list[Plugin] | None = None
     ) -> CountTokensOutput:
-        """
-        Returns the token count for a given inference request. This operation helps you
-        estimate token usage before sending requests to foundation models by returning
-        the token count that would be used if the same input were sent to the model in
-        an inference request.
+        """Returns the token count for a given inference request. This operation
+        helps you estimate token usage before sending requests to foundation
+        models by returning the token count that would be used if the same input
+        were sent to the model in an inference request.
 
         Token counting is model-specific because different models use different
-        tokenization strategies. The token count returned by this operation will match
-        the token count that would be charged if the same input were sent to the model
-        in an ``InvokeModel`` or ``Converse`` request.
+        tokenization strategies. The token count returned by this operation will
+        match the token count that would be charged if the same input were sent
+        to the model in an `InvokeModel` or `Converse` request.
 
         You can use this operation to:
 
-        * Estimate costs before sending inference requests.
+        - Estimate costs before sending inference requests.
 
-        * Optimize prompts to fit within token limits.
+        - Optimize prompts to fit within token limits.
 
-        * Plan for token usage in your applications.
+        - Plan for token usage in your applications.
 
-        This operation accepts the same input formats as ``InvokeModel`` and
-        ``Converse``, allowing you to count tokens for both raw text inputs and
+        This operation accepts the same input formats as `InvokeModel` and
+        `Converse`, allowing you to count tokens for both raw text inputs and
         structured conversation formats.
 
-        The following operations are related to ``CountTokens``:
+        The following operations are related to `CountTokens`:
 
-        * `InvokeModel <https://docs.aws.amazon.com/bedrock/latest/API/API_runtime_InvokeModel.html>`_
-          - Sends inference requests to foundation models
+        - [InvokeModel](https://docs.aws.amazon.com/bedrock/latest/API/API_runtime_InvokeModel.html) -
+          Sends inference requests to foundation models
 
-        * `Converse <https://docs.aws.amazon.com/bedrock/latest/API/API_runtime_Converse.html>`_
-          - Sends conversation-based inference requests to foundation models
+        - [Converse](https://docs.aws.amazon.com/bedrock/latest/API/API_runtime_Converse.html) -
+          Sends conversation-based inference requests to foundation models
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `CountTokensOperationInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An instance of `CountTokensOutput`.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -346,15 +397,19 @@ class BedrockRuntimeClient:
     async def get_async_invoke(
         self, input: GetAsyncInvokeInput, plugins: list[Plugin] | None = None
     ) -> GetAsyncInvokeOutput:
-        """
-        Retrieve information about an asynchronous invocation.
+        """Retrieve information about an asynchronous invocation.
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `GetAsyncInvokeInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An instance of `GetAsyncInvokeOutput`.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -383,33 +438,43 @@ class BedrockRuntimeClient:
     async def invoke_model(
         self, input: InvokeModelInput, plugins: list[Plugin] | None = None
     ) -> InvokeModelOutput:
-        """
-        Invokes the specified Amazon Bedrock model to run inference using the prompt and
-        inference parameters provided in the request body. You use model inference to
-        generate text, images, and embeddings.
+        """Invokes the specified Amazon Bedrock model to run inference using the
+        prompt and inference parameters provided in the request body. You use
+        model inference to generate text, images, and embeddings.
 
-        For example code, see *Invoke model code examples* in the *Amazon Bedrock User
-        Guide*.
+        For example code, see *Invoke model code examples* in the *Amazon
+        Bedrock User Guide*.
 
-        This operation requires permission for the ``bedrock:InvokeModel`` action.
+        This operation requires permission for the `bedrock:InvokeModel` action.
 
-        .. important::
-            To deny all inference access to resources that you specify in the modelId field,
-            you need to deny access to the ``bedrock:InvokeModel`` and ``bedrock:InvokeModelWithResponseStream`` actions. Doing this also denies access to the resource through the Converse API actions (`Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-            and `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_).
-            For more information see `Deny access for inference on specific models <https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference>`_
-            .
+        Warning:
+            To deny all inference access to resources that you specify in the
+            modelId field, you need to deny access to the `bedrock:InvokeModel` and
+            `bedrock:InvokeModelWithResponseStream` actions. Doing this also denies
+            access to the resource through the Converse API actions
+            ([Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
+            and
+            [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html)).
+            For more information see [Deny access for inference on specific
+            models](https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference).
 
-        For troubleshooting some of the common errors you might encounter when using the
-        ``InvokeModel`` API, see `Troubleshooting Amazon Bedrock API Error Codes <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html>`_
+        For troubleshooting some of the common errors you might encounter when
+        using the `InvokeModel` API, see [Troubleshooting Amazon Bedrock API
+        Error
+        Codes](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html)
         in the Amazon Bedrock User Guide
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `InvokeModelInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An instance of `InvokeModelOutput`.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -444,23 +509,32 @@ class BedrockRuntimeClient:
         InvokeModelWithBidirectionalStreamOutput,
         InvokeModelWithBidirectionalStreamOperationOutput,
     ]:
-        """
-        Invoke the specified Amazon Bedrock model to run inference using the
-        bidirectional stream. The response is returned in a stream that remains open for
-        8 minutes. A single session can contain multiple prompts and responses from the
-        model. The prompts to the model are provided as audio files and the model's
-        responses are spoken back to the user and transcribed.
+        """Invoke the specified Amazon Bedrock model to run inference using the
+        bidirectional stream. The response is returned in a stream that remains
+        open for 8 minutes. A single session can contain multiple prompts and
+        responses from the model. The prompts to the model are provided as audio
+        files and the model's responses are spoken back to the user and
+        transcribed.
 
-        It is possible for users to interrupt the model's response with a new prompt,
-        which will halt the response speech. The model will retain contextual awareness
-        of the conversation while pivoting to respond to the new prompt.
+        It is possible for users to interrupt the model's response with a new
+        prompt, which will halt the response speech. The model will retain
+        contextual awareness of the conversation while pivoting to respond to
+        the new prompt.
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `InvokeModelWithBidirectionalStreamOperationInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            A `DuplexEventStream` for bidirectional streaming of
+                `InvokeModelWithBidirectionalStreamInput` and
+                `InvokeModelWithBidirectionalStreamOutput` events with initial
+                `InvokeModelWithBidirectionalStreamOperationOutput` response.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -496,41 +570,53 @@ class BedrockRuntimeClient:
         input: InvokeModelWithResponseStreamInput,
         plugins: list[Plugin] | None = None,
     ) -> OutputEventStream[ResponseStream, InvokeModelWithResponseStreamOutput]:
-        """
-        Invoke the specified Amazon Bedrock model to run inference using the prompt and
-        inference parameters provided in the request body. The response is returned in a
-        stream.
+        """Invoke the specified Amazon Bedrock model to run inference using the
+        prompt and inference parameters provided in the request body. The
+        response is returned in a stream.
 
-        To see if a model supports streaming, call `GetFoundationModel <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetFoundationModel.html>`_
-        and check the ``responseStreamingSupported`` field in the response.
+        To see if a model supports streaming, call
+        [GetFoundationModel](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetFoundationModel.html)
+        and check the `responseStreamingSupported` field in the response.
 
-        .. note::
-            The CLI doesn't support streaming operations in Amazon Bedrock, including
-            ``InvokeModelWithResponseStream``.
+        Note:
+            The CLI doesn't support streaming operations in Amazon Bedrock,
+            including `InvokeModelWithResponseStream`.
 
-        For example code, see *Invoke model with streaming code example* in the *Amazon
-        Bedrock User Guide*.
+        For example code, see *Invoke model with streaming code example* in the
+        *Amazon Bedrock User Guide*.
 
         This operation requires permissions to perform the
-        ``bedrock:InvokeModelWithResponseStream`` action.
+        `bedrock:InvokeModelWithResponseStream` action.
 
-        .. important::
-            To deny all inference access to resources that you specify in the modelId field,
-            you need to deny access to the ``bedrock:InvokeModel`` and ``bedrock:InvokeModelWithResponseStream`` actions. Doing this also denies access to the resource through the Converse API actions (`Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-            and `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_).
-            For more information see `Deny access for inference on specific models <https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference>`_
-            .
+        Warning:
+            To deny all inference access to resources that you specify in the
+            modelId field, you need to deny access to the `bedrock:InvokeModel` and
+            `bedrock:InvokeModelWithResponseStream` actions. Doing this also denies
+            access to the resource through the Converse API actions
+            ([Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
+            and
+            [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html)).
+            For more information see [Deny access for inference on specific
+            models](https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference).
 
-        For troubleshooting some of the common errors you might encounter when using the
-        ``InvokeModelWithResponseStream`` API, see `Troubleshooting Amazon Bedrock API Error Codes <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html>`_
+        For troubleshooting some of the common errors you might encounter when
+        using the `InvokeModelWithResponseStream` API, see [Troubleshooting
+        Amazon Bedrock API Error
+        Codes](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html)
         in the Amazon Bedrock User Guide
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `InvokeModelWithResponseStreamInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An `OutputEventStream` for server-to-client streaming of `ResponseStream`
+                events with initial `InvokeModelWithResponseStreamOutput` response.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -561,15 +647,19 @@ class BedrockRuntimeClient:
     async def list_async_invokes(
         self, input: ListAsyncInvokesInput, plugins: list[Plugin] | None = None
     ) -> ListAsyncInvokesOutput:
-        """
-        Lists asynchronous invocations.
+        """Lists asynchronous invocations.
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `ListAsyncInvokesInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An instance of `ListAsyncInvokesOutput`.
         """
         operation_plugins: list[Plugin] = []
         if plugins:
@@ -598,24 +688,32 @@ class BedrockRuntimeClient:
     async def start_async_invoke(
         self, input: StartAsyncInvokeInput, plugins: list[Plugin] | None = None
     ) -> StartAsyncInvokeOutput:
-        """
-        Starts an asynchronous invocation.
+        """Starts an asynchronous invocation.
 
-        This operation requires permission for the ``bedrock:InvokeModel`` action.
+        This operation requires permission for the `bedrock:InvokeModel` action.
 
-        .. important::
-            To deny all inference access to resources that you specify in the modelId field,
-            you need to deny access to the ``bedrock:InvokeModel`` and ``bedrock:InvokeModelWithResponseStream`` actions. Doing this also denies access to the resource through the Converse API actions (`Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-            and `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_).
-            For more information see `Deny access for inference on specific models <https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference>`_
-            .
+        Warning:
+            To deny all inference access to resources that you specify in the
+            modelId field, you need to deny access to the `bedrock:InvokeModel` and
+            `bedrock:InvokeModelWithResponseStream` actions. Doing this also denies
+            access to the resource through the Converse API actions
+            ([Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
+            and
+            [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html)).
+            For more information see [Deny access for inference on specific
+            models](https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples.html#security_iam_id-based-policy-examples-deny-inference).
 
-        :param input: The operation's input.
+        Args:
+            input:
+                An instance of `StartAsyncInvokeInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
 
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
+        Returns:
+            An instance of `StartAsyncInvokeOutput`.
         """
         operation_plugins: list[Plugin] = []
         if plugins:

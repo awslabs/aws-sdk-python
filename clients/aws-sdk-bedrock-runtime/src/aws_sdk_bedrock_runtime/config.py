@@ -78,26 +78,67 @@ _ServiceInterceptor = Union[
 
 @dataclass(init=False)
 class Config:
-    """Configuration for AmazonBedrockFrontendService."""
+    """Configuration settings for BedrockRuntimeClient."""
 
     auth_scheme_resolver: HTTPAuthSchemeResolver
+    """An auth scheme resolver that determines the auth scheme for each
+    operation.
+    """
+
     auth_schemes: dict[ShapeID, AuthScheme[Any, Any, Any, Any]]
+    """A map of auth scheme ids to auth schemes."""
+
     aws_access_key_id: str | None
+    """The identifier for a secret access key."""
+
     aws_credentials_identity_resolver: (
         IdentityResolver[AWSCredentialsIdentity, AWSIdentityProperties] | None
     )
+    """Resolves AWS Credentials. Required for operations that use Sigv4 Auth."""
+
     aws_secret_access_key: str | None
+    """A secret access key that can be used to sign requests."""
+
     aws_session_token: str | None
+    """An access key ID that identifies temporary security credentials."""
+
     endpoint_resolver: _EndpointResolver
+    """The endpoint resolver used to resolve the final endpoint per-operation
+    based on the configuration.
+    """
+
     endpoint_uri: str | URI | None
+    """A static URI to route requests to."""
+
     http_request_config: HTTPRequestConfiguration | None
+    """Configuration for individual HTTP requests."""
+
     interceptors: list[_ServiceInterceptor]
+    """The list of interceptors, which are hooks that are called during the
+    execution of a request.
+    """
+
     protocol: ClientProtocol[Any, Any] | None
+    """The protocol to serialize and deserialize requests with."""
+
     region: str | None
+    """The AWS region to connect to. The configured region is used to determine
+    the service endpoint.
+    """
+
     retry_strategy: RetryStrategy
+    """The retry strategy for issuing retry tokens and computing retry delays."""
+
     sdk_ua_app_id: str | None
+    """A unique and opaque application ID that is appended to the User-Agent
+    header.
+    """
+
     transport: ClientTransport[Any, Any] | None
+    """The transport to use to send requests (e.g. an HTTP client)."""
+
     user_agent_extra: str | None
+    """Additional suffix to be added to the User-Agent header."""
 
     def __init__(
         self,
@@ -122,60 +163,6 @@ class Config:
         transport: ClientTransport[Any, Any] | None = None,
         user_agent_extra: str | None = None,
     ):
-        """Constructor.
-
-        :param auth_scheme_resolver:
-             An auth scheme resolver that determines the auth scheme for each operation.
-
-        :param auth_schemes:
-             A map of auth scheme ids to auth schemes.
-
-        :param aws_access_key_id:
-             The identifier for a secret access key.
-
-        :param aws_credentials_identity_resolver:
-             Resolves AWS Credentials. Required for operations that use Sigv4 Auth.
-
-        :param aws_secret_access_key:
-             A secret access key that can be used to sign requests.
-
-        :param aws_session_token:
-             An access key ID that identifies temporary security credentials.
-
-        :param endpoint_resolver:
-             The endpoint resolver used to resolve the final endpoint per-operation based on
-             the configuration.
-
-        :param endpoint_uri:
-             A static URI to route requests to.
-
-        :param http_request_config:
-             Configuration for individual HTTP requests.
-
-        :param interceptors:
-             The list of interceptors, which are hooks that are called during the execution
-             of a request.
-
-        :param protocol:
-             The protocol to serialize and deserialize requests with.
-
-        :param region:
-             The AWS region to connect to. The configured region is used to determine the
-             service endpoint.
-
-        :param retry_strategy:
-             The retry strategy for issuing retry tokens and computing retry delays.
-
-        :param sdk_ua_app_id:
-             A unique and opaque application ID that is appended to the User-Agent header.
-
-        :param transport:
-             The transport to use to send requests (e.g. an HTTP client).
-
-        :param user_agent_extra:
-             Additional suffix to be added to the User-Agent header.
-
-        """
         self.auth_scheme_resolver = auth_scheme_resolver or HTTPAuthSchemeResolver()
         self.auth_schemes = auth_schemes or {
             ShapeID("aws.auth#sigv4"): SigV4AuthScheme(service="bedrock")
@@ -204,12 +191,12 @@ class Config:
 
         Using this method ensures the correct key is used.
 
-        :param scheme: The auth scheme to add.
+        Args:
+            scheme:
+                The auth scheme to add.
         """
         self.auth_schemes[scheme.scheme_id] = scheme
 
 
-#
 # A callable that allows customizing the config object on each request.
-#
 Plugin: TypeAlias = Callable[[Config], None]

@@ -157,6 +157,7 @@ from ._private.schemas import (
     START_ASYNC_INVOKE_INPUT as _SCHEMA_START_ASYNC_INVOKE_INPUT,
     START_ASYNC_INVOKE_OUTPUT as _SCHEMA_START_ASYNC_INVOKE_OUTPUT,
     SYSTEM_CONTENT_BLOCK as _SCHEMA_SYSTEM_CONTENT_BLOCK,
+    SYSTEM_TOOL as _SCHEMA_SYSTEM_TOOL,
     TAG as _SCHEMA_TAG,
     THROTTLING_EXCEPTION as _SCHEMA_THROTTLING_EXCEPTION,
     TOKEN_USAGE as _SCHEMA_TOKEN_USAGE,
@@ -165,6 +166,8 @@ from ._private.schemas import (
     TOOL_CONFIGURATION as _SCHEMA_TOOL_CONFIGURATION,
     TOOL_INPUT_SCHEMA as _SCHEMA_TOOL_INPUT_SCHEMA,
     TOOL_RESULT_BLOCK as _SCHEMA_TOOL_RESULT_BLOCK,
+    TOOL_RESULT_BLOCK_DELTA as _SCHEMA_TOOL_RESULT_BLOCK_DELTA,
+    TOOL_RESULT_BLOCK_START as _SCHEMA_TOOL_RESULT_BLOCK_START,
     TOOL_RESULT_CONTENT_BLOCK as _SCHEMA_TOOL_RESULT_CONTENT_BLOCK,
     TOOL_SPECIFICATION as _SCHEMA_TOOL_SPECIFICATION,
     TOOL_USE_BLOCK as _SCHEMA_TOOL_USE_BLOCK,
@@ -173,6 +176,7 @@ from ._private.schemas import (
     VALIDATION_EXCEPTION as _SCHEMA_VALIDATION_EXCEPTION,
     VIDEO_BLOCK as _SCHEMA_VIDEO_BLOCK,
     VIDEO_SOURCE as _SCHEMA_VIDEO_SOURCE,
+    WEB_LOCATION as _SCHEMA_WEB_LOCATION,
 )
 
 
@@ -189,12 +193,10 @@ class ServiceError(ModeledError):
 
 @dataclass(kw_only=True)
 class AccessDeniedException(ServiceError):
-    """
-    The request is denied because you do not have sufficient permissions to perform
-    the requested action. For troubleshooting this error, see
-    ``AccessDeniedException <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-access-denied>``_
+    """The request is denied because you do not have sufficient permissions to
+    perform the requested action. For troubleshooting this error, see
+    [AccessDeniedException](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-access-denied)
     in the Amazon Bedrock User Guide
-
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -258,10 +260,10 @@ def _deserialize_additional_model_response_field_paths(
 
 @dataclass(kw_only=True)
 class GetAsyncInvokeInput:
+    """Dataclass for GetAsyncInvokeInput structure."""
+
     invocation_arn: str | None = None
-    """
-    The invocation's ARN.
-    """
+    """The invocation's ARN."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_ASYNC_INVOKE_INPUT, self)
@@ -297,23 +299,17 @@ class GetAsyncInvokeInput:
 
 @dataclass(kw_only=True)
 class AsyncInvokeS3OutputDataConfig:
-    """
-    Asynchronous invocation output data settings.
-
-    """
+    """Asynchronous invocation output data settings."""
 
     s3_uri: str
-    """
-    An object URI starting with ``s3://``.
-    """
+    """An object URI starting with `s3://`."""
 
     kms_key_id: str | None = None
-    """
-    A KMS encryption key ID.
-    """
+    """A KMS encryption key ID."""
+
     bucket_owner: str | None = None
-    """
-    If the bucket belongs to another AWS account, specify that account's ID.
+    """If the bucket belongs to another AWS account, specify that account's
+    ID.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -373,10 +369,7 @@ class AsyncInvokeS3OutputDataConfig:
 
 @dataclass
 class AsyncInvokeOutputDataConfigS3OutputDataConfig:
-    """
-    A storage location for the output data in an S3 bucket
-
-    """
+    """A storage location for the output data in an S3 bucket"""
 
     value: AsyncInvokeS3OutputDataConfig
 
@@ -420,11 +413,7 @@ class AsyncInvokeOutputDataConfigUnknown:
 AsyncInvokeOutputDataConfig = Union[
     AsyncInvokeOutputDataConfigS3OutputDataConfig | AsyncInvokeOutputDataConfigUnknown
 ]
-
-"""
-Asynchronous invocation output data settings.
-
-"""
+"""Asynchronous invocation output data settings."""
 
 
 class _AsyncInvokeOutputDataConfigDeserializer:
@@ -471,47 +460,34 @@ class AsyncInvokeStatus(StrEnum):
 
 @dataclass(kw_only=True)
 class GetAsyncInvokeOutput:
+    """Dataclass for GetAsyncInvokeOutput structure."""
+
     invocation_arn: str
-    """
-    The invocation's ARN.
-    """
+    """The invocation's ARN."""
 
     model_arn: str
-    """
-    The invocation's model ARN.
-    """
+    """The invocation's model ARN."""
 
     status: str
-    """
-    The invocation's status.
-    """
+    """The invocation's status."""
 
     submit_time: datetime
-    """
-    When the invocation request was submitted.
-    """
+    """When the invocation request was submitted."""
 
     output_data_config: AsyncInvokeOutputDataConfig
-    """
-    Output data settings.
-    """
+    """Output data settings."""
 
     client_request_token: str | None = None
-    """
-    The invocation's idempotency token.
-    """
+    """The invocation's idempotency token."""
+
     failure_message: str | None = field(repr=False, default=None)
-    """
-    An error message.
-    """
+    """An error message."""
+
     last_modified_time: datetime | None = None
-    """
-    The invocation's last modified time.
-    """
+    """The invocation's last modified time."""
+
     end_time: datetime | None = None
-    """
-    When the invocation ended.
-    """
+    """When the invocation ended."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_ASYNC_INVOKE_OUTPUT, self)
@@ -622,11 +598,9 @@ class GetAsyncInvokeOutput:
 
 @dataclass(kw_only=True)
 class InternalServerException(ServiceError):
-    """
-    An internal server error occurred. For troubleshooting this error, see
-    ``InternalFailure <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-internal-failure>``_
+    """An internal server error occurred. For troubleshooting this error, see
+    [InternalFailure](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-internal-failure)
     in the Amazon Bedrock User Guide
-
     """
 
     fault: Literal["client", "server"] | None = "server"
@@ -664,11 +638,10 @@ class InternalServerException(ServiceError):
 
 @dataclass(kw_only=True)
 class ThrottlingException(ServiceError):
-    """
-    Your request was denied due to exceeding the account quotas for *Amazon
-    Bedrock*. For troubleshooting this error, see ``ThrottlingException <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-throttling-exception>``_
+    """Your request was denied due to exceeding the account quotas for *Amazon
+    Bedrock*. For troubleshooting this error, see
+    [ThrottlingException](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-throttling-exception)
     in the Amazon Bedrock User Guide
-
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -706,11 +679,10 @@ class ThrottlingException(ServiceError):
 
 @dataclass(kw_only=True)
 class ValidationException(ServiceError):
-    """
-    The input fails to satisfy the constraints specified by *Amazon Bedrock*. For
-    troubleshooting this error, see ``ValidationError <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-validation-error>``_
+    """The input fails to satisfy the constraints specified by *Amazon
+    Bedrock*. For troubleshooting this error, see
+    [ValidationError](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-validation-error)
     in the Amazon Bedrock User Guide
-
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -786,35 +758,30 @@ class SortOrder(StrEnum):
 
 @dataclass(kw_only=True)
 class ListAsyncInvokesInput:
+    """Dataclass for ListAsyncInvokesInput structure."""
+
     submit_time_after: datetime | None = None
-    """
-    Include invocations submitted after this time.
-    """
+    """Include invocations submitted after this time."""
+
     submit_time_before: datetime | None = None
-    """
-    Include invocations submitted before this time.
-    """
+    """Include invocations submitted before this time."""
+
     status_equals: str | None = None
-    """
-    Filter invocations by status.
-    """
+    """Filter invocations by status."""
+
     max_results: int | None = None
-    """
-    The maximum number of invocations to return in one page of results.
-    """
+    """The maximum number of invocations to return in one page of results."""
+
     next_token: str | None = None
+    """Specify the pagination token from a previous request to retrieve the
+    next page of results.
     """
-    Specify the pagination token from a previous request to retrieve the next page
-    of results.
-    """
+
     sort_by: str = "SubmissionTime"
-    """
-    How to sort the response.
-    """
+    """How to sort the response."""
+
     sort_order: str = "Descending"
-    """
-    The sorting order for the response.
-    """
+    """The sorting order for the response."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_ASYNC_INVOKES_INPUT, self)
@@ -912,51 +879,34 @@ class ListAsyncInvokesInput:
 
 @dataclass(kw_only=True)
 class AsyncInvokeSummary:
-    """
-    A summary of an asynchronous invocation.
-
-    """
+    """A summary of an asynchronous invocation."""
 
     invocation_arn: str
-    """
-    The invocation's ARN.
-    """
+    """The invocation's ARN."""
 
     model_arn: str
-    """
-    The invoked model's ARN.
-    """
+    """The invoked model's ARN."""
 
     submit_time: datetime
-    """
-    When the invocation was submitted.
-    """
+    """When the invocation was submitted."""
 
     output_data_config: AsyncInvokeOutputDataConfig
-    """
-    The invocation's output data settings.
-    """
+    """The invocation's output data settings."""
 
     client_request_token: str | None = None
-    """
-    The invocation's idempotency token.
-    """
+    """The invocation's idempotency token."""
+
     status: str | None = None
-    """
-    The invocation's status.
-    """
+    """The invocation's status."""
+
     failure_message: str | None = field(repr=False, default=None)
-    """
-    An error message.
-    """
+    """An error message."""
+
     last_modified_time: datetime | None = None
-    """
-    When the invocation was last modified.
-    """
+    """When the invocation was last modified."""
+
     end_time: datetime | None = None
-    """
-    When the invocation ended.
-    """
+    """When the invocation ended."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_ASYNC_INVOKE_SUMMARY, self)
@@ -1093,15 +1043,15 @@ def _deserialize_async_invoke_summaries(
 
 @dataclass(kw_only=True)
 class ListAsyncInvokesOutput:
+    """Dataclass for ListAsyncInvokesOutput structure."""
+
     next_token: str | None = None
+    """Specify the pagination token from a previous request to retrieve the
+    next page of results.
     """
-    Specify the pagination token from a previous request to retrieve the next page
-    of results.
-    """
+
     async_invoke_summaries: list[AsyncInvokeSummary] | None = None
-    """
-    A list of invocation summaries.
-    """
+    """A list of invocation summaries."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_ASYNC_INVOKES_OUTPUT, self)
@@ -1182,10 +1132,7 @@ LIST_ASYNC_INVOKES = APIOperation(
 
 @dataclass(kw_only=True)
 class ConflictException(ServiceError):
-    """
-    Error occurred because of a conflict while performing an operation.
-
-    """
+    """Error occurred because of a conflict while performing an operation."""
 
     fault: Literal["client", "server"] | None = "client"
 
@@ -1222,11 +1169,10 @@ class ConflictException(ServiceError):
 
 @dataclass(kw_only=True)
 class ResourceNotFoundException(ServiceError):
-    """
-    The specified resource ARN was not found. For troubleshooting this error, see
-    ``ResourceNotFound <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-resource-not-found>``_
+    """The specified resource ARN was not found. For troubleshooting this
+    error, see
+    [ResourceNotFound](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-resource-not-found)
     in the Amazon Bedrock User Guide
-
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -1266,11 +1212,10 @@ class ResourceNotFoundException(ServiceError):
 
 @dataclass(kw_only=True)
 class ServiceQuotaExceededException(ServiceError):
-    """
-    Your request exceeds the service quota for your account. You can view your
-    quotas at ``Viewing service quotas <https://docs.aws.amazon.com/servicequotas/latest/userguide/gs-request-quota.html>``_.
+    """Your request exceeds the service quota for your account. You can view
+    your quotas at [Viewing service
+    quotas](https://docs.aws.amazon.com/servicequotas/latest/userguide/gs-request-quota.html).
     You can resubmit your request later.
-
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -1311,11 +1256,10 @@ class ServiceQuotaExceededException(ServiceError):
 
 @dataclass(kw_only=True)
 class ServiceUnavailableException(ServiceError):
-    """
-    The service isn't currently available. For troubleshooting this error, see
-    ``ServiceUnavailable <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-service-unavailable>``_
+    """The service isn't currently available. For troubleshooting this error,
+    see
+    [ServiceUnavailable](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-service-unavailable)
     in the Amazon Bedrock User Guide
-
     """
 
     fault: Literal["client", "server"] | None = "server"
@@ -1355,20 +1299,13 @@ class ServiceUnavailableException(ServiceError):
 
 @dataclass(kw_only=True)
 class Tag:
-    """
-    A tag.
-
-    """
+    """A tag."""
 
     key: str
-    """
-    The tag's key.
-    """
+    """The tag's key."""
 
     value: str
-    """
-    The tag's value.
-    """
+    """The tag's value."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TAG, self)
@@ -1425,26 +1362,22 @@ def _deserialize_tag_list(deserializer: ShapeDeserializer, schema: Schema) -> li
 
 @dataclass(kw_only=True)
 class StartAsyncInvokeInput:
+    """Dataclass for StartAsyncInvokeInput structure."""
+
     client_request_token: str | None = None
-    """
-    Specify idempotency token to ensure that requests are not duplicated.
-    """
+    """Specify idempotency token to ensure that requests are not duplicated."""
+
     model_id: str | None = None
-    """
-    The model to invoke.
-    """
+    """The model to invoke."""
+
     model_input: Document | None = field(repr=False, default=None)
-    """
-    Input to send to the model.
-    """
+    """Input to send to the model."""
+
     output_data_config: AsyncInvokeOutputDataConfig | None = None
-    """
-    Where to store the output.
-    """
+    """Where to store the output."""
+
     tags: list[Tag] | None = None
-    """
-    Tags to apply to the invocation.
-    """
+    """Tags to apply to the invocation."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_START_ASYNC_INVOKE_INPUT, self)
@@ -1521,10 +1454,10 @@ class StartAsyncInvokeInput:
 
 @dataclass(kw_only=True)
 class StartAsyncInvokeOutput:
+    """Dataclass for StartAsyncInvokeOutput structure."""
+
     invocation_arn: str
-    """
-    The ARN of the invocation.
-    """
+    """The ARN of the invocation."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_START_ASYNC_INVOKE_OUTPUT, self)
@@ -1605,9 +1538,8 @@ class GuardrailImageFormat(StrEnum):
 
 @dataclass
 class GuardrailImageSourceBytes:
-    """
-    The bytes details of the guardrail image source. Object used in independent api.
-
+    """The bytes details of the guardrail image source. Object used in
+    independent api.
     """
 
     value: bytes
@@ -1653,11 +1585,8 @@ class GuardrailImageSourceUnknown:
 
 
 GuardrailImageSource = Union[GuardrailImageSourceBytes | GuardrailImageSourceUnknown]
-
-"""
-The image source (image bytes) of the guardrail image source. Object used in
-independent api.
-
+"""The image source (image bytes) of the guardrail image source. Object
+used in independent api.
 """
 
 
@@ -1693,20 +1622,18 @@ class _GuardrailImageSourceDeserializer:
 
 @dataclass(kw_only=True)
 class GuardrailImageBlock:
-    """
-    Contain an image which user wants guarded. This block is accepted by the
+    """Contain an image which user wants guarded. This block is accepted by the
     guardrails independent API.
-
     """
 
     format: str
-    """
-    The format details for the file type of the image blocked by the guardrail.
+    """The format details for the file type of the image blocked by the
+    guardrail.
     """
 
     source: GuardrailImageSource = field(repr=False)
-    """
-    The image source (image bytes) details of the image blocked by the guardrail.
+    """The image source (image bytes) details of the image blocked by the
+    guardrail.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -1781,20 +1708,13 @@ def _deserialize_guardrail_content_qualifier_list(
 
 @dataclass(kw_only=True)
 class GuardrailTextBlock:
-    """
-    The text block to be evaluated by the guardrail.
-
-    """
+    """The text block to be evaluated by the guardrail."""
 
     text: str
-    """
-    The input text details to be evaluated by the guardrail.
-    """
+    """The input text details to be evaluated by the guardrail."""
 
     qualifiers: list[str] | None = None
-    """
-    The qualifiers describing the text block.
-    """
+    """The qualifiers describing the text block."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TEXT_BLOCK, self)
@@ -1839,10 +1759,7 @@ class GuardrailTextBlock:
 
 @dataclass
 class GuardrailContentBlockText:
-    """
-    Text within content block to be evaluated by the guardrail.
-
-    """
+    """Text within content block to be evaluated by the guardrail."""
 
     value: GuardrailTextBlock
 
@@ -1861,10 +1778,7 @@ class GuardrailContentBlockText:
 
 @dataclass
 class GuardrailContentBlockImage:
-    """
-    Image within guardrail content block to be evaluated by the guardrail.
-
-    """
+    """Image within guardrail content block to be evaluated by the guardrail."""
 
     value: GuardrailImageBlock
 
@@ -1909,11 +1823,7 @@ GuardrailContentBlock = Union[
     | GuardrailContentBlockImage
     | GuardrailContentBlockUnknown
 ]
-
-"""
-The content block to be evaluated by the guardrail.
-
-"""
+"""The content block to be evaluated by the guardrail."""
 
 
 class _GuardrailContentBlockDeserializer:
@@ -1986,32 +1896,29 @@ class GuardrailContentSource(StrEnum):
 
 @dataclass(kw_only=True)
 class ApplyGuardrailInput:
-    guardrail_identifier: str | None = None
-    """
-    The guardrail identifier used in the request to apply the guardrail.
-    """
-    guardrail_version: str | None = None
-    """
-    The guardrail version used in the request to apply the guardrail.
-    """
-    source: str | None = None
-    """
-    The source of data used in the request to apply the guardrail.
-    """
-    content: list[GuardrailContentBlock] | None = None
-    """
-    The content details used in the request to apply the guardrail.
-    """
-    output_scope: str | None = None
-    """
-    Specifies the scope of the output that you get in the response. Set to ``FULL``
-    to return the entire output, including any detected and non-detected entries in
-    the response for enhanced debugging.
+    """Dataclass for ApplyGuardrailInput structure."""
 
-    Note that the full output scope doesn't apply to word filters or regex in
-    sensitive information filters. It does apply to all other filtering policies,
-    including sensitive information with filters that can detect personally
-    identifiable information (PII).
+    guardrail_identifier: str | None = None
+    """The guardrail identifier used in the request to apply the guardrail."""
+
+    guardrail_version: str | None = None
+    """The guardrail version used in the request to apply the guardrail."""
+
+    source: str | None = None
+    """The source of data used in the request to apply the guardrail."""
+
+    content: list[GuardrailContentBlock] | None = None
+    """The content details used in the request to apply the guardrail."""
+
+    output_scope: str | None = None
+    """Specifies the scope of the output that you get in the response. Set to
+    `FULL` to return the entire output, including any detected and
+    non-detected entries in the response for enhanced debugging.
+
+    Note that the full output scope doesn't apply to word filters or regex
+    in sensitive information filters. It does apply to all other filtering
+    policies, including sensitive information with filters that can detect
+    personally identifiable information (PII).
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2096,19 +2003,16 @@ class GuardrailAction(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningRule:
-    """
-    References a specific automated reasoning policy rule that was applied during
-    evaluation.
-
+    """References a specific automated reasoning policy rule that was applied
+    during evaluation.
     """
 
     identifier: str | None = None
-    """
-    The unique identifier of the automated reasoning rule.
-    """
+    """The unique identifier of the automated reasoning rule."""
+
     policy_version_arn: str | None = None
-    """
-    The ARN of the automated reasoning policy version that contains this rule.
+    """The ARN of the automated reasoning policy version that contains this
+    rule.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2187,20 +2091,15 @@ def _deserialize_guardrail_automated_reasoning_rule_list(
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningStatement:
-    """
-    A logical statement that includes both formal logic representation and natural
-    language explanation.
-
+    """A logical statement that includes both formal logic representation and
+    natural language explanation.
     """
 
     logic: str | None = field(repr=False, default=None)
-    """
-    The formal logical representation of the statement.
-    """
+    """The formal logical representation of the statement."""
+
     natural_language: str | None = field(repr=False, default=None)
-    """
-    The natural language explanation of the logical statement.
-    """
+    """The natural language explanation of the logical statement."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_STATEMENT, self)
@@ -2285,25 +2184,23 @@ class GuardrailAutomatedReasoningLogicWarningType(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningLogicWarning:
-    """
-    Identifies logical issues in the translated statements that exist independent of
-    any policy rules, such as statements that are always true or always false.
-
+    """Identifies logical issues in the translated statements that exist
+    independent of any policy rules, such as statements that are always true
+    or always false.
     """
 
     type: str | None = None
+    """The category of the detected logical issue, such as statements that are
+    always true or always false.
     """
-    The category of the detected logical issue, such as statements that are always
-    true or always false.
-    """
+
     premises: list[GuardrailAutomatedReasoningStatement] | None = None
-    """
-    The logical statements that serve as premises under which the claims are
+    """The logical statements that serve as premises under which the claims are
     validated.
     """
+
     claims: list[GuardrailAutomatedReasoningStatement] | None = None
-    """
-    The logical statements that are validated while assuming the policy and
+    """The logical statements that are validated while assuming the policy and
     premises.
     """
 
@@ -2381,16 +2278,12 @@ class GuardrailAutomatedReasoningLogicWarning:
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningInputTextReference:
-    """
-    References a portion of the original input text that corresponds to logical
-    elements.
-
+    """References a portion of the original input text that corresponds to
+    logical elements.
     """
 
     text: str | None = field(repr=False, default=None)
-    """
-    The specific text from the original input that this reference points to.
-    """
+    """The specific text from the original input that this reference points to."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
@@ -2462,40 +2355,37 @@ def _deserialize_guardrail_automated_reasoning_input_text_reference_list(
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningTranslation:
-    """
-    Contains the logical translation of natural language input into formal logical
-    statements, including premises, claims, and confidence scores.
-
+    """Contains the logical translation of natural language input into formal
+    logical statements, including premises, claims, and confidence scores.
     """
 
     premises: list[GuardrailAutomatedReasoningStatement] | None = None
+    """The logical statements that serve as the foundation or assumptions for
+    the claims.
     """
-    The logical statements that serve as the foundation or assumptions for the
-    claims.
-    """
+
     claims: list[GuardrailAutomatedReasoningStatement] | None = None
+    """The logical statements that are being validated against the premises and
+    policy rules.
     """
-    The logical statements that are being validated against the premises and policy
-    rules.
-    """
+
     untranslated_premises: (
         list[GuardrailAutomatedReasoningInputTextReference] | None
     ) = None
-    """
-    References to portions of the original input text that correspond to the
+    """References to portions of the original input text that correspond to the
     premises but could not be fully translated.
     """
+
     untranslated_claims: list[GuardrailAutomatedReasoningInputTextReference] | None = (
         None
     )
+    """References to portions of the original input text that correspond to the
+    claims but could not be fully translated.
     """
-    References to portions of the original input text that correspond to the claims
-    but could not be fully translated.
-    """
+
     confidence: float | None = None
-    """
-    A confidence score between 0 and 1 indicating how certain the system is about
-    the logical translation.
+    """A confidence score between 0 and 1 indicating how certain the system is
+    about the logical translation.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2608,25 +2498,21 @@ class GuardrailAutomatedReasoningTranslation:
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningImpossibleFinding:
-    """
-    Indicates that no valid claims can be made due to logical contradictions in the
-    premises or rules.
-
+    """Indicates that no valid claims can be made due to logical contradictions
+    in the premises or rules.
     """
 
     translation: GuardrailAutomatedReasoningTranslation | None = None
-    """
-    The logical translation of the input that this finding evaluates.
-    """
+    """The logical translation of the input that this finding evaluates."""
+
     contradicting_rules: list[GuardrailAutomatedReasoningRule] | None = None
+    """The automated reasoning policy rules that contradict the claims and/or
+    premises in the input.
     """
-    The automated reasoning policy rules that contradict the claims and/or premises
-    in the input.
-    """
+
     logic_warning: GuardrailAutomatedReasoningLogicWarning | None = None
-    """
-    Indication of a logic issue with the translation without needing to consider the
-    automated reasoning policy rules.
+    """Indication of a logic issue with the translation without needing to
+    consider the automated reasoning policy rules.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2701,24 +2587,21 @@ class GuardrailAutomatedReasoningImpossibleFinding:
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningInvalidFinding:
-    """
-    Indicates that the claims are logically false and contradictory to the
+    """Indicates that the claims are logically false and contradictory to the
     established rules or premises.
-
     """
 
     translation: GuardrailAutomatedReasoningTranslation | None = None
-    """
-    The logical translation of the input that this finding invalidates.
-    """
+    """The logical translation of the input that this finding invalidates."""
+
     contradicting_rules: list[GuardrailAutomatedReasoningRule] | None = None
+    """The automated reasoning policy rules that contradict the claims in the
+    input.
     """
-    The automated reasoning policy rules that contradict the claims in the input.
-    """
+
     logic_warning: GuardrailAutomatedReasoningLogicWarning | None = None
-    """
-    Indication of a logic issue with the translation without needing to consider the
-    automated reasoning policy rules.
+    """Indication of a logic issue with the translation without needing to
+    consider the automated reasoning policy rules.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2793,10 +2676,8 @@ class GuardrailAutomatedReasoningInvalidFinding:
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningNoTranslationsFinding:
-    """
-    Indicates that no relevant logical information could be extracted from the input
-    for validation.
-
+    """Indicates that no relevant logical information could be extracted from
+    the input for validation.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2829,16 +2710,12 @@ class GuardrailAutomatedReasoningNoTranslationsFinding:
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningScenario:
-    """
-    Represents a logical scenario where claims can be evaluated as true or false,
-    containing specific logical assignments.
-
+    """Represents a logical scenario where claims can be evaluated as true or
+    false, containing specific logical assignments.
     """
 
     statements: list[GuardrailAutomatedReasoningStatement] | None = None
-    """
-    List of logical assignments and statements that define this scenario.
-    """
+    """List of logical assignments and statements that define this scenario."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_AUTOMATED_REASONING_SCENARIO, self)
@@ -2882,28 +2759,26 @@ class GuardrailAutomatedReasoningScenario:
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningSatisfiableFinding:
-    """
-    Indicates that the claims could be either true or false depending on additional
-    assumptions not provided in the input.
-
+    """Indicates that the claims could be either true or false depending on
+    additional assumptions not provided in the input.
     """
 
     translation: GuardrailAutomatedReasoningTranslation | None = None
-    """
-    The logical translation of the input that this finding evaluates.
-    """
+    """The logical translation of the input that this finding evaluates."""
+
     claims_true_scenario: GuardrailAutomatedReasoningScenario | None = None
+    """An example scenario demonstrating how the claims could be logically
+    true.
     """
-    An example scenario demonstrating how the claims could be logically true.
-    """
+
     claims_false_scenario: GuardrailAutomatedReasoningScenario | None = None
+    """An example scenario demonstrating how the claims could be logically
+    false.
     """
-    An example scenario demonstrating how the claims could be logically false.
-    """
+
     logic_warning: GuardrailAutomatedReasoningLogicWarning | None = None
-    """
-    Indication of a logic issue with the translation without needing to consider the
-    automated reasoning policy rules.
+    """Indication of a logic issue with the translation without needing to
+    consider the automated reasoning policy rules.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2986,10 +2861,8 @@ class GuardrailAutomatedReasoningSatisfiableFinding:
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningTooComplexFinding:
-    """
-    Indicates that the input exceeds the processing capacity due to the volume or
-    complexity of the logical information.
-
+    """Indicates that the input exceeds the processing capacity due to the
+    volume or complexity of the logical information.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3076,14 +2949,13 @@ def _deserialize_guardrail_automated_reasoning_translation_list(
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningTranslationOption:
-    """
-    Represents one possible logical interpretation of ambiguous input content.
-
+    """Represents one possible logical interpretation of ambiguous input
+    content.
     """
 
     translations: list[GuardrailAutomatedReasoningTranslation] | None = None
-    """
-    Example translations that provide this possible interpretation of the input.
+    """Example translations that provide this possible interpretation of the
+    input.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3159,20 +3031,18 @@ def _deserialize_guardrail_automated_reasoning_translation_option_list(
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningTranslationAmbiguousFinding:
-    """
-    Indicates that the input has multiple valid logical interpretations, requiring
-    additional context or clarification.
-
+    """Indicates that the input has multiple valid logical interpretations,
+    requiring additional context or clarification.
     """
 
     options: list[GuardrailAutomatedReasoningTranslationOption] | None = None
+    """Different logical interpretations that were detected during translation
+    of the input.
     """
-    Different logical interpretations that were detected during translation of the
-    input.
-    """
+
     difference_scenarios: list[GuardrailAutomatedReasoningScenario] | None = None
-    """
-    Scenarios showing how the different translation options differ in meaning.
+    """Scenarios showing how the different translation options differ in
+    meaning.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3241,29 +3111,24 @@ class GuardrailAutomatedReasoningTranslationAmbiguousFinding:
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningValidFinding:
-    """
-    Indicates that the claims are definitively true and logically implied by the
-    premises, with no possible alternative interpretations.
-
+    """Indicates that the claims are definitively true and logically implied by
+    the premises, with no possible alternative interpretations.
     """
 
     translation: GuardrailAutomatedReasoningTranslation | None = None
-    """
-    The logical translation of the input that this finding validates.
-    """
+    """The logical translation of the input that this finding validates."""
+
     claims_true_scenario: GuardrailAutomatedReasoningScenario | None = None
-    """
-    An example scenario demonstrating how the claims are logically true.
-    """
+    """An example scenario demonstrating how the claims are logically true."""
+
     supporting_rules: list[GuardrailAutomatedReasoningRule] | None = None
+    """The automated reasoning policy rules that support why this result is
+    considered valid.
     """
-    The automated reasoning policy rules that support why this result is considered
-    valid.
-    """
+
     logic_warning: GuardrailAutomatedReasoningLogicWarning | None = None
-    """
-    Indication of a logic issue with the translation without needing to consider the
-    automated reasoning policy rules.
+    """Indication of a logic issue with the translation without needing to
+    consider the automated reasoning policy rules.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3351,11 +3216,9 @@ class GuardrailAutomatedReasoningValidFinding:
 
 @dataclass
 class GuardrailAutomatedReasoningFindingValid:
-    """
-    Contains the result when the automated reasoning evaluation determines that the
-    claims in the input are logically valid and definitively true based on the
-    provided premises and policy rules.
-
+    """Contains the result when the automated reasoning evaluation determines
+    that the claims in the input are logically valid and definitively true
+    based on the provided premises and policy rules.
     """
 
     value: GuardrailAutomatedReasoningValidFinding
@@ -3377,11 +3240,9 @@ class GuardrailAutomatedReasoningFindingValid:
 
 @dataclass
 class GuardrailAutomatedReasoningFindingInvalid:
-    """
-    Contains the result when the automated reasoning evaluation determines that the
-    claims in the input are logically invalid and contradict the established
-    premises or policy rules.
-
+    """Contains the result when the automated reasoning evaluation determines
+    that the claims in the input are logically invalid and contradict the
+    established premises or policy rules.
     """
 
     value: GuardrailAutomatedReasoningInvalidFinding
@@ -3403,11 +3264,9 @@ class GuardrailAutomatedReasoningFindingInvalid:
 
 @dataclass
 class GuardrailAutomatedReasoningFindingSatisfiable:
-    """
-    Contains the result when the automated reasoning evaluation determines that the
-    claims in the input could be either true or false depending on additional
-    assumptions not provided in the input context.
-
+    """Contains the result when the automated reasoning evaluation determines
+    that the claims in the input could be either true or false depending on
+    additional assumptions not provided in the input context.
     """
 
     value: GuardrailAutomatedReasoningSatisfiableFinding
@@ -3432,11 +3291,9 @@ class GuardrailAutomatedReasoningFindingSatisfiable:
 
 @dataclass
 class GuardrailAutomatedReasoningFindingImpossible:
-    """
-    Contains the result when the automated reasoning evaluation determines that no
-    valid logical conclusions can be drawn due to contradictions in the premises or
-    policy rules themselves.
-
+    """Contains the result when the automated reasoning evaluation determines
+    that no valid logical conclusions can be drawn due to contradictions in
+    the premises or policy rules themselves.
     """
 
     value: GuardrailAutomatedReasoningImpossibleFinding
@@ -3459,11 +3316,9 @@ class GuardrailAutomatedReasoningFindingImpossible:
 
 @dataclass
 class GuardrailAutomatedReasoningFindingTranslationAmbiguous:
-    """
-    Contains the result when the automated reasoning evaluation detects that the
-    input has multiple valid logical interpretations, requiring additional context
-    or clarification to proceed with validation.
-
+    """Contains the result when the automated reasoning evaluation detects that
+    the input has multiple valid logical interpretations, requiring
+    additional context or clarification to proceed with validation.
     """
 
     value: GuardrailAutomatedReasoningTranslationAmbiguousFinding
@@ -3490,11 +3345,9 @@ class GuardrailAutomatedReasoningFindingTranslationAmbiguous:
 
 @dataclass
 class GuardrailAutomatedReasoningFindingTooComplex:
-    """
-    Contains the result when the automated reasoning evaluation cannot process the
-    input due to its complexity or volume exceeding the system's processing capacity
-    for logical analysis.
-
+    """Contains the result when the automated reasoning evaluation cannot
+    process the input due to its complexity or volume exceeding the
+    system's processing capacity for logical analysis.
     """
 
     value: GuardrailAutomatedReasoningTooComplexFinding
@@ -3517,11 +3370,9 @@ class GuardrailAutomatedReasoningFindingTooComplex:
 
 @dataclass
 class GuardrailAutomatedReasoningFindingNoTranslations:
-    """
-    Contains the result when the automated reasoning evaluation cannot extract any
-    relevant logical information from the input that can be validated against the
-    policy rules.
-
+    """Contains the result when the automated reasoning evaluation cannot
+    extract any relevant logical information from the input that can be
+    validated against the policy rules.
     """
 
     value: GuardrailAutomatedReasoningNoTranslationsFinding
@@ -3577,12 +3428,10 @@ GuardrailAutomatedReasoningFinding = Union[
     | GuardrailAutomatedReasoningFindingNoTranslations
     | GuardrailAutomatedReasoningFindingUnknown
 ]
-
-"""
-Represents a logical validation result from automated reasoning policy
-evaluation. The finding indicates whether claims in the input are logically
-valid, invalid, satisfiable, impossible, or have other logical issues.
-
+"""Represents a logical validation result from automated reasoning policy
+evaluation. The finding indicates whether claims in the input are
+logically valid, invalid, satisfiable, impossible, or have other logical
+issues.
 """
 
 
@@ -3685,16 +3534,13 @@ def _deserialize_guardrail_automated_reasoning_finding_list(
 
 @dataclass(kw_only=True)
 class GuardrailAutomatedReasoningPolicyAssessment:
-    """
-    Contains the results of automated reasoning policy evaluation, including logical
-    findings about the validity of claims made in the input content.
-
+    """Contains the results of automated reasoning policy evaluation, including
+    logical findings about the validity of claims made in the input content.
     """
 
     findings: list[GuardrailAutomatedReasoningFinding] | None = None
-    """
-    List of logical validation results produced by evaluating the input content
-    against automated reasoning policies.
+    """List of logical validation results produced by evaluating the input
+    content against automated reasoning policies.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3771,33 +3617,23 @@ class GuardrailContentFilterType(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailContentFilter:
-    """
-    The content filter for a guardrail.
-
-    """
+    """The content filter for a guardrail."""
 
     type: str
-    """
-    The guardrail type.
-    """
+    """The guardrail type."""
 
     confidence: str
-    """
-    The guardrail confidence.
-    """
+    """The guardrail confidence."""
 
     action: str
-    """
-    The guardrail action.
-    """
+    """The guardrail action."""
 
     filter_strength: str | None = None
-    """
-    The filter strength setting for the guardrail content filter.
-    """
+    """The filter strength setting for the guardrail content filter."""
+
     detected: bool | None = None
-    """
-    Indicates whether content that breaches the guardrail configuration is detected.
+    """Indicates whether content that breaches the guardrail configuration is
+    detected.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3893,15 +3729,10 @@ def _deserialize_guardrail_content_filter_list(
 
 @dataclass(kw_only=True)
 class GuardrailContentPolicyAssessment:
-    """
-    An assessment of a content policy for a guardrail.
-
-    """
+    """An assessment of a content policy for a guardrail."""
 
     filters: list[GuardrailContentFilter]
-    """
-    The content policy filters.
-    """
+    """The content policy filters."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONTENT_POLICY_ASSESSMENT, self)
@@ -3950,35 +3781,24 @@ class GuardrailContextualGroundingFilterType(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailContextualGroundingFilter:
-    """
-    The details for the guardrails contextual grounding filter.
-
-    """
+    """The details for the guardrails contextual grounding filter."""
 
     type: str
-    """
-    The contextual grounding filter type.
-    """
+    """The contextual grounding filter type."""
 
     threshold: float
-    """
-    The threshold used by contextual grounding filter to determine whether the
-    content is grounded or not.
+    """The threshold used by contextual grounding filter to determine whether
+    the content is grounded or not.
     """
 
     score: float
-    """
-    The score generated by contextual grounding filter.
-    """
+    """The score generated by contextual grounding filter."""
 
     action: str
-    """
-    The action performed by the guardrails contextual grounding filter.
-    """
+    """The action performed by the guardrails contextual grounding filter."""
 
     detected: bool | None = None
-    """
-    Indicates whether content that fails the contextual grounding evaluation
+    """Indicates whether content that fails the contextual grounding evaluation
     (grounding or relevance score less than the corresponding threshold) was
     detected.
     """
@@ -4083,15 +3903,12 @@ def _deserialize_guardrail_contextual_grounding_filters(
 
 @dataclass(kw_only=True)
 class GuardrailContextualGroundingPolicyAssessment:
-    """
-    The policy assessment details for the guardrails contextual grounding filter.
-
+    """The policy assessment details for the guardrails contextual grounding
+    filter.
     """
 
     filters: list[GuardrailContextualGroundingFilter] | None = None
-    """
-    The filter details for the guardrails contextual grounding filter.
-    """
+    """The filter details for the guardrails contextual grounding filter."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
@@ -4139,18 +3956,13 @@ class GuardrailContextualGroundingPolicyAssessment:
 
 @dataclass(kw_only=True)
 class GuardrailImageCoverage:
-    """
-    The details of the guardrail image coverage.
-
-    """
+    """The details of the guardrail image coverage."""
 
     guarded: int | None = None
-    """
-    The count (integer) of images guardrails guarded.
-    """
+    """The count (integer) of images guardrails guarded."""
+
     total: int | None = None
-    """
-    Represents the total number of images (integer) that were in the request
+    """Represents the total number of images (integer) that were in the request
     (guarded and unguarded).
     """
 
@@ -4197,19 +4009,13 @@ class GuardrailImageCoverage:
 
 @dataclass(kw_only=True)
 class GuardrailTextCharactersCoverage:
-    """
-    The guardrail coverage for the text characters.
-
-    """
+    """The guardrail coverage for the text characters."""
 
     guarded: int | None = None
-    """
-    The text characters that were guarded by the guardrail coverage.
-    """
+    """The text characters that were guarded by the guardrail coverage."""
+
     total: int | None = None
-    """
-    The total text characters by the guardrail coverage.
-    """
+    """The total text characters by the guardrail coverage."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TEXT_CHARACTERS_COVERAGE, self)
@@ -4257,18 +4063,13 @@ class GuardrailTextCharactersCoverage:
 
 @dataclass(kw_only=True)
 class GuardrailCoverage:
-    """
-    The action of the guardrail coverage details.
-
-    """
+    """The action of the guardrail coverage details."""
 
     text_characters: GuardrailTextCharactersCoverage | None = None
-    """
-    The text characters of the guardrail coverage details.
-    """
+    """The text characters of the guardrail coverage details."""
+
     images: GuardrailImageCoverage | None = None
-    """
-    The guardrail coverage for images (the number of images that guardrails
+    """The guardrail coverage for images (the number of images that guardrails
     guarded).
     """
 
@@ -4314,53 +4115,35 @@ class GuardrailCoverage:
 
 @dataclass(kw_only=True)
 class GuardrailUsage:
-    """
-    The details on the use of the guardrail.
-
-    """
+    """The details on the use of the guardrail."""
 
     topic_policy_units: int
-    """
-    The topic policy units processed by the guardrail.
-    """
+    """The topic policy units processed by the guardrail."""
 
     content_policy_units: int
-    """
-    The content policy units processed by the guardrail.
-    """
+    """The content policy units processed by the guardrail."""
 
     word_policy_units: int
-    """
-    The word policy units processed by the guardrail.
-    """
+    """The word policy units processed by the guardrail."""
 
     sensitive_information_policy_units: int
-    """
-    The sensitive information policy units processed by the guardrail.
-    """
+    """The sensitive information policy units processed by the guardrail."""
 
     sensitive_information_policy_free_units: int
-    """
-    The sensitive information policy free units processed by the guardrail.
-    """
+    """The sensitive information policy free units processed by the guardrail."""
 
     contextual_grounding_policy_units: int
-    """
-    The contextual grounding policy units processed by the guardrail.
-    """
+    """The contextual grounding policy units processed by the guardrail."""
 
     content_policy_image_units: int | None = None
-    """
-    The content policy image units processed by the guardrail.
-    """
+    """The content policy image units processed by the guardrail."""
+
     automated_reasoning_policy_units: int | None = None
-    """
-    The number of text units processed by the automated reasoning policy.
-    """
+    """The number of text units processed by the automated reasoning policy."""
+
     automated_reasoning_policies: int | None = None
-    """
-    The number of automated reasoning policies that were processed during the
-    guardrail evaluation.
+    """The number of automated reasoning policies that were processed during
+    the guardrail evaluation.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -4477,23 +4260,16 @@ class GuardrailUsage:
 
 @dataclass(kw_only=True)
 class GuardrailInvocationMetrics:
-    """
-    The invocation metrics for the guardrail.
-
-    """
+    """The invocation metrics for the guardrail."""
 
     guardrail_processing_latency: int | None = None
-    """
-    The processing latency details for the guardrail invocation metrics.
-    """
+    """The processing latency details for the guardrail invocation metrics."""
+
     usage: GuardrailUsage | None = None
-    """
-    The usage details for the guardrail invocation metrics.
-    """
+    """The usage details for the guardrail invocation metrics."""
+
     guardrail_coverage: GuardrailCoverage | None = None
-    """
-    The coverage details for the guardrail invocation metrics.
-    """
+    """The coverage details for the guardrail invocation metrics."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_INVOCATION_METRICS, self)
@@ -4592,30 +4368,22 @@ class GuardrailPiiEntityType(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailPiiEntityFilter:
-    """
-    A Personally Identifiable Information (PII) entity configured in a guardrail.
-
+    """A Personally Identifiable Information (PII) entity configured in a
+    guardrail.
     """
 
     match: str
-    """
-    The PII entity filter match.
-    """
+    """The PII entity filter match."""
 
     type: str
-    """
-    The PII entity filter type.
-    """
+    """The PII entity filter type."""
 
     action: str
-    """
-    The PII entity filter action.
-    """
+    """The PII entity filter action."""
 
     detected: bool | None = None
-    """
-    Indicates whether personally identifiable information (PII) that breaches the
-    guardrail configuration is detected.
+    """Indicates whether personally identifiable information (PII) that
+    breaches the guardrail configuration is detected.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -4702,32 +4470,23 @@ def _deserialize_guardrail_pii_entity_filter_list(
 
 @dataclass(kw_only=True)
 class GuardrailRegexFilter:
-    """
-    A Regex filter configured in a guardrail.
-
-    """
+    """A Regex filter configured in a guardrail."""
 
     action: str
-    """
-    The region filter action.
-    """
+    """The region filter action."""
 
     name: str | None = None
-    """
-    The regex filter name.
-    """
+    """The regex filter name."""
+
     match: str | None = None
-    """
-    The regesx filter match.
-    """
+    """The regesx filter match."""
+
     regex: str | None = None
-    """
-    The regex query.
-    """
+    """The regex query."""
+
     detected: bool | None = None
-    """
-    Indicates whether custom regex entities that breach the guardrail configuration
-    are detected.
+    """Indicates whether custom regex entities that breach the guardrail
+    configuration are detected.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -4826,20 +4585,13 @@ def _deserialize_guardrail_regex_filter_list(
 
 @dataclass(kw_only=True)
 class GuardrailSensitiveInformationPolicyAssessment:
-    """
-    The assessment for aPersonally Identifiable Information (PII) policy.
-
-    """
+    """The assessment for a Personally Identifiable Information (PII) policy."""
 
     pii_entities: list[GuardrailPiiEntityFilter]
-    """
-    The PII entities in the assessment.
-    """
+    """The PII entities in the assessment."""
 
     regexes: list[GuardrailRegexFilter]
-    """
-    The regex queries in the assessment.
-    """
+    """The regex queries in the assessment."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
@@ -4911,31 +4663,22 @@ class GuardrailTopicType(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailTopic:
-    """
-    Information about a topic guardrail.
-
-    """
+    """Information about a topic guardrail."""
 
     name: str
-    """
-    The name for the guardrail.
-    """
+    """The name for the guardrail."""
 
     type: str
-    """
-    The type behavior that the guardrail should perform when the model detects the
-    topic.
+    """The type behavior that the guardrail should perform when the model
+    detects the topic.
     """
 
     action: str
-    """
-    The action the guardrail should take when it intervenes on a topic.
-    """
+    """The action the guardrail should take when it intervenes on a topic."""
 
     detected: bool | None = None
-    """
-    Indicates whether topic content that breaches the guardrail configuration is
-    detected.
+    """Indicates whether topic content that breaches the guardrail
+    configuration is detected.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -5014,15 +4757,10 @@ def _deserialize_guardrail_topic_list(
 
 @dataclass(kw_only=True)
 class GuardrailTopicPolicyAssessment:
-    """
-    A behavior assessment of a topic policy.
-
-    """
+    """A behavior assessment of a topic policy."""
 
     topics: list[GuardrailTopic]
-    """
-    The topics in the assessment.
-    """
+    """The topics in the assessment."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_TOPIC_POLICY_ASSESSMENT, self)
@@ -5065,25 +4803,17 @@ class GuardrailWordPolicyAction(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailCustomWord:
-    """
-    A custom word configured in a guardrail.
-
-    """
+    """A custom word configured in a guardrail."""
 
     match: str
-    """
-    The match for the custom word.
-    """
+    """The match for the custom word."""
 
     action: str
-    """
-    The action for the custom word.
-    """
+    """The action for the custom word."""
 
     detected: bool | None = None
-    """
-    Indicates whether custom word content that breaches the guardrail configuration
-    is detected.
+    """Indicates whether custom word content that breaches the guardrail
+    configuration is detected.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -5164,30 +4894,20 @@ class GuardrailManagedWordType(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailManagedWord:
-    """
-    A managed word configured in a guardrail.
-
-    """
+    """A managed word configured in a guardrail."""
 
     match: str
-    """
-    The match for the managed word.
-    """
+    """The match for the managed word."""
 
     type: str
-    """
-    The type for the managed word.
-    """
+    """The type for the managed word."""
 
     action: str
-    """
-    The action for the managed word.
-    """
+    """The action for the managed word."""
 
     detected: bool | None = None
-    """
-    Indicates whether managed word content that breaches the guardrail configuration
-    is detected.
+    """Indicates whether managed word content that breaches the guardrail
+    configuration is detected.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -5272,20 +4992,13 @@ def _deserialize_guardrail_managed_word_list(
 
 @dataclass(kw_only=True)
 class GuardrailWordPolicyAssessment:
-    """
-    The word policy assessment.
-
-    """
+    """The word policy assessment."""
 
     custom_words: list[GuardrailCustomWord]
-    """
-    Custom words in the assessment.
-    """
+    """Custom words in the assessment."""
 
     managed_word_lists: list[GuardrailManagedWord]
-    """
-    Managed word lists in the assessment.
-    """
+    """Managed word lists in the assessment."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT, self)
@@ -5339,47 +5052,38 @@ class GuardrailWordPolicyAssessment:
 
 @dataclass(kw_only=True)
 class GuardrailAssessment:
-    """
-    A behavior assessment of the guardrail policies used in a call to the Converse
-    API.
-
+    """A behavior assessment of the guardrail policies used in a call to the
+    Converse API.
     """
 
     topic_policy: GuardrailTopicPolicyAssessment | None = None
-    """
-    The topic policy.
-    """
+    """The topic policy."""
+
     content_policy: GuardrailContentPolicyAssessment | None = None
-    """
-    The content policy.
-    """
+    """The content policy."""
+
     word_policy: GuardrailWordPolicyAssessment | None = None
-    """
-    The word policy.
-    """
+    """The word policy."""
+
     sensitive_information_policy: (
         GuardrailSensitiveInformationPolicyAssessment | None
     ) = None
-    """
-    The sensitive information policy.
-    """
+    """The sensitive information policy."""
+
     contextual_grounding_policy: GuardrailContextualGroundingPolicyAssessment | None = (
         None
     )
-    """
-    The contextual grounding policy used for the guardrail assessment.
-    """
+    """The contextual grounding policy used for the guardrail assessment."""
+
     automated_reasoning_policy: GuardrailAutomatedReasoningPolicyAssessment | None = (
         None
     )
+    """The automated reasoning policy assessment results, including logical
+    validation findings for the input content.
     """
-    The automated reasoning policy assessment results, including logical validation
-    findings for the input content.
-    """
+
     invocation_metrics: GuardrailInvocationMetrics | None = None
-    """
-    The invocation metrics for the guardrail assessment.
-    """
+    """The invocation metrics for the guardrail assessment."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_ASSESSMENT, self)
@@ -5504,15 +5208,10 @@ def _deserialize_guardrail_assessment_list(
 
 @dataclass(kw_only=True)
 class GuardrailOutputContent:
-    """
-    The output content produced by the guardrail.
-
-    """
+    """The output content produced by the guardrail."""
 
     text: str | None = None
-    """
-    The specific text for the output content produced by the guardrail.
-    """
+    """The specific text for the output content produced by the guardrail."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_OUTPUT_CONTENT, self)
@@ -5572,34 +5271,25 @@ def _deserialize_guardrail_output_content_list(
 
 @dataclass(kw_only=True)
 class ApplyGuardrailOutput:
+    """Dataclass for ApplyGuardrailOutput structure."""
+
     usage: GuardrailUsage
-    """
-    The usage details in the response from the guardrail.
-    """
+    """The usage details in the response from the guardrail."""
 
     action: str
-    """
-    The action taken in the response from the guardrail.
-    """
+    """The action taken in the response from the guardrail."""
 
     outputs: list[GuardrailOutputContent]
-    """
-    The output details in the response from the guardrail.
-    """
+    """The output details in the response from the guardrail."""
 
     assessments: list[GuardrailAssessment]
-    """
-    The assessment details in the response from the guardrail.
-    """
+    """The assessment details in the response from the guardrail."""
 
     action_reason: str | None = None
-    """
-    The reason for the action taken when harmful content is detected.
-    """
+    """The reason for the action taken when harmful content is detected."""
+
     guardrail_coverage: GuardrailCoverage | None = None
-    """
-    The guardrail coverage details in the apply guardrail response.
-    """
+    """The guardrail coverage details in the apply guardrail response."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_APPLY_GUARDRAIL_OUTPUT, self)
@@ -5720,26 +5410,19 @@ class GuardrailTrace(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailConfiguration:
-    """
-    Configuration information for a guardrail that you use with the ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_
+    """Configuration information for a guardrail that you use with the
+    [Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
     operation.
-
     """
 
     guardrail_identifier: str
-    """
-    The identifier for the guardrail.
-    """
+    """The identifier for the guardrail."""
 
     guardrail_version: str
-    """
-    The version of the guardrail.
-    """
+    """The version of the guardrail."""
 
     trace: str = "disabled"
-    """
-    The trace behavior for the guardrail.
-    """
+    """The trace behavior for the guardrail."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONFIGURATION, self)
@@ -5817,50 +5500,51 @@ def _deserialize_non_empty_string_list(
 
 @dataclass(kw_only=True)
 class InferenceConfiguration:
-    """
-    Base inference parameters to pass to a model in a call to ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_
-    or ``ConverseStream
-    <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>``*. For more information, see ``Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>``* .
+    """Base inference parameters to pass to a model in a call to
+    [Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
+    or
+    [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html).
+    For more information, see [Inference parameters for foundation
+    models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
 
-    If you need to pass additional parameters that the model supports, use the
-    ``additionalModelRequestFields`` request field in the call to ``Converse`` or ``ConverseStream``. For more information, see ``Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>``_
-    .
-
+    If you need to pass additional parameters that the model supports, use
+    the `additionalModelRequestFields` request field in the call to
+    `Converse` or `ConverseStream`. For more information, see [Model
+    parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
     """
 
     max_tokens: int | None = None
+    """The maximum number of tokens to allow in the generated response. The
+    default value is the maximum allowed value for the model that you are
+    using. For more information, see [Inference parameters for foundation
+    models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
     """
-    The maximum number of tokens to allow in the generated response. The default
-    value is the maximum allowed value for the model that you are using. For more
-    information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
-    """
+
     temperature: float | None = None
-    """
-    The likelihood of the model selecting higher-probability options while
-    generating a response. A lower value makes the model more likely to choose
-    higher-probability options, while a higher value makes the model more likely to
-    choose lower-probability options.
+    """The likelihood of the model selecting higher-probability options while
+    generating a response. A lower value makes the model more likely to
+    choose higher-probability options, while a higher value makes the model
+    more likely to choose lower-probability options.
 
-    The default value is the default value for the model that you are using. For
-    more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+    The default value is the default value for the model that you are using.
+    For more information, see [Inference parameters for foundation
+    models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
     """
+
     top_p: float | None = None
-    """
-    The percentage of most-likely candidates that the model considers for the next
-    token. For example, if you choose a value of 0.8 for ``topP``, the model selects
-    from the top 80% of the probability distribution of tokens that could be next in
-    the sequence.
+    """The percentage of most-likely candidates that the model considers for
+    the next token. For example, if you choose a value of 0.8 for `topP`,
+    the model selects from the top 80% of the probability distribution of
+    tokens that could be next in the sequence.
 
-    The default value is the default value for the model that you are using. For
-    more information, see `Inference parameters for foundation models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+    The default value is the default value for the model that you are using.
+    For more information, see [Inference parameters for foundation
+    models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
     """
+
     stop_sequences: list[str] | None = None
-    """
-    A list of stop sequences. A stop sequence is a sequence of characters that
-    causes the model to stop generating the response.
+    """A list of stop sequences. A stop sequence is a sequence of characters
+    that causes the model to stop generating the response.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -5932,15 +5616,12 @@ class CachePointType(StrEnum):
 
 @dataclass(kw_only=True)
 class CachePointBlock:
-    """
-    Defines a section of content to be cached for reuse in subsequent API calls.
-
+    """Defines a section of content to be cached for reuse in subsequent API
+    calls.
     """
 
     type: str
-    """
-    Specifies the type of cache point within the CachePointBlock.
-    """
+    """Specifies the type of cache point within the CachePointBlock."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CACHE_POINT_BLOCK, self)
@@ -5972,24 +5653,23 @@ class CachePointBlock:
 
 @dataclass(kw_only=True)
 class DocumentCharLocation:
-    """
-    Specifies a character-level location within a document, providing precise
-    positioning information for cited content using start and end character indices.
-
+    """Specifies a character-level location within a document, providing
+    precise positioning information for cited content using start and end
+    character indices.
     """
 
     document_index: int | None = None
+    """The index of the document within the array of documents provided in the
+    request.
     """
-    The index of the document within the array of documents provided in the request.
-    """
+
     start: int | None = None
+    """The starting character position of the cited content within the
+    document.
     """
-    The starting character position of the cited content within the document.
-    """
+
     end: int | None = None
-    """
-    The ending character position of the cited content within the document.
-    """
+    """The ending character position of the cited content within the document."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DOCUMENT_CHAR_LOCATION, self)
@@ -6045,23 +5725,24 @@ class DocumentCharLocation:
 
 @dataclass(kw_only=True)
 class DocumentChunkLocation:
-    """
-    Specifies a chunk-level location within a document, providing positioning
-    information for cited content using logical document segments or chunks.
-
+    """Specifies a chunk-level location within a document, providing
+    positioning information for cited content using logical document
+    segments or chunks.
     """
 
     document_index: int | None = None
+    """The index of the document within the array of documents provided in the
+    request.
     """
-    The index of the document within the array of documents provided in the request.
-    """
+
     start: int | None = None
+    """The starting chunk identifier or index of the cited content within the
+    document.
     """
-    The starting chunk identifier or index of the cited content within the document.
-    """
+
     end: int | None = None
-    """
-    The ending chunk identifier or index of the cited content within the document.
+    """The ending chunk identifier or index of the cited content within the
+    document.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6118,24 +5799,20 @@ class DocumentChunkLocation:
 
 @dataclass(kw_only=True)
 class DocumentPageLocation:
-    """
-    Specifies a page-level location within a document, providing positioning
+    """Specifies a page-level location within a document, providing positioning
     information for cited content using page numbers.
-
     """
 
     document_index: int | None = None
+    """The index of the document within the array of documents provided in the
+    request.
     """
-    The index of the document within the array of documents provided in the request.
-    """
+
     start: int | None = None
-    """
-    The starting page number of the cited content within the document.
-    """
+    """The starting page number of the cited content within the document."""
+
     end: int | None = None
-    """
-    The ending page number of the cited content within the document.
-    """
+    """The ending page number of the cited content within the document."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DOCUMENT_PAGE_LOCATION, self)
@@ -6189,12 +5866,74 @@ class DocumentPageLocation:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class WebLocation:
+    """Provides the URL and domain information for the website that was cited
+    when performing a web search.
+    """
+
+    url: str | None = None
+    """The URL that was cited when performing a web search."""
+
+    domain: str | None = None
+    """The domain that was cited when performing a web search."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_WEB_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.url is not None:
+            serializer.write_string(_SCHEMA_WEB_LOCATION.members["url"], self.url)
+
+        if self.domain is not None:
+            serializer.write_string(_SCHEMA_WEB_LOCATION.members["domain"], self.domain)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["url"] = de.read_string(_SCHEMA_WEB_LOCATION.members["url"])
+
+                case 1:
+                    kwargs["domain"] = de.read_string(
+                        _SCHEMA_WEB_LOCATION.members["domain"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_WEB_LOCATION, consumer=_consumer)
+        return kwargs
+
+
+@dataclass
+class CitationLocationWeb:
+    """The web URL that was cited for this reference."""
+
+    value: WebLocation
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CITATION_LOCATION.members["web"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=WebLocation.deserialize(deserializer))
+
+
 @dataclass
 class CitationLocationDocumentChar:
-    """
-    The character-level location within the document where the cited content is
-    found.
-
+    """The character-level location within the document where the cited content
+    is found.
     """
 
     value: DocumentCharLocation
@@ -6214,9 +5953,8 @@ class CitationLocationDocumentChar:
 
 @dataclass
 class CitationLocationDocumentPage:
-    """
-    The page-level location within the document where the cited content is found.
-
+    """The page-level location within the document where the cited content is
+    found.
     """
 
     value: DocumentPageLocation
@@ -6236,10 +5974,9 @@ class CitationLocationDocumentPage:
 
 @dataclass
 class CitationLocationDocumentChunk:
-    """
-    The chunk-level location within the document where the cited content is found,
-    typically used for documents that have been segmented into logical chunks.
-
+    """The chunk-level location within the document where the cited content is
+    found, typically used for documents that have been segmented into
+    logical chunks.
     """
 
     value: DocumentChunkLocation
@@ -6281,17 +6018,16 @@ class CitationLocationUnknown:
 
 
 CitationLocation = Union[
-    CitationLocationDocumentChar
+    CitationLocationWeb
+    | CitationLocationDocumentChar
     | CitationLocationDocumentPage
     | CitationLocationDocumentChunk
     | CitationLocationUnknown
 ]
-
-"""
-Specifies the precise location within a source document where cited content can
-be found. This can include character-level positions, page numbers, or document
-chunks depending on the document type and indexing method.
-
+"""Specifies the precise location within a source document where cited
+content can be found. This can include character-level positions, page
+numbers, or document chunks depending on the document type and indexing
+method.
 """
 
 
@@ -6312,12 +6048,15 @@ class _CitationLocationDeserializer:
     def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
         match schema.expect_member_index():
             case 0:
-                self._set_result(CitationLocationDocumentChar.deserialize(de))
+                self._set_result(CitationLocationWeb.deserialize(de))
 
             case 1:
-                self._set_result(CitationLocationDocumentPage.deserialize(de))
+                self._set_result(CitationLocationDocumentChar.deserialize(de))
 
             case 2:
+                self._set_result(CitationLocationDocumentPage.deserialize(de))
+
+            case 3:
                 self._set_result(CitationLocationDocumentChunk.deserialize(de))
 
             case _:
@@ -6333,10 +6072,7 @@ class _CitationLocationDeserializer:
 
 @dataclass
 class CitationSourceContentText:
-    """
-    The text content from the source document that is being cited.
-
-    """
+    """The text content from the source document that is being cited."""
 
     value: str
 
@@ -6381,11 +6117,8 @@ class CitationSourceContentUnknown:
 
 
 CitationSourceContent = Union[CitationSourceContentText | CitationSourceContentUnknown]
-
-"""
-Contains the actual text content from a source document that is being cited or
-referenced in the model's response.
-
+"""Contains the actual text content from a source document that is being
+cited or referenced in the model's response.
 """
 
 
@@ -6446,26 +6179,23 @@ def _deserialize_citation_source_content_list(
 
 @dataclass(kw_only=True)
 class Citation:
-    """
-    Contains information about a citation that references a specific source
-    document. Citations provide traceability between the model's generated response
-    and the source documents that informed that response.
-
+    """Contains information about a citation that references a specific source
+    document. Citations provide traceability between the model's generated
+    response and the source documents that informed that response.
     """
 
     title: str | None = None
-    """
-    The title or identifier of the source document being cited.
-    """
+    """The title or identifier of the source document being cited."""
+
     source_content: list[CitationSourceContent] | None = None
+    """The specific content from the source document that was referenced or
+    cited in the generated response.
     """
-    The specific content from the source document that was referenced or cited in
-    the generated response.
-    """
+
     location: CitationLocation | None = None
-    """
-    The precise location within the source document where the cited content can be
-    found, including character positions, page numbers, or chunk identifiers.
+    """The precise location within the source document where the cited content
+    can be found, including character positions, page numbers, or chunk
+    identifiers.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6542,10 +6272,8 @@ def _deserialize_citations(
 
 @dataclass
 class CitationGeneratedContentText:
-    """
-    The text content that was generated by the model and is supported by the
+    """The text content that was generated by the model and is supported by the
     associated citation.
-
     """
 
     value: str
@@ -6593,11 +6321,8 @@ class CitationGeneratedContentUnknown:
 CitationGeneratedContent = Union[
     CitationGeneratedContentText | CitationGeneratedContentUnknown
 ]
-
-"""
-Contains the generated text content that corresponds to or is supported by a
-citation from a source document.
-
+"""Contains the generated text content that corresponds to or is supported
+by a citation from a source document.
 """
 
 
@@ -6658,22 +6383,18 @@ def _deserialize_citation_generated_content_list(
 
 @dataclass(kw_only=True)
 class CitationsContentBlock:
-    """
-    A content block that contains both generated text and associated citation
-    information. This block type is returned when document citations are enabled,
-    providing traceability between the generated content and the source documents
-    that informed the response.
-
+    """A content block that contains both generated text and associated
+    citation information. This block type is returned when document
+    citations are enabled, providing traceability between the generated
+    content and the source documents that informed the response.
     """
 
     content: list[CitationGeneratedContent] | None = None
-    """
-    The generated content that is supported by the associated citations.
-    """
+    """The generated content that is supported by the associated citations."""
+
     citations: list[Citation] | None = None
-    """
-    An array of citations that reference the source documents used to generate the
-    associated content.
+    """An array of citations that reference the source documents used to
+    generate the associated content.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6723,18 +6444,17 @@ class CitationsContentBlock:
 
 @dataclass(kw_only=True)
 class CitationsConfig:
-    """
-    Configuration settings for enabling and controlling document citations in
-    Converse API responses. When enabled, the model can include citation information
-    that links generated content back to specific source documents.
-
+    """Configuration settings for enabling and controlling document citations
+    in Converse API responses. When enabled, the model can include citation
+    information that links generated content back to specific source
+    documents.
     """
 
     enabled: bool
-    """
-    Specifies whether document citations should be included in the model's response.
-    When set to true, the model can generate citations that reference the source
-    documents used to inform the response.
+    """Specifies whether citations from the selected document should be used in
+    the model's response. When set to true, the model can generate
+    citations that reference the source documents used to inform the
+    response.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6781,10 +6501,7 @@ class DocumentFormat(StrEnum):
 
 @dataclass
 class DocumentContentBlockText:
-    """
-    The text content of the document.
-
-    """
+    """The text content of the document."""
 
     value: str
 
@@ -6829,11 +6546,8 @@ class DocumentContentBlockUnknown:
 
 
 DocumentContentBlock = Union[DocumentContentBlockText | DocumentContentBlockUnknown]
-
-"""
-Contains the actual content of a document that can be processed by the model and
-potentially cited in the response.
-
+"""Contains the actual content of a document that can be processed by the
+model and potentially cited in the response.
 """
 
 
@@ -6894,19 +6608,14 @@ def _deserialize_document_content_blocks(
 
 @dataclass(kw_only=True)
 class S3Location:
-    """
-    A storage location in an Amazon S3 bucket.
-
-    """
+    """A storage location in an Amazon S3 bucket."""
 
     uri: str
-    """
-    An object URI starting with ``s3://``.
-    """
+    """An object URI starting with `s3://`."""
 
     bucket_owner: str | None = None
-    """
-    If the bucket belongs to another AWS account, specify that account's ID.
+    """If the bucket belongs to another AWS account, specify that account's
+    ID.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -6946,10 +6655,8 @@ class S3Location:
 
 @dataclass
 class DocumentSourceBytes:
-    """
-    The raw bytes for the document. If you use an Amazon Web Services SDK, you don't
-    need to encode the bytes in base64.
-
+    """The raw bytes for the document. If you use an Amazon Web Services SDK,
+    you don't need to encode the bytes in base64.
     """
 
     value: bytes
@@ -6969,11 +6676,9 @@ class DocumentSourceBytes:
 
 @dataclass
 class DocumentSourceS3Location:
-    """
-    The location of a document object in an Amazon S3 bucket. To see which models
-    support S3 uploads, see `Supported models and features for Converse <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html>`_
-    .
-
+    """The location of a document object in an Amazon S3 bucket. To see which
+    models support S3 uploads, see [Supported models and features for
+    Converse](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html).
     """
 
     value: S3Location
@@ -6993,10 +6698,7 @@ class DocumentSourceS3Location:
 
 @dataclass
 class DocumentSourceText:
-    """
-    The text content of the document source.
-
-    """
+    """The text content of the document source."""
 
     value: str
 
@@ -7015,10 +6717,8 @@ class DocumentSourceText:
 
 @dataclass
 class DocumentSourceContent:
-    """
-    The structured content of the document source, which may include various content
-    blocks such as text, images, or other document elements.
-
+    """The structured content of the document source, which may include various
+    content blocks such as text, images, or other document elements.
     """
 
     value: list[DocumentContentBlock]
@@ -7070,11 +6770,7 @@ DocumentSource = Union[
     | DocumentSourceContent
     | DocumentSourceUnknown
 ]
-
-"""
-Contains the content of a document.
-
-"""
+"""Contains the content of a document."""
 
 
 class _DocumentSourceDeserializer:
@@ -7118,49 +6814,42 @@ class _DocumentSourceDeserializer:
 
 @dataclass(kw_only=True)
 class DocumentBlock:
-    """
-    A document to include in a message.
-
-    """
+    """A document to include in a message."""
 
     name: str
-    """
-    A name for the document. The name can only contain the following characters:
+    """A name for the document. The name can only contain the following
+    characters:
 
-    * Alphanumeric characters
+    - Alphanumeric characters
 
-    * Whitespace characters (no more than one in a row)
+    - Whitespace characters (no more than one in a row)
 
-    * Hyphens
+    - Hyphens
 
-    * Parentheses
+    - Parentheses
 
-    * Square brackets
+    - Square brackets
 
-    .. note::
+    Note:
         This field is vulnerable to prompt injections, because the model might
-        inadvertently interpret it as instructions. Therefore, we recommend that you
-        specify a neutral name.
+        inadvertently interpret it as instructions. Therefore, we recommend that
+        you specify a neutral name.
     """
 
     source: DocumentSource
-    """
-    Contains the content of the document.
-    """
+    """Contains the content of the document."""
 
     format: str = "txt"
-    """
-    The format of a document, or its extension.
-    """
+    """The format of a document, or its extension."""
+
     context: str | None = None
+    """Contextual information about how the document should be processed or
+    interpreted by the model when generating citations.
     """
-    Contextual information about how the document should be processed or interpreted
-    by the model when generating citations.
-    """
+
     citations: CitationsConfig | None = None
-    """
-    Configuration settings that control how citations should be generated for this
-    specific document.
+    """Configuration settings that control how citations should be generated
+    for this specific document.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7225,10 +6914,7 @@ class GuardrailConverseImageFormat(StrEnum):
 
 @dataclass
 class GuardrailConverseImageSourceBytes:
-    """
-    The raw image bytes for the image.
-
-    """
+    """The raw image bytes for the image."""
 
     value: bytes
 
@@ -7275,11 +6961,7 @@ class GuardrailConverseImageSourceUnknown:
 GuardrailConverseImageSource = Union[
     GuardrailConverseImageSourceBytes | GuardrailConverseImageSourceUnknown
 ]
-
-"""
-The image source (image bytes) of the guardrail converse image source.
-
-"""
+"""The image source (image bytes) of the guardrail converse image source."""
 
 
 class _GuardrailConverseImageSourceDeserializer:
@@ -7318,20 +7000,17 @@ class _GuardrailConverseImageSourceDeserializer:
 
 @dataclass(kw_only=True)
 class GuardrailConverseImageBlock:
-    """
-    An image block that contains images that you want to assess with a guardrail.
-
+    """An image block that contains images that you want to assess with a
+    guardrail.
     """
 
     format: str
-    """
-    The format details for the image type of the guardrail converse image block.
+    """The format details for the image type of the guardrail converse image
+    block.
     """
 
     source: GuardrailConverseImageSource = field(repr=False)
-    """
-    The image source (image bytes) of the guardrail converse image block.
-    """
+    """The image source (image bytes) of the guardrail converse image block."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_IMAGE_BLOCK, self)
@@ -7407,21 +7086,16 @@ def _deserialize_guardrail_converse_content_qualifier_list(
 
 @dataclass(kw_only=True)
 class GuardrailConverseTextBlock:
-    """
-    A text block that contains text that you want to assess with a guardrail. For
-    more information, see ``GuardrailConverseContentBlock``.
-
+    """A text block that contains text that you want to assess with a
+    guardrail. For more information, see
+    [GuardrailConverseContentBlock](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_GuardrailConverseContentBlock.html).
     """
 
     text: str
-    """
-    The text that you want to guard.
-    """
+    """The text that you want to guard."""
 
     qualifiers: list[str] | None = None
-    """
-    The qualifier details for the guardrails contextual grounding filter.
-    """
+    """The qualifier details for the guardrails contextual grounding filter."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GUARDRAIL_CONVERSE_TEXT_BLOCK, self)
@@ -7471,10 +7145,7 @@ class GuardrailConverseTextBlock:
 
 @dataclass
 class GuardrailConverseContentBlockText:
-    """
-    The text to guard.
-
-    """
+    """The text to guard."""
 
     value: GuardrailConverseTextBlock
 
@@ -7493,10 +7164,7 @@ class GuardrailConverseContentBlockText:
 
 @dataclass
 class GuardrailConverseContentBlockImage:
-    """
-    Image within converse content block to be evaluated by the guardrail.
-
-    """
+    """Image within converse content block to be evaluated by the guardrail."""
 
     value: GuardrailConverseImageBlock
 
@@ -7541,13 +7209,11 @@ GuardrailConverseContentBlock = Union[
     | GuardrailConverseContentBlockImage
     | GuardrailConverseContentBlockUnknown
 ]
-
-"""
-
-A content block for selective guarding with the `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
+"""A content block for selective guarding with the
+[Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
+or
+[ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html)
 API operations.
-
 """
 
 
@@ -7597,10 +7263,8 @@ class ImageFormat(StrEnum):
 
 @dataclass
 class ImageSourceBytes:
-    """
-    The raw image bytes for the image. If you use an AWS SDK, you don't need to
-    encode the image bytes in base64.
-
+    """The raw image bytes for the image. If you use an AWS SDK, you don't
+    need to encode the image bytes in base64.
     """
 
     value: bytes
@@ -7618,11 +7282,9 @@ class ImageSourceBytes:
 
 @dataclass
 class ImageSourceS3Location:
-    """
-    The location of an image object in an Amazon S3 bucket. To see which models
-    support S3 uploads, see `Supported models and features for Converse <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html>`_
-    .
-
+    """The location of an image object in an Amazon S3 bucket. To see which
+    models support S3 uploads, see [Supported models and features for
+    Converse](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html).
     """
 
     value: S3Location
@@ -7662,11 +7324,7 @@ class ImageSourceUnknown:
 
 
 ImageSource = Union[ImageSourceBytes | ImageSourceS3Location | ImageSourceUnknown]
-
-"""
-The source for an image.
-
-"""
+"""The source for an image."""
 
 
 class _ImageSourceDeserializer:
@@ -7704,20 +7362,13 @@ class _ImageSourceDeserializer:
 
 @dataclass(kw_only=True)
 class ImageBlock:
-    """
-    Image content for a message.
-
-    """
+    """Image content for a message."""
 
     format: str
-    """
-    The format of the image.
-    """
+    """The format of the image."""
 
     source: ImageSource
-    """
-    The source for the image.
-    """
+    """The source for the image."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_IMAGE_BLOCK, self)
@@ -7753,21 +7404,15 @@ class ImageBlock:
 
 @dataclass(kw_only=True)
 class ReasoningTextBlock:
-    """
-    Contains the reasoning that the model used to return the output.
-
-    """
+    """Contains the reasoning that the model used to return the output."""
 
     text: str
-    """
-    The reasoning that the model used to return the output.
-    """
+    """The reasoning that the model used to return the output."""
 
     signature: str | None = None
-    """
-    A token that verifies that the reasoning text was generated by the model. If you
-    pass a reasoning block back to the API in a multi-turn conversation, include the
-    text and its signature unmodified.
+    """A token that verifies that the reasoning text was generated by the
+    model. If you pass a reasoning block back to the API in a multi-turn
+    conversation, include the text and its signature unmodified.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7809,10 +7454,7 @@ class ReasoningTextBlock:
 
 @dataclass
 class ReasoningContentBlockReasoningText:
-    """
-    The reasoning that the model used to return the output.
-
-    """
+    """The reasoning that the model used to return the output."""
 
     value: ReasoningTextBlock
 
@@ -7831,10 +7473,9 @@ class ReasoningContentBlockReasoningText:
 
 @dataclass
 class ReasoningContentBlockRedactedContent:
-    """
-    The content in the reasoning that was encrypted by the model provider for safety
-    reasons. The encryption doesn't affect the quality of responses.
-
+    """The content in the reasoning that was encrypted by the model provider
+    for safety reasons. The encryption doesn't affect the quality of
+    responses.
     """
 
     value: bytes
@@ -7884,13 +7525,10 @@ ReasoningContentBlock = Union[
     | ReasoningContentBlockRedactedContent
     | ReasoningContentBlockUnknown
 ]
-
-"""
-Contains content regarding the reasoning that is carried out by the model with
-respect to the content in the content block. Reasoning refers to a Chain of
-Thought (CoT) that the model generates to enhance the accuracy of its final
-response.
-
+"""Contains content regarding the reasoning that is carried out by the
+model with respect to the content in the content block. Reasoning refers
+to a Chain of Thought (CoT) that the model generates to enhance the
+accuracy of its final response.
 """
 
 
@@ -7941,10 +7579,7 @@ class VideoFormat(StrEnum):
 
 @dataclass
 class VideoSourceBytes:
-    """
-    Video content encoded in base64.
-
-    """
+    """Video content encoded in base64."""
 
     value: bytes
 
@@ -7961,11 +7596,9 @@ class VideoSourceBytes:
 
 @dataclass
 class VideoSourceS3Location:
-    """
-    The location of a video object in an Amazon S3 bucket. To see which models
-    support S3 uploads, see `Supported models and features for Converse <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html>`_
-    .
-
+    """The location of a video object in an Amazon S3 bucket. To see which
+    models support S3 uploads, see [Supported models and features for
+    Converse](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html).
     """
 
     value: S3Location
@@ -8005,12 +7638,9 @@ class VideoSourceUnknown:
 
 
 VideoSource = Union[VideoSourceBytes | VideoSourceS3Location | VideoSourceUnknown]
-
-"""
-A video source. You can upload a smaller video as a base64-encoded string as
-long as the encoded file is less than 25MB. You can also transfer videos up to
-1GB in size from an S3 bucket.
-
+"""A video source. You can upload a smaller video as a base64-encoded
+string as long as the encoded file is less than 25MB. You can also
+transfer videos up to 1GB in size from an S3 bucket.
 """
 
 
@@ -8049,20 +7679,13 @@ class _VideoSourceDeserializer:
 
 @dataclass(kw_only=True)
 class VideoBlock:
-    """
-    A video block.
-
-    """
+    """A video block."""
 
     format: str
-    """
-    The block's format.
-    """
+    """The block's format."""
 
     source: VideoSource
-    """
-    The block's source.
-    """
+    """The block's source."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_VIDEO_BLOCK, self)
@@ -8098,10 +7721,7 @@ class VideoBlock:
 
 @dataclass
 class ToolResultContentBlockJson:
-    """
-    A tool result that is JSON format data.
-
-    """
+    """A tool result that is JSON format data."""
 
     value: Document
 
@@ -8124,10 +7744,7 @@ class ToolResultContentBlockJson:
 
 @dataclass
 class ToolResultContentBlockText:
-    """
-    A tool result that is text.
-
-    """
+    """A tool result that is text."""
 
     value: str
 
@@ -8150,12 +7767,11 @@ class ToolResultContentBlockText:
 
 @dataclass
 class ToolResultContentBlockImage:
-    """
-    A tool result that is an image.
+    """A tool result that is an image.
 
-    .. note::
-        This field is only supported by Anthropic Claude 3 models.
-
+    Note:
+        This field is only supported by Amazon Nova and Anthropic Claude 3 and 4
+        models.
     """
 
     value: ImageBlock
@@ -8175,10 +7791,7 @@ class ToolResultContentBlockImage:
 
 @dataclass
 class ToolResultContentBlockDocument:
-    """
-    A tool result that is a document.
-
-    """
+    """A tool result that is a document."""
 
     value: DocumentBlock
 
@@ -8197,10 +7810,7 @@ class ToolResultContentBlockDocument:
 
 @dataclass
 class ToolResultContentBlockVideo:
-    """
-    A tool result that is video.
-
-    """
+    """A tool result that is video."""
 
     value: VideoBlock
 
@@ -8248,10 +7858,10 @@ ToolResultContentBlock = Union[
     | ToolResultContentBlockVideo
     | ToolResultContentBlockUnknown
 ]
-
-"""
-The tool result content block.
-
+"""The tool result content block. For more information, see [Call a tool
+with the Converse
+API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+in the Amazon Bedrock User Guide.
 """
 
 
@@ -8329,29 +7939,29 @@ class ToolResultStatus(StrEnum):
 
 @dataclass(kw_only=True)
 class ToolResultBlock:
-    """
-    A tool result block that contains the results for a tool request that the model
-    previously made.
-
+    """A tool result block that contains the results for a tool request that
+    the model previously made. For more information, see [Call a tool with
+    the Converse
+    API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+    in the Amazon Bedrock User Guide.
     """
 
     tool_use_id: str
-    """
-    The ID of the tool request that this is the result for.
-    """
+    """The ID of the tool request that this is the result for."""
 
     content: list[ToolResultContentBlock]
-    """
-    The content for tool result content block.
-    """
+    """The content for tool result content block."""
 
     status: str | None = None
-    """
-    The status for the tool result content block.
+    """The status for the tool result content block.
 
-    .. note::
-        This field is only supported Anthropic Claude 3 models.
+    Note:
+        This field is only supported by Amazon Nova and Anthropic Claude 3 and 4
+        models.
     """
+
+    type: str | None = None
+    """The type for the tool result content block."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_RESULT_BLOCK, self)
@@ -8366,6 +7976,11 @@ class ToolResultBlock:
         if self.status is not None:
             serializer.write_string(
                 _SCHEMA_TOOL_RESULT_BLOCK.members["status"], self.status
+            )
+
+        if self.type is not None:
+            serializer.write_string(
+                _SCHEMA_TOOL_RESULT_BLOCK.members["type"], self.type
             )
 
     @classmethod
@@ -8393,6 +8008,11 @@ class ToolResultBlock:
                         _SCHEMA_TOOL_RESULT_BLOCK.members["status"]
                     )
 
+                case 3:
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_TOOL_RESULT_BLOCK.members["type"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -8400,29 +8020,31 @@ class ToolResultBlock:
         return kwargs
 
 
+class ToolUseType(StrEnum):
+    SERVER_TOOL_USE = "server_tool_use"
+
+
 @dataclass(kw_only=True)
 class ToolUseBlock:
-    """
-    A tool use content block. Contains information about a tool that the model is
-    requesting be run., The model uses the result from the tool to generate a
-    response.
-
+    """A tool use content block. Contains information about a tool that the
+    model is requesting be run., The model uses the result from the tool to
+    generate a response. For more information, see [Call a tool with the
+    Converse
+    API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+    in the Amazon Bedrock User Guide.
     """
 
     tool_use_id: str
-    """
-    The ID for the tool request.
-    """
+    """The ID for the tool request."""
 
     name: str
-    """
-    The name of the tool that the model wants to use.
-    """
+    """The name of the tool that the model wants to use."""
 
     input: Document
-    """
-    The input to pass to the tool.
-    """
+    """The input to pass to the tool."""
+
+    type: str | None = None
+    """The type for the tool request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK, self)
@@ -8433,6 +8055,8 @@ class ToolUseBlock:
         )
         serializer.write_string(_SCHEMA_TOOL_USE_BLOCK.members["name"], self.name)
         serializer.write_document(_SCHEMA_TOOL_USE_BLOCK.members["input"], self.input)
+        if self.type is not None:
+            serializer.write_string(_SCHEMA_TOOL_USE_BLOCK.members["type"], self.type)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8459,6 +8083,11 @@ class ToolUseBlock:
                         _SCHEMA_TOOL_USE_BLOCK.members["input"]
                     )
 
+                case 3:
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_TOOL_USE_BLOCK.members["type"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -8468,10 +8097,7 @@ class ToolUseBlock:
 
 @dataclass
 class ContentBlockText:
-    """
-    Text to include in the message.
-
-    """
+    """Text to include in the message."""
 
     value: str
 
@@ -8490,12 +8116,10 @@ class ContentBlockText:
 
 @dataclass
 class ContentBlockImage:
-    """
-    Image to include in the message.
+    """Image to include in the message.
 
-    .. note::
+    Note:
         This field is only supported by Anthropic Claude 3 models.
-
     """
 
     value: ImageBlock
@@ -8513,10 +8137,7 @@ class ContentBlockImage:
 
 @dataclass
 class ContentBlockDocument:
-    """
-    A document to include in the message.
-
-    """
+    """A document to include in the message."""
 
     value: DocumentBlock
 
@@ -8533,10 +8154,7 @@ class ContentBlockDocument:
 
 @dataclass
 class ContentBlockVideo:
-    """
-    Video to include in the message.
-
-    """
+    """Video to include in the message."""
 
     value: VideoBlock
 
@@ -8553,10 +8171,7 @@ class ContentBlockVideo:
 
 @dataclass
 class ContentBlockToolUse:
-    """
-    Information about a tool use request from a model.
-
-    """
+    """Information about a tool use request from a model."""
 
     value: ToolUseBlock
 
@@ -8573,10 +8188,7 @@ class ContentBlockToolUse:
 
 @dataclass
 class ContentBlockToolResult:
-    """
-    The result for a tool request that a model makes.
-
-    """
+    """The result for a tool request that a model makes."""
 
     value: ToolResultBlock
 
@@ -8593,14 +8205,12 @@ class ContentBlockToolResult:
 
 @dataclass
 class ContentBlockGuardContent:
-    """
-    Contains the content to assess with the guardrail. If you don't specify
-    ``guardContent`` in a call to the Converse API, the guardrail (if passed in the
-    Converse API) assesses the entire message.
+    """Contains the content to assess with the guardrail. If you don't specify
+    `guardContent` in a call to the Converse API, the guardrail (if passed
+    in the Converse API) assesses the entire message.
 
-    For more information, see *Use a guardrail with the Converse API* in the *Amazon
-    Bedrock User Guide*.
-
+    For more information, see *Use a guardrail with the Converse API* in the
+    *Amazon Bedrock User Guide*.
     """
 
     value: GuardrailConverseContentBlock
@@ -8622,10 +8232,7 @@ class ContentBlockGuardContent:
 
 @dataclass
 class ContentBlockCachePoint:
-    """
-    CachePoint to include in the message.
-
-    """
+    """CachePoint to include in the message."""
 
     value: CachePointBlock
 
@@ -8642,11 +8249,9 @@ class ContentBlockCachePoint:
 
 @dataclass
 class ContentBlockReasoningContent:
-    """
-    Contains content regarding the reasoning that is carried out by the model.
-    Reasoning refers to a Chain of Thought (CoT) that the model generates to enhance
-    the accuracy of its final response.
-
+    """Contains content regarding the reasoning that is carried out by the
+    model. Reasoning refers to a Chain of Thought (CoT) that the model
+    generates to enhance the accuracy of its final response.
     """
 
     value: ReasoningContentBlock
@@ -8666,10 +8271,9 @@ class ContentBlockReasoningContent:
 
 @dataclass
 class ContentBlockCitationsContent:
-    """
-    A content block that contains both generated text and associated citation
-    information, providing traceability between the response and source documents.
-
+    """A content block that contains both generated text and associated
+    citation information, providing traceability between the response and
+    source documents.
     """
 
     value: CitationsContentBlock
@@ -8723,13 +8327,12 @@ ContentBlock = Union[
     | ContentBlockCitationsContent
     | ContentBlockUnknown
 ]
-
-"""
-A block of content for a message that you pass to, or receive from, a model with
-the `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
+"""A block of content for a message that you pass to, or receive from, a
+model with the
+[Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
+or
+[ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html)
 API operations.
-
 """
 
 
@@ -8822,32 +8425,28 @@ class ConversationRole(StrEnum):
 
 @dataclass(kw_only=True)
 class Message:
-    """
-    A message input, or returned from, a call to ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_
-    or ``ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>``_
-    .
-
+    """A message input, or returned from, a call to
+    [Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
+    or
+    [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html).
     """
 
     role: str
-    """
-    The role that the message plays in the message.
-    """
+    """The role that the message plays in the message."""
 
     content: list[ContentBlock]
-    """
-    The message content. Note the following restrictions:
+    """The message content. Note the following restrictions:
 
-    * You can include up to 20 images. Each image's size, height, and width must be
-      no more than 3.75 MB, 8000 px, and 8000 px, respectively.
+    - You can include up to 20 images. Each image's size, height, and width
+      must be no more than 3.75 MB, 8000 px, and 8000 px, respectively.
 
-    * You can include up to five documents. Each document's size must be no more
-      than 4.5 MB.
+    - You can include up to five documents. Each document's size must be no
+      more than 4.5 MB.
 
-    * If you include a ``ContentBlock`` with a ``document`` field in the array, you
-      must also include a ``ContentBlock`` with a ``text`` field.
+    - If you include a `ContentBlock` with a `document` field in the array,
+      you must also include a `ContentBlock` with a `text` field.
 
-    * You can only include images and documents if the ``role`` is ``user``.
+    - You can only include images and documents if the `role` is `user`.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8916,15 +8515,10 @@ class PerformanceConfigLatency(StrEnum):
 
 @dataclass(kw_only=True)
 class PerformanceConfiguration:
-    """
-    Performance settings for a model.
-
-    """
+    """Performance settings for a model."""
 
     latency: str = "standard"
-    """
-    To use a latency-optimized version of the model, set to ``optimized``.
-    """
+    """To use a latency-optimized version of the model, set to `optimized`."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PERFORMANCE_CONFIGURATION, self)
@@ -8958,10 +8552,7 @@ class PerformanceConfiguration:
 
 @dataclass
 class PromptVariableValuesText:
-    """
-    The text value that the variable maps to.
-
-    """
+    """The text value that the variable maps to."""
 
     value: str
 
@@ -9006,13 +8597,10 @@ class PromptVariableValuesUnknown:
 
 
 PromptVariableValues = Union[PromptVariableValuesText | PromptVariableValuesUnknown]
-
-"""
-Contains a map of variables in a prompt from Prompt management to an object
-containing the values to fill in for them when running model invocation. For
-more information, see `How Prompt management works <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-how.html>`_
-.
-
+"""Contains a map of variables in a prompt from Prompt management to an
+object containing the values to fill in for them when running model
+invocation. For more information, see [How Prompt management
+works](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-how.html).
 """
 
 
@@ -9100,10 +8688,7 @@ def _deserialize_request_metadata(
 
 @dataclass
 class SystemContentBlockText:
-    """
-    A system prompt for the model.
-
-    """
+    """A system prompt for the model."""
 
     value: str
 
@@ -9124,14 +8709,14 @@ class SystemContentBlockText:
 
 @dataclass
 class SystemContentBlockGuardContent:
-    """
-    A content block to assess with the guardrail. Use with the `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-    or `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
+    """A content block to assess with the guardrail. Use with the
+    [Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
+    or
+    [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html)
     API operations.
 
-    For more information, see *Use a guardrail with the Converse API* in the *Amazon
-    Bedrock User Guide*.
-
+    For more information, see *Use a guardrail with the Converse API* in the
+    *Amazon Bedrock User Guide*.
     """
 
     value: GuardrailConverseContentBlock
@@ -9153,10 +8738,7 @@ class SystemContentBlockGuardContent:
 
 @dataclass
 class SystemContentBlockCachePoint:
-    """
-    CachePoint to include in the system prompt.
-
-    """
+    """CachePoint to include in the system prompt."""
 
     value: CachePointBlock
 
@@ -9202,10 +8784,9 @@ SystemContentBlock = Union[
     | SystemContentBlockCachePoint
     | SystemContentBlockUnknown
 ]
-
-"""
-A system content block.
-
+"""Contains configurations for instructions to provide the model for how to
+handle input. To learn more, see [Using the Converse
+API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-call.html).
 """
 
 
@@ -9272,10 +8853,11 @@ def _deserialize_system_content_blocks(
 
 @dataclass(kw_only=True)
 class AnyToolChoice:
-    """
-    The model must request at least one tool (no text is generated). For example,
-    ``{"any" : {}}``.
-
+    """The model must request at least one tool (no text is generated). For
+    example, `{"any" : {}}`. For more information, see [Call a tool with the
+    Converse
+    API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+    in the Amazon Bedrock User Guide.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9303,10 +8885,11 @@ class AnyToolChoice:
 
 @dataclass(kw_only=True)
 class AutoToolChoice:
-    """
-    The Model automatically decides if a tool should be called or whether to
-    generate text instead. For example, ``{"auto" : {}}``.
-
+    """The Model automatically decides if a tool should be called or whether to
+    generate text instead. For example, `{"auto" : {}}`. For more
+    information, see [Call a tool with the Converse
+    API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+    in the Amazon Bedrock User Guide
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9334,18 +8917,18 @@ class AutoToolChoice:
 
 @dataclass(kw_only=True)
 class SpecificToolChoice:
-    """
-    The model must request a specific tool. For example, ``{"tool" : {"name" : "Your
-    tool name"}}``.
+    """The model must request a specific tool. For example,
+    `{"tool" : {"name" : "Your tool name"}}`. For more information, see
+    [Call a tool with the Converse
+    API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+    in the Amazon Bedrock User Guide
 
-    .. note:: This field is only supported by Anthropic Claude 3 models.
-
+    Note:
+        This field is only supported by Anthropic Claude 3 models.
     """
 
     name: str
-    """
-    The name of the tool that the model must request.
-    """
+    """The name of the tool that the model must request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_SPECIFIC_TOOL_CHOICE, self)
@@ -9377,10 +8960,8 @@ class SpecificToolChoice:
 
 @dataclass
 class ToolChoiceAuto:
-    """
-    (Default). The Model automatically decides if a tool should be called or whether
-    to generate text instead.
-
+    """(Default). The Model automatically decides if a tool should be called or
+    whether to generate text instead.
     """
 
     value: AutoToolChoice
@@ -9398,10 +8979,7 @@ class ToolChoiceAuto:
 
 @dataclass
 class ToolChoiceAny:
-    """
-    The model must request at least one tool (no text is generated).
-
-    """
+    """The model must request at least one tool (no text is generated)."""
 
     value: AnyToolChoice
 
@@ -9418,10 +8996,8 @@ class ToolChoiceAny:
 
 @dataclass
 class ToolChoiceTool:
-    """
-    The Model must request the specified tool. Only supported by Anthropic Claude 3
-    models.
-
+    """The Model must request the specified tool. Only supported by Anthropic
+    Claude 3 and Amazon Nova models.
     """
 
     value: SpecificToolChoice
@@ -9461,12 +9037,11 @@ class ToolChoiceUnknown:
 
 
 ToolChoice = Union[ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool | ToolChoiceUnknown]
-
-"""
-Determines which tools the model should request in a call to ``Converse`` or
-``ConverseStream``. ``ToolChoice`` is only supported by Anthropic Claude 3
-models and by Mistral AI Mistral Large.
-
+"""Determines which tools the model should request in a call to `Converse`
+or `ConverseStream`. For more information, see [Call a tool with the
+Converse
+API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+in the Amazon Bedrock User Guide.
 """
 
 
@@ -9506,12 +9081,45 @@ class _ToolChoiceDeserializer:
         self._result = value
 
 
+@dataclass(kw_only=True)
+class SystemTool:
+    """Specifies a system-defined tool for the model to use. *System-defined
+    tools* are tools that are created and provided by the model provider.
+    """
+
+    name: str
+    """The name of the system-defined tool that you want to call."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_SYSTEM_TOOL, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_SYSTEM_TOOL.members["name"], self.name)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_SYSTEM_TOOL.members["name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_SYSTEM_TOOL, consumer=_consumer)
+        return kwargs
+
+
 @dataclass
 class ToolInputSchemaJson:
-    """
-    The JSON schema for the tool. For more information, see `JSON Schema Reference <https://json-schema.org/understanding-json-schema/reference>`_
-    .
-
+    """The JSON schema for the tool. For more information, see [JSON Schema
+    Reference](https://json-schema.org/understanding-json-schema/reference).
     """
 
     value: Document
@@ -9553,10 +9161,10 @@ class ToolInputSchemaUnknown:
 
 
 ToolInputSchema = Union[ToolInputSchemaJson | ToolInputSchemaUnknown]
-
-"""
-The schema for the tool. The top level schema type must be ``object``.
-
+"""The schema for the tool. The top level schema type must be `object`. For
+more information, see [Call a tool with the Converse
+API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+in the Amazon Bedrock User Guide.
 """
 
 
@@ -9592,25 +9200,20 @@ class _ToolInputSchemaDeserializer:
 
 @dataclass(kw_only=True)
 class ToolSpecification:
-    """
-    The specification for the tool.
-
+    """The specification for the tool. For more information, see [Call a tool
+    with the Converse
+    API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+    in the Amazon Bedrock User Guide.
     """
 
     name: str
-    """
-    The name for the tool.
-    """
+    """The name for the tool."""
 
     input_schema: ToolInputSchema
-    """
-    The input schema for the tool in JSON format.
-    """
+    """The input schema for the tool in JSON format."""
 
     description: str | None = None
-    """
-    The description for the tool.
-    """
+    """The description for the tool."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_SPECIFICATION, self)
@@ -9660,10 +9263,7 @@ class ToolSpecification:
 
 @dataclass
 class ToolToolSpec:
-    """
-    The specfication for the tool.
-
-    """
+    """The specfication for the tool."""
 
     value: ToolSpecification
 
@@ -9679,11 +9279,25 @@ class ToolToolSpec:
 
 
 @dataclass
-class ToolCachePoint:
-    """
-    CachePoint to include in the tool configuration.
+class ToolSystemTool:
+    """Specifies the system-defined tool that you want use."""
 
-    """
+    value: SystemTool
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL.members["systemTool"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=SystemTool.deserialize(deserializer))
+
+
+@dataclass
+class ToolCachePoint:
+    """CachePoint to include in the tool configuration."""
 
     value: CachePointBlock
 
@@ -9721,13 +9335,11 @@ class ToolUnknown:
         raise NotImplementedError()
 
 
-Tool = Union[ToolToolSpec | ToolCachePoint | ToolUnknown]
-
-"""
-Information about a tool that you can use with the Converse API. For more
-information, see `Tool use (function calling) <https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html>`_
+Tool = Union[ToolToolSpec | ToolSystemTool | ToolCachePoint | ToolUnknown]
+"""Information about a tool that you can use with the Converse API. For
+more information, see [Call a tool with the Converse
+API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
 in the Amazon Bedrock User Guide.
-
 """
 
 
@@ -9751,6 +9363,9 @@ class _ToolDeserializer:
                 self._set_result(ToolToolSpec.deserialize(de))
 
             case 1:
+                self._set_result(ToolSystemTool.deserialize(de))
+
+            case 2:
                 self._set_result(ToolCachePoint.deserialize(de))
 
             case _:
@@ -9789,22 +9404,17 @@ def _deserialize_tools(deserializer: ShapeDeserializer, schema: Schema) -> list[
 
 @dataclass(kw_only=True)
 class ToolConfiguration:
-    """
-    Configuration information for the tools that you pass to a model. For more
-    information, see ``Tool use (function calling) <https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html>``_
+    """Configuration information for the tools that you pass to a model. For
+    more information, see [Tool use (function
+    calling)](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
     in the Amazon Bedrock User Guide.
-
     """
 
     tools: list[Tool]
-    """
-    An array of tools that you want to pass to a model.
-    """
+    """An array of tools that you want to pass to a model."""
 
     tool_choice: ToolChoice | None = None
-    """
-    If supported by model, forces the model to request a tool.
-    """
+    """If supported by model, forces the model to request a tool."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_CONFIGURATION, self)
@@ -9845,106 +9455,117 @@ class ToolConfiguration:
 
 @dataclass(kw_only=True)
 class ConverseInput:
+    """Dataclass for ConverseInput structure."""
+
     model_id: str | None = None
-    """
-    Specifies the model or throughput with which to run inference, or the prompt
-    resource to use in inference. The value depends on the resource that you use:
+    """Specifies the model or throughput with which to run inference, or the
+    prompt resource to use in inference. The value depends on the resource
+    that you use:
 
-    * If you use a base model, specify the model ID or its ARN. For a list of model
-      IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+    - If you use a base model, specify the model ID or its ARN. For a list
+      of model IDs for base models, see [Amazon Bedrock base model IDs
+      (on-demand
+      throughput)](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns)
       in the Amazon Bedrock User Guide.
 
-    * If you use an inference profile, specify the inference profile ID or its ARN.
-      For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+    - If you use an inference profile, specify the inference profile ID or
+      its ARN. For a list of inference profile IDs, see [Supported Regions
+      and models for cross-region
+      inference](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-      For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+    - If you use a provisioned model, specify the ARN of the Provisioned
+      Throughput. For more information, see [Run inference using a
+      Provisioned
+      Throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use a custom model, first purchase Provisioned Throughput for it. Then
-      specify the ARN of the resulting provisioned model. For more information, see
-      `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+    - If you use a custom model, first purchase Provisioned Throughput for
+      it. Then specify the ARN of the resulting provisioned model. For more
+      information, see [Use a custom model in Amazon
+      Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html)
       in the Amazon Bedrock User Guide.
 
-    * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
+    - To include a prompt that was defined in [Prompt
+      management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html),
       specify the ARN of the prompt version to use.
 
-    The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
-    .
+    The Converse API doesn't support [imported
+    models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html).
     """
-    messages: list[Message] | None = None
-    """
-    The messages that you want to send to the model.
-    """
-    system: list[SystemContentBlock] | None = None
-    """
-    A prompt that provides instructions or context to the model about the task it
-    should perform, or the persona it should adopt during the conversation.
-    """
-    inference_config: InferenceConfiguration | None = None
-    """
-    Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
-    support a base set of inference parameters. If you need to pass additional
-    parameters that the model supports, use the ``additionalModelRequestFields``
-    request field.
-    """
-    tool_config: ToolConfiguration | None = None
-    """
-    Configuration information for the tools that the model can use when generating a
-    response.
 
-    For information about models that support tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
-    .
+    messages: list[Message] | None = None
+    """The messages that you want to send to the model."""
+
+    system: list[SystemContentBlock] | None = None
+    """A prompt that provides instructions or context to the model about the
+    task it should perform, or the persona it should adopt during the
+    conversation.
     """
+
+    inference_config: InferenceConfiguration | None = None
+    """Inference parameters to pass to the model. `Converse` and
+    `ConverseStream` support a base set of inference parameters. If you need
+    to pass additional parameters that the model supports, use the
+    `additionalModelRequestFields` request field.
+    """
+
+    tool_config: ToolConfiguration | None = None
+    """Configuration information for the tools that the model can use when
+    generating a response.
+
+    For information about models that support tool use, see [Supported
+    models and model
+    features](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features).
+    """
+
     guardrail_config: GuardrailConfiguration | None = None
+    """Configuration information for a guardrail that you want to use in the
+    request. If you include `guardContent` blocks in the `content` field in
+    the `messages` field, the guardrail operates only on those messages. If
+    you include no `guardContent` blocks, the guardrail operates on all
+    messages in the request body and in any included prompt resource.
     """
-    Configuration information for a guardrail that you want to use in the request.
-    If you include ``guardContent`` blocks in the ``content`` field in the
-    ``messages`` field, the guardrail operates only on those messages. If you
-    include no ``guardContent`` blocks, the guardrail operates on all messages in
-    the request body and in any included prompt resource.
-    """
+
     additional_model_request_fields: Document | None = None
+    """Additional inference parameters that the model supports, beyond the base
+    set of inference parameters that `Converse` and `ConverseStream` support
+    in the `inferenceConfig` field. For more information, see [Model
+    parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
     """
-    Additional inference parameters that the model supports, beyond the base set of
-    inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
-    """
+
     prompt_variables: dict[str, PromptVariableValues] | None = field(
         repr=False, default=None
     )
+    """Contains a map of variables in a prompt from Prompt management to
+    objects containing the values to fill in for them when running model
+    invocation. This field is ignored if you don't specify a prompt
+    resource in the `modelId` field.
     """
-    Contains a map of variables in a prompt from Prompt management to objects
-    containing the values to fill in for them when running model invocation. This
-    field is ignored if you don't specify a prompt resource in the ``modelId``
-    field.
-    """
+
     additional_model_response_field_paths: list[str] | None = None
+    """Additional model parameters field paths to return in the response.
+    `Converse` and `ConverseStream` return the requested fields as a JSON
+    Pointer object in the `additionalModelResponseFields` field. The
+    following is example JSON for `additionalModelResponseFieldPaths`.
+
+    `[ "/stop_sequence" ]`
+
+    For information about the JSON Pointer syntax, see the [Internet
+    Engineering Task Force
+    (IETF)](https://datatracker.ietf.org/doc/html/rfc6901) documentation.
+
+    `Converse` and `ConverseStream` reject an empty JSON Pointer or
+    incorrectly structured JSON Pointer with a `400` error code. if the JSON
+    Pointer is valid, but the requested field is not in the model response,
+    it is ignored by `Converse`.
     """
-    Additional model parameters field paths to return in the response. ``Converse``
-    and ``ConverseStream`` return the requested fields as a JSON Pointer object in
-    the ``additionalModelResponseFields`` field. The following is example JSON for
-    ``additionalModelResponseFieldPaths``.
 
-    ``[ "/stop_sequence" ]``
-
-    For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
-    documentation.
-
-    ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
-    structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
-    but the requested field is not in the model response, it is ignored by
-    ``Converse``.
-    """
     request_metadata: dict[str, str] | None = field(repr=False, default=None)
-    """
-    Key-value pairs that you can use to filter invocation logs.
-    """
+    """Key-value pairs that you can use to filter invocation logs."""
+
     performance_config: PerformanceConfiguration | None = None
-    """
-    Model performance settings for the request.
-    """
+    """Model performance settings for the request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_INPUT, self)
@@ -10086,16 +9707,12 @@ class ConverseInput:
 
 @dataclass(kw_only=True)
 class ConverseMetrics:
-    """
-    Metrics for a call to ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_
-    .
-
+    """Metrics for a call to
+    [Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html).
     """
 
     latency_ms: int
-    """
-    The latency of the call to ``Converse``, in milliseconds.
-    """
+    """The latency of the call to `Converse`, in milliseconds."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_METRICS, self)
@@ -10129,10 +9746,7 @@ class ConverseMetrics:
 
 @dataclass
 class ConverseOutputMessage:
-    """
-    The message that the model generates.
-
-    """
+    """The message that the model generates."""
 
     value: Message
 
@@ -10171,11 +9785,8 @@ class ConverseOutputUnknown:
 
 
 ConverseOutput = Union[ConverseOutputMessage | ConverseOutputUnknown]
-
-"""
-The output from a call to `Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>`_
-.
-
+"""The output from a call to
+[Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html).
 """
 
 
@@ -10303,26 +9914,22 @@ def _deserialize_guardrail_assessment_list_map(
 
 @dataclass(kw_only=True)
 class GuardrailTraceAssessment:
-    """
-    A Top level guardrail trace object. For more information, see ``ConverseTrace``.
-
+    """A Top level guardrail trace object. For more information, see
+    [ConverseTrace](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseTrace.html).
     """
 
     model_output: list[str] | None = None
-    """
-    The output from the model.
-    """
+    """The output from the model."""
+
     input_assessment: dict[str, GuardrailAssessment] | None = None
-    """
-    The input assessment.
-    """
+    """The input assessment."""
+
     output_assessments: dict[str, list[GuardrailAssessment]] | None = None
-    """
-    the output assessments.
-    """
+    """the output assessments."""
+
     action_reason: str | None = None
-    """
-    Provides the reason for the action taken when harmful content is detected.
+    """Provides the reason for the action taken when harmful content is
+    detected.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -10401,15 +10008,10 @@ class GuardrailTraceAssessment:
 
 @dataclass(kw_only=True)
 class PromptRouterTrace:
-    """
-    A prompt router trace.
-
-    """
+    """A prompt router trace."""
 
     invoked_model_id: str | None = None
-    """
-    The ID of the invoked model.
-    """
+    """The ID of the invoked model."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PROMPT_ROUTER_TRACE, self)
@@ -10445,20 +10047,15 @@ class PromptRouterTrace:
 
 @dataclass(kw_only=True)
 class ConverseTrace:
-    """
-    The trace object in a response from ``Converse <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>``_.
-    Currently, you can only trace guardrails.
-
+    """The trace object in a response from
+    [Converse](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html).
     """
 
     guardrail: GuardrailTraceAssessment | None = None
-    """
-    The guardrail trace object.
-    """
+    """The guardrail trace object."""
+
     prompt_router: PromptRouterTrace | None = None
-    """
-    The request's prompt router.
-    """
+    """The request's prompt router."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_TRACE, self)
@@ -10499,34 +10096,22 @@ class ConverseTrace:
 
 @dataclass(kw_only=True)
 class TokenUsage:
-    """
-    The tokens used in a message API inference call.
-
-    """
+    """The tokens used in a message API inference call."""
 
     input_tokens: int
-    """
-    The number of tokens sent in the request to the model.
-    """
+    """The number of tokens sent in the request to the model."""
 
     output_tokens: int
-    """
-    The number of tokens that the model generated for the request.
-    """
+    """The number of tokens that the model generated for the request."""
 
     total_tokens: int
-    """
-    The total of input tokens and tokens generated by the model.
-    """
+    """The total of input tokens and tokens generated by the model."""
 
     cache_read_input_tokens: int | None = None
-    """
-    The number of input tokens read from the cache for the request.
-    """
+    """The number of input tokens read from the cache for the request."""
+
     cache_write_input_tokens: int | None = None
-    """
-    The number of input tokens written to the cache for the request.
-    """
+    """The number of input tokens written to the cache for the request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOKEN_USAGE, self)
@@ -10597,39 +10182,31 @@ class TokenUsage:
 
 @dataclass(kw_only=True)
 class ConverseOperationOutput:
+    """Dataclass for ConverseOperationOutput structure."""
+
     output: ConverseOutput
-    """
-    The result from the call to ``Converse``.
-    """
+    """The result from the call to `Converse`."""
 
     stop_reason: str
-    """
-    The reason why the model stopped generating output.
-    """
+    """The reason why the model stopped generating output."""
 
     usage: TokenUsage
-    """
-    The total number of tokens used in the call to ``Converse``. The total includes
-    the tokens input to the model and the tokens generated by the model.
+    """The total number of tokens used in the call to `Converse`. The total
+    includes the tokens input to the model and the tokens generated by the
+    model.
     """
 
     metrics: ConverseMetrics
-    """
-    Metrics for the call to ``Converse``.
-    """
+    """Metrics for the call to `Converse`."""
 
     additional_model_response_fields: Document | None = None
-    """
-    Additional fields in the response that are unique to the model.
-    """
+    """Additional fields in the response that are unique to the model."""
+
     trace: ConverseTrace | None = None
-    """
-    A trace object that contains information about the Guardrail behavior.
-    """
+    """A trace object that contains information about the Guardrail behavior."""
+
     performance_config: PerformanceConfiguration | None = None
-    """
-    Model performance settings for the request.
-    """
+    """Model performance settings for the request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_OPERATION_OUTPUT, self)
@@ -10714,21 +10291,15 @@ class ConverseOperationOutput:
 
 @dataclass(kw_only=True)
 class ModelErrorException(ServiceError):
-    """
-    The request failed due to an error while processing the model.
-
-    """
+    """The request failed due to an error while processing the model."""
 
     fault: Literal["client", "server"] | None = "client"
 
     original_status_code: int | None = None
-    """
-    The original status code.
-    """
+    """The original status code."""
+
     resource_name: str | None = None
-    """
-    The resource name.
-    """
+    """The resource name."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MODEL_ERROR_EXCEPTION, self)
@@ -10785,12 +10356,11 @@ class ModelErrorException(ServiceError):
 
 @dataclass(kw_only=True)
 class ModelNotReadyException(ServiceError):
-    """
-    The model specified in the request is not ready to serve inference requests. The
-    AWS SDK will automatically retry the operation up to 5 times. For information
-    about configuring automatic retries, see ``Retry behavior <https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html>``_
+    """The model specified in the request is not ready to serve inference
+    requests. The AWS SDK will automatically retry the operation up to 5
+    times. For information about configuring automatic retries, see [Retry
+    behavior](https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html)
     in the *AWS SDKs and Tools* reference guide.
-
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -10829,10 +10399,8 @@ class ModelNotReadyException(ServiceError):
 
 @dataclass(kw_only=True)
 class ModelTimeoutException(ServiceError):
-    """
-    The request took too long to process. Processing time exceeded the model timeout
-    length.
-
+    """The request took too long to process. Processing time exceeded the model
+    timeout length.
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -10919,32 +10487,25 @@ class GuardrailStreamProcessingMode(StrEnum):
 
 @dataclass(kw_only=True)
 class GuardrailStreamConfiguration:
-    """
-    Configuration information for a guardrail that you use with the
-    ``ConverseStream`` action.
-
+    """Configuration information for a guardrail that you use with the
+    [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html)
+    action.
     """
 
     guardrail_identifier: str
-    """
-    The identifier for the guardrail.
-    """
+    """The identifier for the guardrail."""
 
     guardrail_version: str
-    """
-    The version of the guardrail.
-    """
+    """The version of the guardrail."""
 
     trace: str = "disabled"
-    """
-    The trace behavior for the guardrail.
-    """
-    stream_processing_mode: str = "sync"
-    """
-    The processing mode.
+    """The trace behavior for the guardrail."""
 
-    The processing mode. For more information, see *Configure streaming response
-    behavior* in the *Amazon Bedrock User Guide*.
+    stream_processing_mode: str = "sync"
+    """The processing mode.
+
+    The processing mode. For more information, see *Configure streaming
+    response behavior* in the *Amazon Bedrock User Guide*.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -11014,106 +10575,117 @@ class GuardrailStreamConfiguration:
 
 @dataclass(kw_only=True)
 class ConverseStreamInput:
+    """Dataclass for ConverseStreamInput structure."""
+
     model_id: str | None = None
-    """
-    Specifies the model or throughput with which to run inference, or the prompt
-    resource to use in inference. The value depends on the resource that you use:
+    """Specifies the model or throughput with which to run inference, or the
+    prompt resource to use in inference. The value depends on the resource
+    that you use:
 
-    * If you use a base model, specify the model ID or its ARN. For a list of model
-      IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+    - If you use a base model, specify the model ID or its ARN. For a list
+      of model IDs for base models, see [Amazon Bedrock base model IDs
+      (on-demand
+      throughput)](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns)
       in the Amazon Bedrock User Guide.
 
-    * If you use an inference profile, specify the inference profile ID or its ARN.
-      For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+    - If you use an inference profile, specify the inference profile ID or
+      its ARN. For a list of inference profile IDs, see [Supported Regions
+      and models for cross-region
+      inference](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-      For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+    - If you use a provisioned model, specify the ARN of the Provisioned
+      Throughput. For more information, see [Run inference using a
+      Provisioned
+      Throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use a custom model, first purchase Provisioned Throughput for it. Then
-      specify the ARN of the resulting provisioned model. For more information, see
-      `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+    - If you use a custom model, first purchase Provisioned Throughput for
+      it. Then specify the ARN of the resulting provisioned model. For more
+      information, see [Use a custom model in Amazon
+      Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html)
       in the Amazon Bedrock User Guide.
 
-    * To include a prompt that was defined in `Prompt management <https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html>`_,
+    - To include a prompt that was defined in [Prompt
+      management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html),
       specify the ARN of the prompt version to use.
 
-    The Converse API doesn't support `imported models <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_
-    .
+    The Converse API doesn't support [imported
+    models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html).
     """
-    messages: list[Message] | None = None
-    """
-    The messages that you want to send to the model.
-    """
-    system: list[SystemContentBlock] | None = None
-    """
-    A prompt that provides instructions or context to the model about the task it
-    should perform, or the persona it should adopt during the conversation.
-    """
-    inference_config: InferenceConfiguration | None = None
-    """
-    Inference parameters to pass to the model. ``Converse`` and ``ConverseStream``
-    support a base set of inference parameters. If you need to pass additional
-    parameters that the model supports, use the ``additionalModelRequestFields``
-    request field.
-    """
-    tool_config: ToolConfiguration | None = None
-    """
-    Configuration information for the tools that the model can use when generating a
-    response.
 
-    For information about models that support streaming tool use, see `Supported models and model features <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features>`_
-    .
+    messages: list[Message] | None = None
+    """The messages that you want to send to the model."""
+
+    system: list[SystemContentBlock] | None = None
+    """A prompt that provides instructions or context to the model about the
+    task it should perform, or the persona it should adopt during the
+    conversation.
     """
+
+    inference_config: InferenceConfiguration | None = None
+    """Inference parameters to pass to the model. `Converse` and
+    `ConverseStream` support a base set of inference parameters. If you need
+    to pass additional parameters that the model supports, use the
+    `additionalModelRequestFields` request field.
+    """
+
+    tool_config: ToolConfiguration | None = None
+    """Configuration information for the tools that the model can use when
+    generating a response.
+
+    For information about models that support streaming tool use, see
+    [Supported models and model
+    features](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features).
+    """
+
     guardrail_config: GuardrailStreamConfiguration | None = None
+    """Configuration information for a guardrail that you want to use in the
+    request. If you include `guardContent` blocks in the `content` field in
+    the `messages` field, the guardrail operates only on those messages. If
+    you include no `guardContent` blocks, the guardrail operates on all
+    messages in the request body and in any included prompt resource.
     """
-    Configuration information for a guardrail that you want to use in the request.
-    If you include ``guardContent`` blocks in the ``content`` field in the
-    ``messages`` field, the guardrail operates only on those messages. If you
-    include no ``guardContent`` blocks, the guardrail operates on all messages in
-    the request body and in any included prompt resource.
-    """
+
     additional_model_request_fields: Document | None = None
+    """Additional inference parameters that the model supports, beyond the base
+    set of inference parameters that `Converse` and `ConverseStream` support
+    in the `inferenceConfig` field. For more information, see [Model
+    parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
     """
-    Additional inference parameters that the model supports, beyond the base set of
-    inference parameters that ``Converse`` and ``ConverseStream`` support in the ``inferenceConfig`` field. For more information, see `Model parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
-    """
+
     prompt_variables: dict[str, PromptVariableValues] | None = field(
         repr=False, default=None
     )
+    """Contains a map of variables in a prompt from Prompt management to
+    objects containing the values to fill in for them when running model
+    invocation. This field is ignored if you don't specify a prompt
+    resource in the `modelId` field.
     """
-    Contains a map of variables in a prompt from Prompt management to objects
-    containing the values to fill in for them when running model invocation. This
-    field is ignored if you don't specify a prompt resource in the ``modelId``
-    field.
-    """
+
     additional_model_response_field_paths: list[str] | None = None
+    """Additional model parameters field paths to return in the response.
+    `Converse` and `ConverseStream` return the requested fields as a JSON
+    Pointer object in the `additionalModelResponseFields` field. The
+    following is example JSON for `additionalModelResponseFieldPaths`.
+
+    `[ "/stop_sequence" ]`
+
+    For information about the JSON Pointer syntax, see the [Internet
+    Engineering Task Force
+    (IETF)](https://datatracker.ietf.org/doc/html/rfc6901) documentation.
+
+    `Converse` and `ConverseStream` reject an empty JSON Pointer or
+    incorrectly structured JSON Pointer with a `400` error code. if the JSON
+    Pointer is valid, but the requested field is not in the model response,
+    it is ignored by `Converse`.
     """
-    Additional model parameters field paths to return in the response. ``Converse``
-    and ``ConverseStream`` return the requested fields as a JSON Pointer object in
-    the ``additionalModelResponseFields`` field. The following is example JSON for
-    ``additionalModelResponseFieldPaths``.
 
-    ``[ "/stop_sequence" ]``
-
-    For information about the JSON Pointer syntax, see the `Internet Engineering Task Force (IETF) <https://datatracker.ietf.org/doc/html/rfc6901>`_
-    documentation.
-
-    ``Converse`` and ``ConverseStream`` reject an empty JSON Pointer or incorrectly
-    structured JSON Pointer with a ``400`` error code. if the JSON Pointer is valid,
-    but the requested field is not in the model response, it is ignored by
-    ``Converse``.
-    """
     request_metadata: dict[str, str] | None = field(repr=False, default=None)
-    """
-    Key-value pairs that you can use to filter invocation logs.
-    """
+    """Key-value pairs that you can use to filter invocation logs."""
+
     performance_config: PerformanceConfiguration | None = None
-    """
-    Model performance settings for the request.
-    """
+    """Model performance settings for the request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_INPUT, self)
@@ -11265,16 +10837,13 @@ class ConverseStreamInput:
 
 @dataclass(kw_only=True)
 class CitationSourceContentDelta:
-    """
-    Contains incremental updates to the source content text during streaming
+    """Contains incremental updates to the source content text during streaming
     responses, allowing clients to build up the cited content progressively.
-
     """
 
     text: str | None = None
-    """
-    An incremental update to the text content from the source document that is being
-    cited.
+    """An incremental update to the text content from the source document that
+    is being cited.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -11337,27 +10906,24 @@ def _deserialize_citation_source_content_list_delta(
 
 @dataclass(kw_only=True)
 class CitationsDelta:
-    """
-    Contains incremental updates to citation information during streaming responses.
-    This allows clients to build up citation data progressively as the response is
-    generated.
-
+    """Contains incremental updates to citation information during streaming
+    responses. This allows clients to build up citation data progressively
+    as the response is generated.
     """
 
     title: str | None = None
-    """
-    The title or identifier of the source document being cited.
-    """
+    """The title or identifier of the source document being cited."""
+
     source_content: list[CitationSourceContentDelta] | None = None
+    """The specific content from the source document that was referenced or
+    cited in the generated response.
     """
-    The specific content from the source document that was referenced or cited in
-    the generated response.
-    """
+
     location: CitationLocation | None = None
-    """
-    Specifies the precise location within a source document where cited content can
-    be found. This can include character-level positions, page numbers, or document
-    chunks depending on the document type and indexing method.
+    """Specifies the precise location within a source document where cited
+    content can be found. This can include character-level positions, page
+    numbers, or document chunks depending on the document type and indexing
+    method.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -11415,10 +10981,7 @@ class CitationsDelta:
 
 @dataclass
 class ReasoningContentBlockDeltaText:
-    """
-    The reasoning that the model used to return the output.
-
-    """
+    """The reasoning that the model used to return the output."""
 
     value: str
 
@@ -11441,10 +11004,9 @@ class ReasoningContentBlockDeltaText:
 
 @dataclass
 class ReasoningContentBlockDeltaRedactedContent:
-    """
-    The content in the reasoning that was encrypted by the model provider for safety
-    reasons. The encryption doesn't affect the quality of responses.
-
+    """The content in the reasoning that was encrypted by the model provider
+    for safety reasons. The encryption doesn't affect the quality of
+    responses.
     """
 
     value: bytes
@@ -11468,11 +11030,9 @@ class ReasoningContentBlockDeltaRedactedContent:
 
 @dataclass
 class ReasoningContentBlockDeltaSignature:
-    """
-    A token that verifies that the reasoning text was generated by the model. If you
-    pass a reasoning block back to the API in a multi-turn conversation, include the
-    text and its signature unmodified.
-
+    """A token that verifies that the reasoning text was generated by the
+    model. If you pass a reasoning block back to the API in a multi-turn
+    conversation, include the text and its signature unmodified.
     """
 
     value: str
@@ -11523,13 +11083,10 @@ ReasoningContentBlockDelta = Union[
     | ReasoningContentBlockDeltaSignature
     | ReasoningContentBlockDeltaUnknown
 ]
-
-"""
-Contains content regarding the reasoning that is carried out by the model with
-respect to the content in the content block. Reasoning refers to a Chain of
-Thought (CoT) that the model generates to enhance the accuracy of its final
-response.
-
+"""Contains content regarding the reasoning that is carried out by the
+model with respect to the content in the content block. Reasoning refers
+to a Chain of Thought (CoT) that the model generates to enhance the
+accuracy of its final response.
 """
 
 
@@ -11573,17 +11130,120 @@ class _ReasoningContentBlockDeltaDeserializer:
         self._result = value
 
 
+@dataclass
+class ToolResultBlockDeltaText:
+    """The reasoning the model used to return the output."""
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL_RESULT_BLOCK_DELTA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_TOOL_RESULT_BLOCK_DELTA.members["text"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_TOOL_RESULT_BLOCK_DELTA.members["text"]
+            )
+        )
+
+
+@dataclass
+class ToolResultBlockDeltaUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+ToolResultBlockDelta = Union[ToolResultBlockDeltaText | ToolResultBlockDeltaUnknown]
+"""Contains incremental updates to tool results information during
+streaming responses. This allows clients to build up tool results data
+progressively as the response is generated.
+"""
+
+
+class _ToolResultBlockDeltaDeserializer:
+    _result: ToolResultBlockDelta | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> ToolResultBlockDelta:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_TOOL_RESULT_BLOCK_DELTA, self._consumer)
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(ToolResultBlockDeltaText.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: ToolResultBlockDelta) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+def _serialize_tool_result_blocks_delta(
+    serializer: ShapeSerializer, schema: Schema, value: list[ToolResultBlockDelta]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_tool_result_blocks_delta(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[ToolResultBlockDelta]:
+    result: list[ToolResultBlockDelta] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(_ToolResultBlockDeltaDeserializer().deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
 @dataclass(kw_only=True)
 class ToolUseBlockDelta:
-    """
-    The delta for a tool use block.
-
-    """
+    """The delta for a tool use block."""
 
     input: str
-    """
-    The input for a requested tool.
-    """
+    """The input for a requested tool."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK_DELTA, self)
@@ -11617,10 +11277,7 @@ class ToolUseBlockDelta:
 
 @dataclass
 class ContentBlockDeltaText:
-    """
-    The content text.
-
-    """
+    """The content text."""
 
     value: str
 
@@ -11639,10 +11296,7 @@ class ContentBlockDeltaText:
 
 @dataclass
 class ContentBlockDeltaToolUse:
-    """
-    Information about a tool that the model is requesting to use.
-
-    """
+    """Information about a tool that the model is requesting to use."""
 
     value: ToolUseBlockDelta
 
@@ -11660,12 +11314,33 @@ class ContentBlockDeltaToolUse:
 
 
 @dataclass
-class ContentBlockDeltaReasoningContent:
-    """
-    Contains content regarding the reasoning that is carried out by the model.
-    Reasoning refers to a Chain of Thought (CoT) that the model generates to enhance
-    the accuracy of its final response.
+class ContentBlockDeltaToolResult:
+    """An incremental update that contains the results from a tool call."""
 
+    value: list[ToolResultBlockDelta]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        _serialize_tool_result_blocks_delta(
+            serializer, _SCHEMA_CONTENT_BLOCK_DELTA.members["toolResult"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=_deserialize_tool_result_blocks_delta(
+                deserializer, _SCHEMA_CONTENT_BLOCK_DELTA.members["toolResult"]
+            )
+        )
+
+
+@dataclass
+class ContentBlockDeltaReasoningContent:
+    """Contains content regarding the reasoning that is carried out by the
+    model. Reasoning refers to a Chain of Thought (CoT) that the model
+    generates to enhance the accuracy of its final response.
     """
 
     value: ReasoningContentBlockDelta
@@ -11687,10 +11362,8 @@ class ContentBlockDeltaReasoningContent:
 
 @dataclass
 class ContentBlockDeltaCitation:
-    """
-    Incremental citation information that is streamed as part of the response
-    generation process.
-
+    """Incremental citation information that is streamed as part of the
+    response generation process.
     """
 
     value: CitationsDelta
@@ -11734,15 +11407,12 @@ class ContentBlockDeltaUnknown:
 ContentBlockDelta = Union[
     ContentBlockDeltaText
     | ContentBlockDeltaToolUse
+    | ContentBlockDeltaToolResult
     | ContentBlockDeltaReasoningContent
     | ContentBlockDeltaCitation
     | ContentBlockDeltaUnknown
 ]
-
-"""
-A block of content in a streaming response.
-
-"""
+"""A block of content in a streaming response."""
 
 
 class _ContentBlockDeltaDeserializer:
@@ -11768,9 +11438,12 @@ class _ContentBlockDeltaDeserializer:
                 self._set_result(ContentBlockDeltaToolUse.deserialize(de))
 
             case 2:
-                self._set_result(ContentBlockDeltaReasoningContent.deserialize(de))
+                self._set_result(ContentBlockDeltaToolResult.deserialize(de))
 
             case 3:
+                self._set_result(ContentBlockDeltaReasoningContent.deserialize(de))
+
+            case 4:
                 self._set_result(ContentBlockDeltaCitation.deserialize(de))
 
             case _:
@@ -11786,20 +11459,13 @@ class _ContentBlockDeltaDeserializer:
 
 @dataclass(kw_only=True)
 class ContentBlockDeltaEvent:
-    """
-    The content block delta event.
-
-    """
+    """The content block delta event."""
 
     delta: ContentBlockDelta
-    """
-    The delta for a content block delta event.
-    """
+    """The delta for a content block delta event."""
 
     content_block_index: int
-    """
-    The block index for a content block delta event.
-    """
+    """The block index for a content block delta event."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA_EVENT, self)
@@ -11839,21 +11505,87 @@ class ContentBlockDeltaEvent:
 
 
 @dataclass(kw_only=True)
-class ToolUseBlockStart:
-    """
-    The start of a tool use block.
-
+class ToolResultBlockStart:
+    """The start of a tool result block. For more information, see [Call a tool
+    with the Converse
+    API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+    in the Amazon Bedrock User Guide.
     """
 
     tool_use_id: str
-    """
-    The ID for the tool request.
+    """The ID of the tool that was used to generate this tool result block."""
+
+    type: str | None = None
+    """The type for the tool that was used to generate this tool result block."""
+
+    status: str | None = None
+    """The status of the tool result block."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL_RESULT_BLOCK_START, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_TOOL_RESULT_BLOCK_START.members["toolUseId"], self.tool_use_id
+        )
+        if self.type is not None:
+            serializer.write_string(
+                _SCHEMA_TOOL_RESULT_BLOCK_START.members["type"], self.type
+            )
+
+        if self.status is not None:
+            serializer.write_string(
+                _SCHEMA_TOOL_RESULT_BLOCK_START.members["status"], self.status
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["tool_use_id"] = de.read_string(
+                        _SCHEMA_TOOL_RESULT_BLOCK_START.members["toolUseId"]
+                    )
+
+                case 1:
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_TOOL_RESULT_BLOCK_START.members["type"]
+                    )
+
+                case 2:
+                    kwargs["status"] = de.read_string(
+                        _SCHEMA_TOOL_RESULT_BLOCK_START.members["status"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_TOOL_RESULT_BLOCK_START, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class ToolUseBlockStart:
+    """The start of a tool use block. For more information, see [Call a tool
+    with the Converse
+    API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)
+    in the Amazon Bedrock User Guide.
     """
 
+    tool_use_id: str
+    """The ID for the tool request."""
+
     name: str
-    """
-    The name of the tool that the model is requesting to use.
-    """
+    """The name of the tool that the model is requesting to use."""
+
+    type: str | None = None
+    """The type for the tool request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_TOOL_USE_BLOCK_START, self)
@@ -11863,6 +11595,10 @@ class ToolUseBlockStart:
             _SCHEMA_TOOL_USE_BLOCK_START.members["toolUseId"], self.tool_use_id
         )
         serializer.write_string(_SCHEMA_TOOL_USE_BLOCK_START.members["name"], self.name)
+        if self.type is not None:
+            serializer.write_string(
+                _SCHEMA_TOOL_USE_BLOCK_START.members["type"], self.type
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -11884,6 +11620,11 @@ class ToolUseBlockStart:
                         _SCHEMA_TOOL_USE_BLOCK_START.members["name"]
                     )
 
+                case 2:
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_TOOL_USE_BLOCK_START.members["type"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -11893,10 +11634,7 @@ class ToolUseBlockStart:
 
 @dataclass
 class ContentBlockStartToolUse:
-    """
-    Information about a tool that the model is requesting to use.
-
-    """
+    """Information about a tool that the model is requesting to use."""
 
     value: ToolUseBlockStart
 
@@ -11911,6 +11649,25 @@ class ContentBlockStartToolUse:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ToolUseBlockStart.deserialize(deserializer))
+
+
+@dataclass
+class ContentBlockStartToolResult:
+    """The"""
+
+    value: ToolResultBlockStart
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_START, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_START.members["toolResult"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=ToolResultBlockStart.deserialize(deserializer))
 
 
 @dataclass
@@ -11936,12 +11693,10 @@ class ContentBlockStartUnknown:
         raise NotImplementedError()
 
 
-ContentBlockStart = Union[ContentBlockStartToolUse | ContentBlockStartUnknown]
-
-"""
-Content block start information.
-
-"""
+ContentBlockStart = Union[
+    ContentBlockStartToolUse | ContentBlockStartToolResult | ContentBlockStartUnknown
+]
+"""Content block start information."""
 
 
 class _ContentBlockStartDeserializer:
@@ -11963,6 +11718,9 @@ class _ContentBlockStartDeserializer:
             case 0:
                 self._set_result(ContentBlockStartToolUse.deserialize(de))
 
+            case 1:
+                self._set_result(ContentBlockStartToolResult.deserialize(de))
+
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
@@ -11976,20 +11734,13 @@ class _ContentBlockStartDeserializer:
 
 @dataclass(kw_only=True)
 class ContentBlockStartEvent:
-    """
-    Content block start event.
-
-    """
+    """Content block start event."""
 
     start: ContentBlockStart
-    """
-    Start information about a content block start event.
-    """
+    """Start information about a content block start event."""
 
     content_block_index: int
-    """
-    The index for a content block start event.
-    """
+    """The index for a content block start event."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_START_EVENT, self)
@@ -12030,15 +11781,10 @@ class ContentBlockStartEvent:
 
 @dataclass(kw_only=True)
 class ContentBlockStopEvent:
-    """
-    A content block stop event.
-
-    """
+    """A content block stop event."""
 
     content_block_index: int
-    """
-    The index for a content block.
-    """
+    """The index for a content block."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONTENT_BLOCK_STOP_EVENT, self)
@@ -12073,15 +11819,10 @@ class ContentBlockStopEvent:
 
 @dataclass(kw_only=True)
 class MessageStartEvent:
-    """
-    The start of a message.
-
-    """
+    """The start of a message."""
 
     role: str
-    """
-    The role for the message.
-    """
+    """The role for the message."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MESSAGE_START_EVENT, self)
@@ -12113,20 +11854,13 @@ class MessageStartEvent:
 
 @dataclass(kw_only=True)
 class MessageStopEvent:
-    """
-    The stop event for a message.
-
-    """
+    """The stop event for a message."""
 
     stop_reason: str
-    """
-    The reason why the model stopped generating output.
-    """
+    """The reason why the model stopped generating output."""
 
     additional_model_response_fields: Document | None = None
-    """
-    The additional model response fields.
-    """
+    """The additional model response fields."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MESSAGE_STOP_EVENT, self)
@@ -12172,15 +11906,10 @@ class MessageStopEvent:
 
 @dataclass(kw_only=True)
 class ConverseStreamMetrics:
-    """
-    Metrics for the stream.
-
-    """
+    """Metrics for the stream."""
 
     latency_ms: int
-    """
-    The latency for the streaming request, in milliseconds.
-    """
+    """The latency for the streaming request, in milliseconds."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_METRICS, self)
@@ -12214,20 +11943,15 @@ class ConverseStreamMetrics:
 
 @dataclass(kw_only=True)
 class ConverseStreamTrace:
-    """
-    The trace object in a response from ``ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>``_.
-    Currently, you can only trace guardrails.
-
+    """The trace object in a response from
+    [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html).
     """
 
     guardrail: GuardrailTraceAssessment | None = None
-    """
-    The guardrail trace object.
-    """
+    """The guardrail trace object."""
+
     prompt_router: PromptRouterTrace | None = None
-    """
-    The request's prompt router.
-    """
+    """The request's prompt router."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_TRACE, self)
@@ -12269,29 +11993,23 @@ class ConverseStreamTrace:
 
 @dataclass(kw_only=True)
 class ConverseStreamMetadataEvent:
-    """
-    A conversation stream metadata event.
-
-    """
+    """A conversation stream metadata event."""
 
     usage: TokenUsage
-    """
-    Usage information for the conversation stream event.
-    """
+    """Usage information for the conversation stream event."""
 
     metrics: ConverseStreamMetrics
-    """
-    The metrics for the conversation stream metadata event.
-    """
+    """The metrics for the conversation stream metadata event."""
 
     trace: ConverseStreamTrace | None = None
-    """
-    The trace object in the response from `ConverseStream <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html>`_
+    """The trace object in the response from
+    [ConverseStream](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html)
     that contains information about the guardrail behavior.
     """
+
     performance_config: PerformanceConfiguration | None = None
-    """
-    Model performance configuration metadata for the conversation stream event.
+    """Model performance configuration metadata for the conversation stream
+    event.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -12350,21 +12068,15 @@ class ConverseStreamMetadataEvent:
 
 @dataclass(kw_only=True)
 class ModelStreamErrorException(ServiceError):
-    """
-    An error occurred while streaming the response. Retry your request.
-
-    """
+    """An error occurred while streaming the response. Retry your request."""
 
     fault: Literal["client", "server"] | None = "client"
 
     original_status_code: int | None = None
-    """
-    The original status code.
-    """
+    """The original status code."""
+
     original_message: str | None = None
-    """
-    The original message.
-    """
+    """The original message."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MODEL_STREAM_ERROR_EXCEPTION, self)
@@ -12425,10 +12137,7 @@ class ModelStreamErrorException(ServiceError):
 
 @dataclass
 class ConverseStreamOutputMessageStart:
-    """
-    Message start information.
-
-    """
+    """Message start information."""
 
     value: MessageStartEvent
 
@@ -12447,10 +12156,7 @@ class ConverseStreamOutputMessageStart:
 
 @dataclass
 class ConverseStreamOutputContentBlockStart:
-    """
-    Start information for a content block.
-
-    """
+    """Start information for a content block."""
 
     value: ContentBlockStartEvent
 
@@ -12469,10 +12175,7 @@ class ConverseStreamOutputContentBlockStart:
 
 @dataclass
 class ConverseStreamOutputContentBlockDelta:
-    """
-    The messages output content block delta.
-
-    """
+    """The messages output content block delta."""
 
     value: ContentBlockDeltaEvent
 
@@ -12491,10 +12194,7 @@ class ConverseStreamOutputContentBlockDelta:
 
 @dataclass
 class ConverseStreamOutputContentBlockStop:
-    """
-    Stop information for a content block.
-
-    """
+    """Stop information for a content block."""
 
     value: ContentBlockStopEvent
 
@@ -12513,10 +12213,7 @@ class ConverseStreamOutputContentBlockStop:
 
 @dataclass
 class ConverseStreamOutputMessageStop:
-    """
-    Message stop information.
-
-    """
+    """Message stop information."""
 
     value: MessageStopEvent
 
@@ -12535,10 +12232,7 @@ class ConverseStreamOutputMessageStop:
 
 @dataclass
 class ConverseStreamOutputMetadata:
-    """
-    Metadata for the converse output stream.
-
-    """
+    """Metadata for the converse output stream."""
 
     value: ConverseStreamMetadataEvent
 
@@ -12557,10 +12251,7 @@ class ConverseStreamOutputMetadata:
 
 @dataclass
 class ConverseStreamOutputInternalServerException:
-    """
-    An internal server error occurred. Retry your request.
-
-    """
+    """An internal server error occurred. Retry your request."""
 
     value: InternalServerException
 
@@ -12580,10 +12271,7 @@ class ConverseStreamOutputInternalServerException:
 
 @dataclass
 class ConverseStreamOutputModelStreamErrorException:
-    """
-    A streaming error occurred. Retry your request.
-
-    """
+    """A streaming error occurred. Retry your request."""
 
     value: ModelStreamErrorException
 
@@ -12603,11 +12291,10 @@ class ConverseStreamOutputModelStreamErrorException:
 
 @dataclass
 class ConverseStreamOutputValidationException:
-    """
-    The input fails to satisfy the constraints specified by *Amazon Bedrock*. For
-    troubleshooting this error, see `ValidationError <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-validation-error>`_
-    in the Amazon Bedrock User Guide
-
+    """The input fails to satisfy the constraints specified by *Amazon
+    Bedrock*. For troubleshooting this error, see
+    [ValidationError](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-validation-error)
+    in the Amazon Bedrock User Guide.
     """
 
     value: ValidationException
@@ -12627,11 +12314,10 @@ class ConverseStreamOutputValidationException:
 
 @dataclass
 class ConverseStreamOutputThrottlingException:
-    """
-    Your request was denied due to exceeding the account quotas for *Amazon
-    Bedrock*. For troubleshooting this error, see `ThrottlingException <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-throttling-exception>`_
-    in the Amazon Bedrock User Guide
-
+    """Your request was denied due to exceeding the account quotas for *Amazon
+    Bedrock*. For troubleshooting this error, see
+    [ThrottlingException](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-throttling-exception)
+    in the Amazon Bedrock User Guide.
     """
 
     value: ThrottlingException
@@ -12651,11 +12337,10 @@ class ConverseStreamOutputThrottlingException:
 
 @dataclass
 class ConverseStreamOutputServiceUnavailableException:
-    """
-    The service isn't currently available. For troubleshooting this error, see
-    `ServiceUnavailable <https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-service-unavailable>`_
+    """The service isn't currently available. For troubleshooting this error,
+    see
+    [ServiceUnavailable](https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-service-unavailable)
     in the Amazon Bedrock User Guide
-
     """
 
     value: ServiceUnavailableException
@@ -12711,11 +12396,7 @@ ConverseStreamOutput = Union[
     | ConverseStreamOutputServiceUnavailableException
     | ConverseStreamOutputUnknown
 ]
-
-"""
-The messages output stream
-
-"""
+"""The messages output stream"""
 
 
 class _ConverseStreamOutputDeserializer:
@@ -12790,6 +12471,8 @@ class _ConverseStreamOutputDeserializer:
 
 @dataclass(kw_only=True)
 class ConverseStreamOperationOutput:
+    """Dataclass for ConverseStreamOperationOutput structure."""
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONVERSE_STREAM_OPERATION_OUTPUT, self)
 
@@ -12867,79 +12550,94 @@ class Trace(StrEnum):
 
 @dataclass(kw_only=True)
 class InvokeModelInput:
+    """Dataclass for InvokeModelInput structure."""
+
     body: bytes | None = field(repr=False, default=None)
-    """
-    The prompt and inference parameters in the format specified in the
-    ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
-    For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
+    """The prompt and inference parameters in the format specified in the
+    `contentType` in the header. You must provide the body in JSON format.
+    To see the format and content of the request and response bodies for
+    different models, refer to [Inference
+    parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
+    For more information, see [Run
+    inference](https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html)
     in the Bedrock User Guide.
     """
+
     content_type: str | None = None
+    """The MIME type of the input data in the request. You must specify
+    `application/json`.
     """
-    The MIME type of the input data in the request. You must specify
-    ``application/json``.
-    """
+
     accept: str | None = None
+    """The desired MIME type of the inference body in the response. The default
+    value is `application/json`.
     """
-    The desired MIME type of the inference body in the response. The default value
-    is ``application/json``.
-    """
+
     model_id: str | None = None
-    """
-    The unique identifier of the model to invoke to run inference.
+    """The unique identifier of the model to invoke to run inference.
 
-    The ``modelId`` to provide depends on the type of model or throughput that you
-    use:
+    The `modelId` to provide depends on the type of model or throughput that
+    you use:
 
-    * If you use a base model, specify the model ID or its ARN. For a list of model
-      IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+    - If you use a base model, specify the model ID or its ARN. For a list
+      of model IDs for base models, see [Amazon Bedrock base model IDs
+      (on-demand
+      throughput)](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns)
       in the Amazon Bedrock User Guide.
 
-    * If you use an inference profile, specify the inference profile ID or its ARN.
-      For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+    - If you use an inference profile, specify the inference profile ID or
+      its ARN. For a list of inference profile IDs, see [Supported Regions
+      and models for cross-region
+      inference](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-      For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+    - If you use a provisioned model, specify the ARN of the Provisioned
+      Throughput. For more information, see [Run inference using a
+      Provisioned
+      Throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use a custom model, specify the ARN of the custom model deployment (for
-      on-demand inference) or the ARN of your provisioned model (for Provisioned
-      Throughput). For more information, see `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+    - If you use a custom model, specify the ARN of the custom model
+      deployment (for on-demand inference) or the ARN of your provisioned
+      model (for Provisioned Throughput). For more information, see [Use a
+      custom model in Amazon
+      Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
-      specify the ARN of the imported model. You can get the model ARN from a
-      successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
+    - If you use an [imported
+      model](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html),
+      specify the ARN of the imported model. You can get the model ARN from
+      a successful call to
+      [CreateModelImportJob](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html)
       or from the Imported models page in the Amazon Bedrock console.
     """
+
     trace: str | None = None
+    """Specifies whether to enable or disable the Bedrock trace. If enabled,
+    you can see the full Bedrock trace.
     """
-    Specifies whether to enable or disable the Bedrock trace. If enabled, you can
-    see the full Bedrock trace.
-    """
+
     guardrail_identifier: str | None = None
-    """
-    The unique identifier of the guardrail that you want to use. If you don't
-    provide a value, no guardrail is applied to the invocation.
+    """The unique identifier of the guardrail that you want to use. If you
+    don't provide a value, no guardrail is applied to the invocation.
 
     An error will be thrown in the following situations.
 
-    * You don't provide a guardrail identifier but you specify the
-      ``amazon-bedrock-guardrailConfig`` field in the request body.
+    - You don't provide a guardrail identifier but you specify the
+      `amazon-bedrock-guardrailConfig` field in the request body.
 
-    * You enable the guardrail but the ``contentType`` isn't ``application/json``.
+    - You enable the guardrail but the `contentType` isn't
+      `application/json`.
 
-    * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
+    - You provide a guardrail identifier, but `guardrailVersion` isn't
+      specified.
     """
+
     guardrail_version: str | None = None
-    """
-    The version number for the guardrail. The value can also be ``DRAFT``.
-    """
+    """The version number for the guardrail. The value can also be `DRAFT`."""
+
     performance_config_latency: str = "standard"
-    """
-    Model performance settings for the request.
-    """
+    """Model performance settings for the request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INVOKE_MODEL_INPUT, self)
@@ -13045,21 +12743,20 @@ class InvokeModelInput:
 
 @dataclass(kw_only=True)
 class InvokeModelOutput:
+    """Dataclass for InvokeModelOutput structure."""
+
     body: bytes = field(repr=False)
-    """
-    Inference response from the model in the format specified in the ``contentType`` header. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+    """Inference response from the model in the format specified in the
+    `contentType` header. To see the format and content of the request and
+    response bodies for different models, refer to [Inference
+    parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
     """
 
     content_type: str
-    """
-    The MIME type of the inference result.
-    """
+    """The MIME type of the inference result."""
 
     performance_config_latency: str | None = None
-    """
-    Model performance settings for the request.
-    """
+    """Model performance settings for the request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INVOKE_MODEL_OUTPUT, self)
@@ -13156,15 +12853,12 @@ INVOKE_MODEL = APIOperation(
 
 @dataclass(kw_only=True)
 class BidirectionalInputPayloadPart:
-    """
-    Payload content for the bidirectional input. The input is an audio stream.
-
+    """Payload content for the bidirectional input. The input is an audio
+    stream.
     """
 
     bytes_: bytes | None = field(repr=False, default=None)
-    """
-    The audio content for the bidirectional input.
-    """
+    """The audio content for the bidirectional input."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART, self)
@@ -13201,10 +12895,7 @@ class BidirectionalInputPayloadPart:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamInputChunk:
-    """
-    The audio chunk that is used as input for the invocation step.
-
-    """
+    """The audio chunk that is used as input for the invocation step."""
 
     value: BidirectionalInputPayloadPart
 
@@ -13251,11 +12942,8 @@ InvokeModelWithBidirectionalStreamInput = Union[
     InvokeModelWithBidirectionalStreamInputChunk
     | InvokeModelWithBidirectionalStreamInputUnknown
 ]
-
-"""
-Payload content, the speech chunk, for the bidirectional input of the invocation
-step.
-
+"""Payload content, the speech chunk, for the bidirectional input of the
+invocation step.
 """
 
 
@@ -13297,10 +12985,13 @@ class _InvokeModelWithBidirectionalStreamInputDeserializer:
 
 @dataclass(kw_only=True)
 class InvokeModelWithBidirectionalStreamOperationInput:
-    model_id: str | None = None
+    """Dataclass for InvokeModelWithBidirectionalStreamOperationInput
+    structure.
     """
-    The model ID or ARN of the model ID to use. Currently, only
-    ``amazon.nova-sonic-v1:0`` is supported.
+
+    model_id: str | None = None
+    """The model ID or ARN of the model ID to use. Currently, only
+    `amazon.nova-sonic-v1:0` is supported.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -13346,16 +13037,12 @@ class InvokeModelWithBidirectionalStreamOperationInput:
 
 @dataclass(kw_only=True)
 class BidirectionalOutputPayloadPart:
-    """
-    Output from the bidirectional stream. The output is speech and a text
+    """Output from the bidirectional stream. The output is speech and a text
     transcription.
-
     """
 
     bytes_: bytes | None = field(repr=False, default=None)
-    """
-    The speech output of the bidirectional stream.
-    """
+    """The speech output of the bidirectional stream."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART, self)
@@ -13392,10 +13079,7 @@ class BidirectionalOutputPayloadPart:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputChunk:
-    """
-    The speech chunk that was provided as output from the invocation step.
-
-    """
+    """The speech chunk that was provided as output from the invocation step."""
 
     value: BidirectionalOutputPayloadPart
 
@@ -13417,10 +13101,7 @@ class InvokeModelWithBidirectionalStreamOutputChunk:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputInternalServerException:
-    """
-    The request encountered an unknown internal error.
-
-    """
+    """The request encountered an unknown internal error."""
 
     value: InternalServerException
 
@@ -13444,10 +13125,7 @@ class InvokeModelWithBidirectionalStreamOutputInternalServerException:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputModelStreamErrorException:
-    """
-    The request encountered an error with the model stream.
-
-    """
+    """The request encountered an error with the model stream."""
 
     value: ModelStreamErrorException
 
@@ -13471,10 +13149,8 @@ class InvokeModelWithBidirectionalStreamOutputModelStreamErrorException:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputValidationException:
-    """
-    The input fails to satisfy the constraints specified by an Amazon Web Services
-    service.
-
+    """The input fails to satisfy the constraints specified by an Amazon Web
+    Services service.
     """
 
     value: ValidationException
@@ -13499,10 +13175,7 @@ class InvokeModelWithBidirectionalStreamOutputValidationException:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputThrottlingException:
-    """
-    The request was denied due to request throttling.
-
-    """
+    """The request was denied due to request throttling."""
 
     value: ThrottlingException
 
@@ -13526,10 +13199,8 @@ class InvokeModelWithBidirectionalStreamOutputThrottlingException:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputModelTimeoutException:
-    """
-    The connection was closed because a request was not received within the timeout
-    period.
-
+    """The connection was closed because a request was not received within the
+    timeout period.
     """
 
     value: ModelTimeoutException
@@ -13554,10 +13225,7 @@ class InvokeModelWithBidirectionalStreamOutputModelTimeoutException:
 
 @dataclass
 class InvokeModelWithBidirectionalStreamOutputServiceUnavailableException:
-    """
-    The request has failed due to a temporary failure of the server.
-
-    """
+    """The request has failed due to a temporary failure of the server."""
 
     value: ServiceUnavailableException
 
@@ -13612,11 +13280,7 @@ InvokeModelWithBidirectionalStreamOutput = Union[
     | InvokeModelWithBidirectionalStreamOutputServiceUnavailableException
     | InvokeModelWithBidirectionalStreamOutputUnknown
 ]
-
-"""
-Output from the bidirectional stream that was used for model invocation.
-
-"""
+"""Output from the bidirectional stream that was used for model invocation."""
 
 
 class _InvokeModelWithBidirectionalStreamOutputDeserializer:
@@ -13699,6 +13363,10 @@ class _InvokeModelWithBidirectionalStreamOutputDeserializer:
 
 @dataclass(kw_only=True)
 class InvokeModelWithBidirectionalStreamOperationOutput:
+    """Dataclass for InvokeModelWithBidirectionalStreamOperationOutput
+    structure.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(
             _SCHEMA_INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM_OPERATION_OUTPUT, self
@@ -13779,79 +13447,94 @@ INVOKE_MODEL_WITH_BIDIRECTIONAL_STREAM = APIOperation(
 
 @dataclass(kw_only=True)
 class InvokeModelWithResponseStreamInput:
+    """Dataclass for InvokeModelWithResponseStreamInput structure."""
+
     body: bytes | None = field(repr=False, default=None)
-    """
-    The prompt and inference parameters in the format specified in the
-    ``contentType`` in the header. You must provide the body in JSON format. To see the format and content of the request and response bodies for different models, refer to `Inference parameters <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
-    For more information, see `Run inference <https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html>`_
+    """The prompt and inference parameters in the format specified in the
+    `contentType` in the header. You must provide the body in JSON format.
+    To see the format and content of the request and response bodies for
+    different models, refer to [Inference
+    parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
+    For more information, see [Run
+    inference](https://docs.aws.amazon.com/bedrock/latest/userguide/api-methods-run.html)
     in the Bedrock User Guide.
     """
+
     content_type: str | None = None
+    """The MIME type of the input data in the request. You must specify
+    `application/json`.
     """
-    The MIME type of the input data in the request. You must specify
-    ``application/json``.
-    """
+
     accept: str | None = None
+    """The desired MIME type of the inference body in the response. The default
+    value is `application/json`.
     """
-    The desired MIME type of the inference body in the response. The default value
-    is ``application/json``.
-    """
+
     model_id: str | None = None
-    """
-    The unique identifier of the model to invoke to run inference.
+    """The unique identifier of the model to invoke to run inference.
 
-    The ``modelId`` to provide depends on the type of model or throughput that you
-    use:
+    The `modelId` to provide depends on the type of model or throughput that
+    you use:
 
-    * If you use a base model, specify the model ID or its ARN. For a list of model
-      IDs for base models, see `Amazon Bedrock base model IDs (on-demand throughput) <https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns>`_
+    - If you use a base model, specify the model ID or its ARN. For a list
+      of model IDs for base models, see [Amazon Bedrock base model IDs
+      (on-demand
+      throughput)](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns)
       in the Amazon Bedrock User Guide.
 
-    * If you use an inference profile, specify the inference profile ID or its ARN.
-      For a list of inference profile IDs, see `Supported Regions and models for cross-region inference <https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html>`_
+    - If you use an inference profile, specify the inference profile ID or
+      its ARN. For a list of inference profile IDs, see [Supported Regions
+      and models for cross-region
+      inference](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use a provisioned model, specify the ARN of the Provisioned Throughput.
-      For more information, see `Run inference using a Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html>`_
+    - If you use a provisioned model, specify the ARN of the Provisioned
+      Throughput. For more information, see [Run inference using a
+      Provisioned
+      Throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use a custom model, specify the ARN of the custom model deployment (for
-      on-demand inference) or the ARN of your provisioned model (for Provisioned
-      Throughput). For more information, see `Use a custom model in Amazon Bedrock <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html>`_
+    - If you use a custom model, specify the ARN of the custom model
+      deployment (for on-demand inference) or the ARN of your provisioned
+      model (for Provisioned Throughput). For more information, see [Use a
+      custom model in Amazon
+      Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-use.html)
       in the Amazon Bedrock User Guide.
 
-    * If you use an `imported model <https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html>`_,
-      specify the ARN of the imported model. You can get the model ARN from a
-      successful call to `CreateModelImportJob <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html>`_
+    - If you use an [imported
+      model](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html),
+      specify the ARN of the imported model. You can get the model ARN from
+      a successful call to
+      [CreateModelImportJob](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html)
       or from the Imported models page in the Amazon Bedrock console.
     """
+
     trace: str | None = None
+    """Specifies whether to enable or disable the Bedrock trace. If enabled,
+    you can see the full Bedrock trace.
     """
-    Specifies whether to enable or disable the Bedrock trace. If enabled, you can
-    see the full Bedrock trace.
-    """
+
     guardrail_identifier: str | None = None
-    """
-    The unique identifier of the guardrail that you want to use. If you don't
-    provide a value, no guardrail is applied to the invocation.
+    """The unique identifier of the guardrail that you want to use. If you
+    don't provide a value, no guardrail is applied to the invocation.
 
     An error is thrown in the following situations.
 
-    * You don't provide a guardrail identifier but you specify the
-      ``amazon-bedrock-guardrailConfig`` field in the request body.
+    - You don't provide a guardrail identifier but you specify the
+      `amazon-bedrock-guardrailConfig` field in the request body.
 
-    * You enable the guardrail but the ``contentType`` isn't ``application/json``.
+    - You enable the guardrail but the `contentType` isn't
+      `application/json`.
 
-    * You provide a guardrail identifier, but ``guardrailVersion`` isn't specified.
+    - You provide a guardrail identifier, but `guardrailVersion` isn't
+      specified.
     """
+
     guardrail_version: str | None = None
-    """
-    The version number for the guardrail. The value can also be ``DRAFT``.
-    """
+    """The version number for the guardrail. The value can also be `DRAFT`."""
+
     performance_config_latency: str = "standard"
-    """
-    Model performance settings for the request.
-    """
+    """Model performance settings for the request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_INPUT, self)
@@ -13984,15 +13667,10 @@ class InvokeModelWithResponseStreamInput:
 
 @dataclass(kw_only=True)
 class PayloadPart:
-    """
-    Payload content included in the response.
-
-    """
+    """Payload content included in the response."""
 
     bytes_: bytes | None = field(repr=False, default=None)
-    """
-    Base64-encoded bytes of payload data.
-    """
+    """Base64-encoded bytes of payload data."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PAYLOAD_PART, self)
@@ -14025,10 +13703,7 @@ class PayloadPart:
 
 @dataclass
 class ResponseStreamChunk:
-    """
-    Content included in the response.
-
-    """
+    """Content included in the response."""
 
     value: PayloadPart
 
@@ -14045,10 +13720,7 @@ class ResponseStreamChunk:
 
 @dataclass
 class ResponseStreamInternalServerException:
-    """
-    An internal server error occurred. Retry your request.
-
-    """
+    """An internal server error occurred. Retry your request."""
 
     value: InternalServerException
 
@@ -14067,10 +13739,7 @@ class ResponseStreamInternalServerException:
 
 @dataclass
 class ResponseStreamModelStreamErrorException:
-    """
-    An error occurred while streaming the response. Retry your request.
-
-    """
+    """An error occurred while streaming the response. Retry your request."""
 
     value: ModelStreamErrorException
 
@@ -14089,9 +13758,8 @@ class ResponseStreamModelStreamErrorException:
 
 @dataclass
 class ResponseStreamValidationException:
-    """
-    Input validation failed. Check your request parameters and retry the request.
-
+    """Input validation failed. Check your request parameters and retry the
+    request.
     """
 
     value: ValidationException
@@ -14111,11 +13779,11 @@ class ResponseStreamValidationException:
 
 @dataclass
 class ResponseStreamThrottlingException:
-    """
-    Your request was throttled because of service-wide limitations. Resubmit your
-    request later or in a different region. You can also purchase `Provisioned Throughput <https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html>`_
+    """Your request was throttled because of service-wide limitations. Resubmit
+    your request later or in a different region. You can also purchase
+    [Provisioned
+    Throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html)
     to increase the rate or number of tokens you can process.
-
     """
 
     value: ThrottlingException
@@ -14135,10 +13803,8 @@ class ResponseStreamThrottlingException:
 
 @dataclass
 class ResponseStreamModelTimeoutException:
-    """
-    The request took too long to process. Processing time exceeded the model timeout
-    length.
-
+    """The request took too long to process. Processing time exceeded the model
+    timeout length.
     """
 
     value: ModelTimeoutException
@@ -14158,10 +13824,7 @@ class ResponseStreamModelTimeoutException:
 
 @dataclass
 class ResponseStreamServiceUnavailableException:
-    """
-    The service isn't available. Try again later.
-
-    """
+    """The service isn't available. Try again later."""
 
     value: ServiceUnavailableException
 
@@ -14211,11 +13874,7 @@ ResponseStream = Union[
     | ResponseStreamServiceUnavailableException
     | ResponseStreamUnknown
 ]
-
-"""
-Definition of content in the response stream.
-
-"""
+"""Definition of content in the response stream."""
 
 
 class _ResponseStreamDeserializer:
@@ -14272,15 +13931,13 @@ class _ResponseStreamDeserializer:
 
 @dataclass(kw_only=True)
 class InvokeModelWithResponseStreamOutput:
+    """Dataclass for InvokeModelWithResponseStreamOutput structure."""
+
     content_type: str
-    """
-    The MIME type of the inference result.
-    """
+    """The MIME type of the inference result."""
 
     performance_config_latency: str | None = None
-    """
-    Model performance settings for the request.
-    """
+    """Model performance settings for the request."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT, self)
@@ -14308,14 +13965,14 @@ class InvokeModelWithResponseStreamOutput:
 
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
-                case 0:
+                case 1:
                     kwargs["content_type"] = de.read_string(
                         _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT.members[
                             "contentType"
                         ]
                     )
 
-                case 1:
+                case 2:
                     kwargs["performance_config_latency"] = de.read_string(
                         _SCHEMA_INVOKE_MODEL_WITH_RESPONSE_STREAM_OUTPUT.members[
                             "performanceConfigLatency"
@@ -14383,23 +14040,19 @@ INVOKE_MODEL_WITH_RESPONSE_STREAM = APIOperation(
 
 @dataclass(kw_only=True)
 class ConverseTokensRequest:
-    """
-    The inputs from a ``Converse`` API request for token counting.
+    """The inputs from a `Converse` API request for token counting.
 
-    This structure mirrors the input format for the ``Converse`` operation, allowing
-    you to count tokens for conversation-based inference requests.
-
+    This structure mirrors the input format for the `Converse` operation,
+    allowing you to count tokens for conversation-based inference requests.
     """
 
     messages: list[Message] | None = None
-    """
-    An array of messages to count tokens for.
-    """
+    """An array of messages to count tokens for."""
+
     system: list[SystemContentBlock] | None = None
-    """
-    The system content blocks to count tokens for. System content provides
-    instructions or context to the model about how it should behave or respond. The
-    token count will include any system content provided.
+    """The system content blocks to count tokens for. System content provides
+    instructions or context to the model about how it should behave or
+    respond. The token count will include any system content provided.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -14449,19 +14102,16 @@ class ConverseTokensRequest:
 
 @dataclass(kw_only=True)
 class InvokeModelTokensRequest:
-    """
-    The body of an ``InvokeModel`` API request for token counting. This structure
-    mirrors the input format for the ``InvokeModel`` operation, allowing you to
-    count tokens for raw text inference requests.
-
+    """The body of an `InvokeModel` API request for token counting. This
+    structure mirrors the input format for the `InvokeModel` operation,
+    allowing you to count tokens for raw text inference requests.
     """
 
     body: bytes = field(repr=False)
-    """
-    The request body to count tokens for, formatted according to the model's
-    expected input format. To learn about the input format for different models, see
-    `Model inference parameters and responses <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_
-    .
+    """The request body to count tokens for, formatted according to the
+    model's expected input format. To learn about the input format for
+    different models, see [Model inference parameters and
+    responses](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -14498,11 +14148,9 @@ class InvokeModelTokensRequest:
 
 @dataclass
 class CountTokensInputInvokeModel:
-    """
-    An ``InvokeModel`` request for which to count tokens. Use this field when you
-    want to count tokens for a raw text input that would be sent to the
-    ``InvokeModel`` operation.
-
+    """An `InvokeModel` request for which to count tokens. Use this field when
+    you want to count tokens for a raw text input that would be sent to the
+    `InvokeModel` operation.
     """
 
     value: InvokeModelTokensRequest
@@ -14522,11 +14170,9 @@ class CountTokensInputInvokeModel:
 
 @dataclass
 class CountTokensInputConverse:
-    """
-    A ``Converse`` request for which to count tokens. Use this field when you want
-    to count tokens for a conversation-based input that would be sent to the
-    ``Converse`` operation.
-
+    """A `Converse` request for which to count tokens. Use this field when you
+    want to count tokens for a conversation-based input that would be sent
+    to the `Converse` operation.
     """
 
     value: ConverseTokensRequest
@@ -14570,11 +14216,8 @@ class CountTokensInputUnknown:
 CountTokensInput = Union[
     CountTokensInputInvokeModel | CountTokensInputConverse | CountTokensInputUnknown
 ]
-
-"""
-The input value for token counting. The value should be either an
-``InvokeModel`` or ``Converse`` request body.
-
+"""The input value for token counting. The value should be either an
+`InvokeModel` or `Converse` request body.
 """
 
 
@@ -14613,25 +14256,27 @@ class _CountTokensInputDeserializer:
 
 @dataclass(kw_only=True)
 class CountTokensOperationInput:
+    """Dataclass for CountTokensOperationInput structure."""
+
     model_id: str | None = None
+    """The unique identifier or ARN of the foundation model to use for token
+    counting. Each model processes tokens differently, so the token count is
+    specific to the model you specify.
     """
-    The unique identifier or ARN of the foundation model to use for token counting.
-    Each model processes tokens differently, so the token count is specific to the
-    model you specify.
-    """
+
     input: CountTokensInput | None = None
-    """
-    The input for which to count tokens. The structure of this parameter depends on
-    whether you're counting tokens for an ``InvokeModel`` or ``Converse`` request:
+    """The input for which to count tokens. The structure of this parameter
+    depends on whether you're counting tokens for an `InvokeModel` or
+    `Converse` request:
 
-    * For ``InvokeModel`` requests, provide the request body in the ``invokeModel``
-      field
+    - For `InvokeModel` requests, provide the request body in the
+      `invokeModel` field
 
-    * For ``Converse`` requests, provide the messages and system content in the
-      ``converse`` field
+    - For `Converse` requests, provide the messages and system content in
+      the `converse` field
 
-    The input format must be compatible with the model specified in the ``modelId``
-    parameter.
+    The input format must be compatible with the model specified in the
+    `modelId` parameter.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -14677,13 +14322,14 @@ class CountTokensOperationInput:
 
 @dataclass(kw_only=True)
 class CountTokensOutput:
+    """Dataclass for CountTokensOutput structure."""
+
     input_tokens: int
-    """
-    The number of tokens in the provided input according to the specified model's
-    tokenization rules. This count represents the number of input tokens that would
-    be processed if the same input were sent to the model in an inference request.
-    Use this value to estimate costs and ensure your inputs stay within model token
-    limits.
+    """The number of tokens in the provided input according to the specified
+    model's tokenization rules. This count represents the number of input
+    tokens that would be processed if the same input were sent to the model
+    in an inference request. Use this value to estimate costs and ensure
+    your inputs stay within model token limits.
     """
 
     def serialize(self, serializer: ShapeSerializer):
