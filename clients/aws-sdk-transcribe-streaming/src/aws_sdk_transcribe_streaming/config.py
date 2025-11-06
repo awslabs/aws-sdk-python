@@ -65,7 +65,7 @@ _ServiceInterceptor = Union[
 
 @dataclass(init=False)
 class Config:
-    """Configuration for Transcribe."""
+    """Configuration for Transcribe Streaming."""
 
     auth_scheme_resolver: HTTPAuthSchemeResolver
     auth_schemes: dict[ShapeID, AuthScheme[Any, Any, Any, Any]]
@@ -109,7 +109,8 @@ class Config:
         transport: ClientTransport[Any, Any] | None = None,
         user_agent_extra: str | None = None,
     ):
-        """Constructor.
+        """
+        Constructor.
 
         :param auth_scheme_resolver:
              An auth scheme resolver that determines the auth scheme for each operation.
@@ -161,7 +162,6 @@ class Config:
 
         :param user_agent_extra:
              Additional suffix to be added to the User-Agent header.
-
         """
         self.auth_scheme_resolver = auth_scheme_resolver or HTTPAuthSchemeResolver()
         self.auth_schemes = auth_schemes or {
