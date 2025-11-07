@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.14"
+# requires-python = ">=3.12"
 # dependencies = [
 #     "aiofile~=3.9.0",
 #     "aws-sdk-transcribe-streaming",
