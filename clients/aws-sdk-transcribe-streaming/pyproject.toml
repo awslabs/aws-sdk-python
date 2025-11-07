@@ -3,7 +3,7 @@
 
 [project]
 name = "aws_sdk_transcribe_streaming"
-version = "0.0.1"
+version = "0.1.0"
 description = "aws_sdk_transcribe_streaming client"
 readme = "README.md"
 requires-python = ">=3.12"

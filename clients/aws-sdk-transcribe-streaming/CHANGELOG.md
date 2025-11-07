@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## v0.0.1
+## v0.1.0
 
 ### Features
 * Initial client release with support for current Amazon Transcribe Streaming operations.
