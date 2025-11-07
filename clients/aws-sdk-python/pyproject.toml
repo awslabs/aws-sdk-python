@@ -23,8 +23,10 @@ dependencies = []
 
 [project.optional-dependencies]
 bedrock_runtime = ["aws_sdk_bedrock_runtime==0.1.1"]
+transcribe_streaming = ["aws_sdk_transcribe_streaming==0.1.0"]
 all = [
     "aws_sdk_python[bedrock_runtime]",
+    "aws_sdk_python[transcribe_streaming]",
 ]
 
 [build-system]
