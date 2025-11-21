@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(".."))
 
 project = "Amazon Bedrock Runtime"
 author = "Amazon Web Services"
-release = "0.1.1"
+release = "0.2.0"
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.viewcode"]
 
