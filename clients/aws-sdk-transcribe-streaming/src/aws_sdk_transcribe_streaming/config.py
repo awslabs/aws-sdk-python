@@ -19,7 +19,7 @@ from smithy_core.aio.interfaces.identity import IdentityResolver
 from smithy_core.interceptors import Interceptor
 from smithy_core.interfaces import URI
 from smithy_core.interfaces.retries import RetryStrategy
-from smithy_core.retries import SimpleRetryStrategy
+from smithy_core.retries import RetryStrategyOptions
 from smithy_core.shapes import ShapeID
 from smithy_http.aio.crt import AWSCRTHTTPClient
 from smithy_http.interfaces import HTTPRequestConfiguration
@@ -81,7 +81,7 @@ class Config:
     interceptors: list[_ServiceInterceptor]
     protocol: ClientProtocol[Any, Any] | None
     region: str | None
-    retry_strategy: RetryStrategy
+    retry_strategy: RetryStrategy | RetryStrategyOptions | None
     sdk_ua_app_id: str | None
     transport: ClientTransport[Any, Any] | None
     user_agent_extra: str | None
@@ -104,7 +104,7 @@ class Config:
         interceptors: list[_ServiceInterceptor] | None = None,
         protocol: ClientProtocol[Any, Any] | None = None,
         region: str | None = None,
-        retry_strategy: RetryStrategy | None = None,
+        retry_strategy: RetryStrategy | RetryStrategyOptions | None = None,
         sdk_ua_app_id: str | None = None,
         transport: ClientTransport[Any, Any] | None = None,
         user_agent_extra: str | None = None,
@@ -152,7 +152,8 @@ class Config:
              service endpoint.
 
         :param retry_strategy:
-             The retry strategy for issuing retry tokens and computing retry delays.
+             The retry strategy or options for configuring retry behavior. Can be either a
+             configured RetryStrategy or RetryStrategyOptions to create one.
 
         :param sdk_ua_app_id:
              A unique and opaque application ID that is appended to the User-Agent header.
@@ -179,7 +180,7 @@ class Config:
         self.interceptors = interceptors or []
         self.protocol = protocol or RestJsonClientProtocol(_SCHEMA_TRANSCRIBE)
         self.region = region
-        self.retry_strategy = retry_strategy or SimpleRetryStrategy()
+        self.retry_strategy = retry_strategy
         self.sdk_ua_app_id = sdk_ua_app_id
         self.transport = transport or AWSCRTHTTPClient()
         self.user_agent_extra = user_agent_extra

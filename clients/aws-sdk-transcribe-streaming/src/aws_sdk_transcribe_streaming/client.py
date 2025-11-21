@@ -7,6 +7,8 @@ from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.eventstream import DuplexEventStream
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
+from smithy_core.interfaces.retries import RetryStrategy
+from smithy_core.retries import RetryStrategyOptions, RetryStrategyResolver
 from smithy_core.types import TypedProperties
 from smithy_http.plugins import user_agent_plugin
 
@@ -75,6 +77,8 @@ class TranscribeStreamingClient:
         for plugin in client_plugins:
             plugin(self._config)
 
+        self._retry_strategy_resolver = RetryStrategyResolver()
+
     async def get_medical_scribe_stream(
         self, input: GetMedicalScribeStreamInput, plugins: list[Plugin] | None = None
     ) -> GetMedicalScribeStreamOutput:
@@ -100,6 +104,24 @@ class TranscribeStreamingClient:
             raise ExpectationNotMetError(
                 "protocol and transport MUST be set on the config to make calls."
             )
+
+        # Resolve retry strategy from config
+        if isinstance(config.retry_strategy, RetryStrategy):
+            retry_strategy = config.retry_strategy
+        elif isinstance(config.retry_strategy, RetryStrategyOptions):
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=config.retry_strategy
+            )
+        elif config.retry_strategy is None:
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=RetryStrategyOptions()
+            )
+        else:
+            raise TypeError(
+                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
+                f"got {type(config.retry_strategy).__name__}"
+            )
+
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
             input=input,
@@ -109,7 +131,7 @@ class TranscribeStreamingClient:
             auth_scheme_resolver=config.auth_scheme_resolver,
             supported_auth_schemes=config.auth_schemes,
             endpoint_resolver=config.endpoint_resolver,
-            retry_strategy=config.retry_strategy,
+            retry_strategy=retry_strategy,
         )
 
         return await pipeline(call)
@@ -156,6 +178,24 @@ class TranscribeStreamingClient:
             raise ExpectationNotMetError(
                 "protocol and transport MUST be set on the config to make calls."
             )
+
+        # Resolve retry strategy from config
+        if isinstance(config.retry_strategy, RetryStrategy):
+            retry_strategy = config.retry_strategy
+        elif isinstance(config.retry_strategy, RetryStrategyOptions):
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=config.retry_strategy
+            )
+        elif config.retry_strategy is None:
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=RetryStrategyOptions()
+            )
+        else:
+            raise TypeError(
+                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
+                f"got {type(config.retry_strategy).__name__}"
+            )
+
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
             input=input,
@@ -165,7 +205,7 @@ class TranscribeStreamingClient:
             auth_scheme_resolver=config.auth_scheme_resolver,
             supported_auth_schemes=config.auth_schemes,
             endpoint_resolver=config.endpoint_resolver,
-            retry_strategy=config.retry_strategy,
+            retry_strategy=retry_strategy,
         )
 
         return await pipeline.duplex_stream(
@@ -236,6 +276,24 @@ class TranscribeStreamingClient:
             raise ExpectationNotMetError(
                 "protocol and transport MUST be set on the config to make calls."
             )
+
+        # Resolve retry strategy from config
+        if isinstance(config.retry_strategy, RetryStrategy):
+            retry_strategy = config.retry_strategy
+        elif isinstance(config.retry_strategy, RetryStrategyOptions):
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=config.retry_strategy
+            )
+        elif config.retry_strategy is None:
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=RetryStrategyOptions()
+            )
+        else:
+            raise TypeError(
+                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
+                f"got {type(config.retry_strategy).__name__}"
+            )
+
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
             input=input,
@@ -245,7 +303,7 @@ class TranscribeStreamingClient:
             auth_scheme_resolver=config.auth_scheme_resolver,
             supported_auth_schemes=config.auth_schemes,
             endpoint_resolver=config.endpoint_resolver,
-            retry_strategy=config.retry_strategy,
+            retry_strategy=retry_strategy,
         )
 
         return await pipeline.duplex_stream(
@@ -297,6 +355,24 @@ class TranscribeStreamingClient:
             raise ExpectationNotMetError(
                 "protocol and transport MUST be set on the config to make calls."
             )
+
+        # Resolve retry strategy from config
+        if isinstance(config.retry_strategy, RetryStrategy):
+            retry_strategy = config.retry_strategy
+        elif isinstance(config.retry_strategy, RetryStrategyOptions):
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=config.retry_strategy
+            )
+        elif config.retry_strategy is None:
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=RetryStrategyOptions()
+            )
+        else:
+            raise TypeError(
+                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
+                f"got {type(config.retry_strategy).__name__}"
+            )
+
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
             input=input,
@@ -306,7 +382,7 @@ class TranscribeStreamingClient:
             auth_scheme_resolver=config.auth_scheme_resolver,
             supported_auth_schemes=config.auth_schemes,
             endpoint_resolver=config.endpoint_resolver,
-            retry_strategy=config.retry_strategy,
+            retry_strategy=retry_strategy,
         )
 
         return await pipeline.duplex_stream(
@@ -353,6 +429,24 @@ class TranscribeStreamingClient:
             raise ExpectationNotMetError(
                 "protocol and transport MUST be set on the config to make calls."
             )
+
+        # Resolve retry strategy from config
+        if isinstance(config.retry_strategy, RetryStrategy):
+            retry_strategy = config.retry_strategy
+        elif isinstance(config.retry_strategy, RetryStrategyOptions):
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=config.retry_strategy
+            )
+        elif config.retry_strategy is None:
+            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+                options=RetryStrategyOptions()
+            )
+        else:
+            raise TypeError(
+                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
+                f"got {type(config.retry_strategy).__name__}"
+            )
+
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
             input=input,
@@ -362,7 +456,7 @@ class TranscribeStreamingClient:
             auth_scheme_resolver=config.auth_scheme_resolver,
             supported_auth_schemes=config.auth_schemes,
             endpoint_resolver=config.endpoint_resolver,
-            retry_strategy=config.retry_strategy,
+            retry_strategy=retry_strategy,
         )
 
         return await pipeline.duplex_stream(

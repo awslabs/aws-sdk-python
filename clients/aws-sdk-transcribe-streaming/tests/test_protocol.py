@@ -19,6 +19,8 @@ class TestHttpServiceError(ServiceError):
 class RequestTestHTTPClient:
     """An asynchronous HTTP client solely for testing purposes."""
 
+    TIMEOUT_EXCEPTIONS = ()
+
     def __init__(self, *, client_config: HTTPClientConfiguration | None = None):
         self._client_config = client_config
 
@@ -34,6 +36,8 @@ class RequestTestHTTPClient:
 
 class ResponseTestHTTPClient:
     """An asynchronous HTTP client solely for testing purposes."""
+
+    TIMEOUT_EXCEPTIONS = ()
 
     def __init__(
         self,

@@ -1241,6 +1241,186 @@ LANGUAGE_CODE = Schema.collection(
             "target": UNIT,
             "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="zu-ZA")],
         },
+        "AM_ET": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="am-ET")],
+        },
+        "BE_BY": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="be-BY")],
+        },
+        "BG_BG": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="bg-BG")],
+        },
+        "BN_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="bn-IN")],
+        },
+        "BS_BA": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="bs-BA")],
+        },
+        "CKB_IQ": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ckb-IQ")],
+        },
+        "CKB_IR": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ckb-IR")],
+        },
+        "CY_WL": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="cy-WL")],
+        },
+        "ES_MX": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="es-MX")],
+        },
+        "ET_ET": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="et-ET")],
+        },
+        "FA_AF": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="fa-AF")],
+        },
+        "GU_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="gu-IN")],
+        },
+        "HT_HT": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ht-HT")],
+        },
+        "HU_HU": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="hu-HU")],
+        },
+        "HY_AM": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="hy-AM")],
+        },
+        "IS_IS": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="is-IS")],
+        },
+        "JV_ID": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="jv-ID")],
+        },
+        "KA_GE": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ka-GE")],
+        },
+        "KAB_DZ": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="kab-DZ")],
+        },
+        "KK_KZ": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="kk-KZ")],
+        },
+        "KM_KH": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="km-KH")],
+        },
+        "KN_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="kn-IN")],
+        },
+        "LG_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="lg-IN")],
+        },
+        "LT_LT": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="lt-LT")],
+        },
+        "MK_MK": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="mk-MK")],
+        },
+        "ML_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ml-IN")],
+        },
+        "MR_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="mr-IN")],
+        },
+        "MY_MM": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="my-MM")],
+        },
+        "NE_NP": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ne-NP")],
+        },
+        "OR_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="or-IN")],
+        },
+        "PA_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="pa-IN")],
+        },
+        "PS_AF": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ps-AF")],
+        },
+        "SI_LK": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="si-LK")],
+        },
+        "SL_SI": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="sl-SI")],
+        },
+        "SQ_AL": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="sq-AL")],
+        },
+        "SU_ID": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="su-ID")],
+        },
+        "SW_BI": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="sw-BI")],
+        },
+        "SW_KE": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="sw-KE")],
+        },
+        "SW_RW": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="sw-RW")],
+        },
+        "SW_TZ": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="sw-TZ")],
+        },
+        "SW_UG": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="sw-UG")],
+        },
+        "TA_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ta-IN")],
+        },
+        "TE_IN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="te-IN")],
+        },
+        "TR_TR": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="tr-TR")],
+        },
+        "UZ_UZ": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="uz-UZ")],
+        },
     },
 )
 
