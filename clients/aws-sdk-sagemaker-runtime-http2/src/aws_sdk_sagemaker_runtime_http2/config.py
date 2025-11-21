@@ -9,7 +9,6 @@ from smithy_aws_core.endpoints.standard_regional import (
     StandardRegionalEndpointsResolver as _RegionalResolver,
 )
 from smithy_aws_core.identity import AWSCredentialsIdentity, AWSIdentityProperties
-from smithy_core.aio.endpoints import StaticEndpointResolver
 from smithy_core.aio.interfaces import (
     ClientProtocol,
     ClientTransport,
@@ -35,7 +34,16 @@ from .models import (
 )
 
 
-_ServiceInterceptor = Union[Interceptor[InvokeEndpointWithBidirectionalStreamInput, InvokeEndpointWithBidirectionalStreamOutput, Any, Any]]
+_ServiceInterceptor = Union[
+    Interceptor[
+        InvokeEndpointWithBidirectionalStreamInput,
+        InvokeEndpointWithBidirectionalStreamOutput,
+        Any,
+        Any,
+    ]
+]
+
+
 @dataclass(init=False)
 class Config:
     """Configuration for SageMaker Runtime HTTP2."""
@@ -43,7 +51,9 @@ class Config:
     auth_scheme_resolver: HTTPAuthSchemeResolver
     auth_schemes: dict[ShapeID, AuthScheme[Any, Any, Any, Any]]
     aws_access_key_id: str | None
-    aws_credentials_identity_resolver: IdentityResolver[AWSCredentialsIdentity, AWSIdentityProperties] | None
+    aws_credentials_identity_resolver: (
+        IdentityResolver[AWSCredentialsIdentity, AWSIdentityProperties] | None
+    )
     aws_secret_access_key: str | None
     aws_session_token: str | None
     endpoint_resolver: _EndpointResolver
@@ -63,7 +73,10 @@ class Config:
         auth_scheme_resolver: HTTPAuthSchemeResolver | None = None,
         auth_schemes: dict[ShapeID, AuthScheme[Any, Any, Any, Any]] | None = None,
         aws_access_key_id: str | None = None,
-        aws_credentials_identity_resolver: IdentityResolver[AWSCredentialsIdentity, AWSIdentityProperties] | None = None,
+        aws_credentials_identity_resolver: IdentityResolver[
+            AWSCredentialsIdentity, AWSIdentityProperties
+        ]
+        | None = None,
         aws_secret_access_key: str | None = None,
         aws_session_token: str | None = None,
         endpoint_resolver: _EndpointResolver | None = None,
@@ -134,17 +147,21 @@ class Config:
         """
         self.auth_scheme_resolver = auth_scheme_resolver or HTTPAuthSchemeResolver()
         self.auth_schemes = auth_schemes or {
-            ShapeID("aws.auth#sigv4"): SigV4AuthScheme(service="sagemaker"),
+            ShapeID("aws.auth#sigv4"): SigV4AuthScheme(service="sagemaker")
         }
         self.aws_access_key_id = aws_access_key_id
         self.aws_credentials_identity_resolver = aws_credentials_identity_resolver
         self.aws_secret_access_key = aws_secret_access_key
         self.aws_session_token = aws_session_token
-        self.endpoint_resolver = endpoint_resolver or _RegionalResolver(endpoint_prefix="runtime.sagemaker")
+        self.endpoint_resolver = endpoint_resolver or _RegionalResolver(
+            endpoint_prefix="runtime.sagemaker"
+        )
         self.endpoint_uri = endpoint_uri
         self.http_request_config = http_request_config
         self.interceptors = interceptors or []
-        self.protocol = protocol or RestJsonClientProtocol(_SCHEMA_AMAZON_SAGE_MAKER_RUNTIME_HTTP2)
+        self.protocol = protocol or RestJsonClientProtocol(
+            _SCHEMA_AMAZON_SAGE_MAKER_RUNTIME_HTTP2
+        )
         self.region = region
         self.retry_strategy = retry_strategy
         self.sdk_ua_app_id = sdk_ua_app_id
@@ -159,6 +176,7 @@ class Config:
         :param scheme: The auth scheme to add.
         """
         self.auth_schemes[scheme.scheme_id] = scheme
+
 
 #
 # A callable that allows customizing the config object on each request.

@@ -24,8 +24,8 @@ from .models import (
 from .user_agent import aws_user_agent_plugin
 
 
-
 logger = logging.getLogger(__name__)
+
 
 class SageMakerRuntimeHTTP2Client:
     """
@@ -37,13 +37,13 @@ class SageMakerRuntimeHTTP2Client:
     :param plugins: A list of callables that modify the configuration dynamically. These
         can be used to set defaults, for example.
     """
-    def __init__(self, config: Config | None = None, plugins: list[Plugin] | None = None):
+
+    def __init__(
+        self, config: Config | None = None, plugins: list[Plugin] | None = None
+    ):
         self._config = config or Config()
 
-        client_plugins: list[Plugin] = [
-            aws_user_agent_plugin,
-    user_agent_plugin,
-        ]
+        client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
         if plugins:
             client_plugins.extend(plugins)
 
@@ -55,8 +55,12 @@ class SageMakerRuntimeHTTP2Client:
     async def invoke_endpoint_with_bidirectional_stream(
         self,
         input: InvokeEndpointWithBidirectionalStreamInput,
-        plugins: list[Plugin] | None = None
-    ) -> DuplexEventStream[RequestStreamEvent, ResponseStreamEvent, InvokeEndpointWithBidirectionalStreamOutput]:
+        plugins: list[Plugin] | None = None,
+    ) -> DuplexEventStream[
+        RequestStreamEvent,
+        ResponseStreamEvent,
+        InvokeEndpointWithBidirectionalStreamOutput,
+    ]:
         """
         Invokes a model endpoint with bidirectional streaming capabilities. This
         operation establishes a persistent connection that allows you to send multiple
@@ -93,16 +97,16 @@ class SageMakerRuntimeHTTP2Client:
             Changes made by these plugins only apply for the duration of the operation
             execution and will not affect any other operation invocations.
         """
-        operation_plugins: list[Plugin] = [
-
-        ]
+        operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
         config = deepcopy(self._config)
         for plugin in operation_plugins:
             plugin(config)
         if config.protocol is None or config.transport is None:
-            raise ExpectationNotMetError("protocol and transport MUST be set on the config to make calls.")
+            raise ExpectationNotMetError(
+                "protocol and transport MUST be set on the config to make calls."
+            )
 
         # Resolve retry strategy from config
         if isinstance(config.retry_strategy, RetryStrategy):
@@ -121,10 +125,7 @@ class SageMakerRuntimeHTTP2Client:
                 f"got {type(config.retry_strategy).__name__}"
             )
 
-        pipeline = RequestPipeline(
-            protocol=config.protocol,
-            transport=config.transport
-        )
+        pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
             input=input,
             operation=INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM,
@@ -140,5 +141,5 @@ class SageMakerRuntimeHTTP2Client:
             call,
             RequestStreamEvent,
             ResponseStreamEvent,
-            _ResponseStreamEventDeserializer().deserialize
+            _ResponseStreamEventDeserializer().deserialize,
         )

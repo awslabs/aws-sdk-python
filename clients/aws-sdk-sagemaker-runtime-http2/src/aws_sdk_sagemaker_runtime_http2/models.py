@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 import logging
-from typing import Any, ClassVar, Literal, Self, Union
+from typing import Any, Literal, Self, Union
 
 from smithy_core.deserializers import ShapeDeserializer
 from smithy_core.documents import TypeRegistry
@@ -28,8 +28,8 @@ from ._private.schemas import (
 )
 
 
-
 logger = logging.getLogger(__name__)
+
 
 class ServiceError(ModeledError):
     """Base error for all errors in the service.
@@ -37,6 +37,7 @@ class ServiceError(ModeledError):
     Some exceptions do not extend from this class, including
     synthetic, implicit, and shared exception types.
     """
+
 
 @dataclass(kw_only=True)
 class InputValidationError(ServiceError):
@@ -56,10 +57,14 @@ class InputValidationError(ServiceError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_INPUT_VALIDATION_ERROR.members["Message"], self.message)
+            serializer.write_string(
+                _SCHEMA_INPUT_VALIDATION_ERROR.members["Message"], self.message
+            )
 
         if self.error_code is not None:
-            serializer.write_string(_SCHEMA_INPUT_VALIDATION_ERROR.members["ErrorCode"], self.error_code)
+            serializer.write_string(
+                _SCHEMA_INPUT_VALIDATION_ERROR.members["ErrorCode"], self.error_code
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -72,16 +77,21 @@ class InputValidationError(ServiceError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_INPUT_VALIDATION_ERROR.members["Message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_INPUT_VALIDATION_ERROR.members["Message"]
+                    )
 
                 case 1:
-                    kwargs["error_code"] = de.read_string(_SCHEMA_INPUT_VALIDATION_ERROR.members["ErrorCode"])
+                    kwargs["error_code"] = de.read_string(
+                        _SCHEMA_INPUT_VALIDATION_ERROR.members["ErrorCode"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_INPUT_VALIDATION_ERROR, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class InternalServerError(ServiceError):
@@ -102,10 +112,14 @@ class InternalServerError(ServiceError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_INTERNAL_SERVER_ERROR.members["Message"], self.message)
+            serializer.write_string(
+                _SCHEMA_INTERNAL_SERVER_ERROR.members["Message"], self.message
+            )
 
         if self.error_code is not None:
-            serializer.write_string(_SCHEMA_INTERNAL_SERVER_ERROR.members["ErrorCode"], self.error_code)
+            serializer.write_string(
+                _SCHEMA_INTERNAL_SERVER_ERROR.members["ErrorCode"], self.error_code
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -118,16 +132,21 @@ class InternalServerError(ServiceError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_INTERNAL_SERVER_ERROR.members["Message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_INTERNAL_SERVER_ERROR.members["Message"]
+                    )
 
                 case 1:
-                    kwargs["error_code"] = de.read_string(_SCHEMA_INTERNAL_SERVER_ERROR.members["ErrorCode"])
+                    kwargs["error_code"] = de.read_string(
+                        _SCHEMA_INTERNAL_SERVER_ERROR.members["ErrorCode"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_INTERNAL_SERVER_ERROR, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class InternalStreamFailure(ServiceError):
@@ -142,7 +161,9 @@ class InternalStreamFailure(ServiceError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_INTERNAL_STREAM_FAILURE.members["Message"], self.message)
+            serializer.write_string(
+                _SCHEMA_INTERNAL_STREAM_FAILURE.members["Message"], self.message
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -155,13 +176,16 @@ class InternalStreamFailure(ServiceError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_INTERNAL_STREAM_FAILURE.members["Message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_INTERNAL_STREAM_FAILURE.members["Message"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_INTERNAL_STREAM_FAILURE, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class RequestPayloadPart:
@@ -195,13 +219,20 @@ class RequestPayloadPart:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.bytes_ is not None:
-            serializer.write_blob(_SCHEMA_REQUEST_PAYLOAD_PART.members["Bytes"], self.bytes_)
+            serializer.write_blob(
+                _SCHEMA_REQUEST_PAYLOAD_PART.members["Bytes"], self.bytes_
+            )
 
         if self.data_type is not None:
-            serializer.write_string(_SCHEMA_REQUEST_PAYLOAD_PART.members["DataType"], self.data_type)
+            serializer.write_string(
+                _SCHEMA_REQUEST_PAYLOAD_PART.members["DataType"], self.data_type
+            )
 
         if self.completion_state is not None:
-            serializer.write_string(_SCHEMA_REQUEST_PAYLOAD_PART.members["CompletionState"], self.completion_state)
+            serializer.write_string(
+                _SCHEMA_REQUEST_PAYLOAD_PART.members["CompletionState"],
+                self.completion_state,
+            )
 
         if self.p is not None:
             serializer.write_string(_SCHEMA_REQUEST_PAYLOAD_PART.members["P"], self.p)
@@ -217,22 +248,31 @@ class RequestPayloadPart:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["bytes_"] = de.read_blob(_SCHEMA_REQUEST_PAYLOAD_PART.members["Bytes"])
+                    kwargs["bytes_"] = de.read_blob(
+                        _SCHEMA_REQUEST_PAYLOAD_PART.members["Bytes"]
+                    )
 
                 case 1:
-                    kwargs["data_type"] = de.read_string(_SCHEMA_REQUEST_PAYLOAD_PART.members["DataType"])
+                    kwargs["data_type"] = de.read_string(
+                        _SCHEMA_REQUEST_PAYLOAD_PART.members["DataType"]
+                    )
 
                 case 2:
-                    kwargs["completion_state"] = de.read_string(_SCHEMA_REQUEST_PAYLOAD_PART.members["CompletionState"])
+                    kwargs["completion_state"] = de.read_string(
+                        _SCHEMA_REQUEST_PAYLOAD_PART.members["CompletionState"]
+                    )
 
                 case 3:
-                    kwargs["p"] = de.read_string(_SCHEMA_REQUEST_PAYLOAD_PART.members["P"])
+                    kwargs["p"] = de.read_string(
+                        _SCHEMA_REQUEST_PAYLOAD_PART.members["P"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_REQUEST_PAYLOAD_PART, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class RequestStreamEventPayloadPart:
@@ -246,11 +286,14 @@ class RequestStreamEventPayloadPart:
         serializer.write_struct(_SCHEMA_REQUEST_STREAM_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_REQUEST_STREAM_EVENT.members["PayloadPart"], self.value)
+        serializer.write_struct(
+            _SCHEMA_REQUEST_STREAM_EVENT.members["PayloadPart"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=RequestPayloadPart.deserialize(deserializer))
+
 
 @dataclass
 class RequestStreamEventUnknown:
@@ -274,11 +317,14 @@ class RequestStreamEventUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
+
 RequestStreamEvent = Union[RequestStreamEventPayloadPart | RequestStreamEventUnknown]
 
 """
 Request stream event union.
 """
+
+
 class _RequestStreamEventDeserializer:
     _result: RequestStreamEvent | None = None
 
@@ -287,7 +333,9 @@ class _RequestStreamEventDeserializer:
         deserializer.read_struct(_SCHEMA_REQUEST_STREAM_EVENT, self._consumer)
 
         if self._result is None:
-            raise SerializationError("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -301,12 +349,14 @@ class _RequestStreamEventDeserializer:
 
     def _set_result(self, value: RequestStreamEvent) -> None:
         if self._result is not None:
-            raise SerializationError("Unions must have exactly one value, but found more than one.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class InvokeEndpointWithBidirectionalStreamInput:
-
     endpoint_name: str | None = None
     """
     The name of the endpoint to invoke.
@@ -328,20 +378,42 @@ class InvokeEndpointWithBidirectionalStreamInput:
     """
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.endpoint_name is not None:
-            serializer.write_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members["EndpointName"], self.endpoint_name)
+            serializer.write_string(
+                _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members[
+                    "EndpointName"
+                ],
+                self.endpoint_name,
+            )
 
         if self.target_variant is not None:
-            serializer.write_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members["TargetVariant"], self.target_variant)
+            serializer.write_string(
+                _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members[
+                    "TargetVariant"
+                ],
+                self.target_variant,
+            )
 
         if self.model_invocation_path is not None:
-            serializer.write_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members["ModelInvocationPath"], self.model_invocation_path)
+            serializer.write_string(
+                _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members[
+                    "ModelInvocationPath"
+                ],
+                self.model_invocation_path,
+            )
 
         if self.model_query_string is not None:
-            serializer.write_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members["ModelQueryString"], self.model_query_string)
+            serializer.write_string(
+                _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members[
+                    "ModelQueryString"
+                ],
+                self.model_query_string,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -354,22 +426,41 @@ class InvokeEndpointWithBidirectionalStreamInput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["endpoint_name"] = de.read_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members["EndpointName"])
+                    kwargs["endpoint_name"] = de.read_string(
+                        _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members[
+                            "EndpointName"
+                        ]
+                    )
 
                 case 2:
-                    kwargs["target_variant"] = de.read_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members["TargetVariant"])
+                    kwargs["target_variant"] = de.read_string(
+                        _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members[
+                            "TargetVariant"
+                        ]
+                    )
 
                 case 3:
-                    kwargs["model_invocation_path"] = de.read_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members["ModelInvocationPath"])
+                    kwargs["model_invocation_path"] = de.read_string(
+                        _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members[
+                            "ModelInvocationPath"
+                        ]
+                    )
 
                 case 4:
-                    kwargs["model_query_string"] = de.read_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members["ModelQueryString"])
+                    kwargs["model_query_string"] = de.read_string(
+                        _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT.members[
+                            "ModelQueryString"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ModelStreamError(ServiceError):
@@ -389,10 +480,14 @@ class ModelStreamError(ServiceError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_MODEL_STREAM_ERROR.members["Message"], self.message)
+            serializer.write_string(
+                _SCHEMA_MODEL_STREAM_ERROR.members["Message"], self.message
+            )
 
         if self.error_code is not None:
-            serializer.write_string(_SCHEMA_MODEL_STREAM_ERROR.members["ErrorCode"], self.error_code)
+            serializer.write_string(
+                _SCHEMA_MODEL_STREAM_ERROR.members["ErrorCode"], self.error_code
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -405,16 +500,21 @@ class ModelStreamError(ServiceError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_MODEL_STREAM_ERROR.members["Message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_MODEL_STREAM_ERROR.members["Message"]
+                    )
 
                 case 1:
-                    kwargs["error_code"] = de.read_string(_SCHEMA_MODEL_STREAM_ERROR.members["ErrorCode"])
+                    kwargs["error_code"] = de.read_string(
+                        _SCHEMA_MODEL_STREAM_ERROR.members["ErrorCode"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_MODEL_STREAM_ERROR, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ResponsePayloadPart:
@@ -448,13 +548,20 @@ class ResponsePayloadPart:
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.bytes_ is not None:
-            serializer.write_blob(_SCHEMA_RESPONSE_PAYLOAD_PART.members["Bytes"], self.bytes_)
+            serializer.write_blob(
+                _SCHEMA_RESPONSE_PAYLOAD_PART.members["Bytes"], self.bytes_
+            )
 
         if self.data_type is not None:
-            serializer.write_string(_SCHEMA_RESPONSE_PAYLOAD_PART.members["DataType"], self.data_type)
+            serializer.write_string(
+                _SCHEMA_RESPONSE_PAYLOAD_PART.members["DataType"], self.data_type
+            )
 
         if self.completion_state is not None:
-            serializer.write_string(_SCHEMA_RESPONSE_PAYLOAD_PART.members["CompletionState"], self.completion_state)
+            serializer.write_string(
+                _SCHEMA_RESPONSE_PAYLOAD_PART.members["CompletionState"],
+                self.completion_state,
+            )
 
         if self.p is not None:
             serializer.write_string(_SCHEMA_RESPONSE_PAYLOAD_PART.members["P"], self.p)
@@ -470,22 +577,31 @@ class ResponsePayloadPart:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["bytes_"] = de.read_blob(_SCHEMA_RESPONSE_PAYLOAD_PART.members["Bytes"])
+                    kwargs["bytes_"] = de.read_blob(
+                        _SCHEMA_RESPONSE_PAYLOAD_PART.members["Bytes"]
+                    )
 
                 case 1:
-                    kwargs["data_type"] = de.read_string(_SCHEMA_RESPONSE_PAYLOAD_PART.members["DataType"])
+                    kwargs["data_type"] = de.read_string(
+                        _SCHEMA_RESPONSE_PAYLOAD_PART.members["DataType"]
+                    )
 
                 case 2:
-                    kwargs["completion_state"] = de.read_string(_SCHEMA_RESPONSE_PAYLOAD_PART.members["CompletionState"])
+                    kwargs["completion_state"] = de.read_string(
+                        _SCHEMA_RESPONSE_PAYLOAD_PART.members["CompletionState"]
+                    )
 
                 case 3:
-                    kwargs["p"] = de.read_string(_SCHEMA_RESPONSE_PAYLOAD_PART.members["P"])
+                    kwargs["p"] = de.read_string(
+                        _SCHEMA_RESPONSE_PAYLOAD_PART.members["P"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_RESPONSE_PAYLOAD_PART, consumer=_consumer)
         return kwargs
+
 
 @dataclass
 class ResponseStreamEventPayloadPart:
@@ -499,11 +615,14 @@ class ResponseStreamEventPayloadPart:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM_EVENT.members["PayloadPart"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM_EVENT.members["PayloadPart"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ResponsePayloadPart.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamEventModelStreamError:
@@ -517,11 +636,14 @@ class ResponseStreamEventModelStreamError:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM_EVENT.members["ModelStreamError"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM_EVENT.members["ModelStreamError"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=ModelStreamError.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamEventInternalStreamFailure:
@@ -535,11 +657,14 @@ class ResponseStreamEventInternalStreamFailure:
         serializer.write_struct(_SCHEMA_RESPONSE_STREAM_EVENT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_RESPONSE_STREAM_EVENT.members["InternalStreamFailure"], self.value)
+        serializer.write_struct(
+            _SCHEMA_RESPONSE_STREAM_EVENT.members["InternalStreamFailure"], self.value
+        )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=InternalStreamFailure.deserialize(deserializer))
+
 
 @dataclass
 class ResponseStreamEventUnknown:
@@ -563,11 +688,19 @@ class ResponseStreamEventUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-ResponseStreamEvent = Union[ResponseStreamEventPayloadPart | ResponseStreamEventModelStreamError | ResponseStreamEventInternalStreamFailure | ResponseStreamEventUnknown]
+
+ResponseStreamEvent = Union[
+    ResponseStreamEventPayloadPart
+    | ResponseStreamEventModelStreamError
+    | ResponseStreamEventInternalStreamFailure
+    | ResponseStreamEventUnknown
+]
 
 """
 Response stream event union.
 """
+
+
 class _ResponseStreamEventDeserializer:
     _result: ResponseStreamEvent | None = None
 
@@ -576,7 +709,9 @@ class _ResponseStreamEventDeserializer:
         deserializer.read_struct(_SCHEMA_RESPONSE_STREAM_EVENT, self._consumer)
 
         if self._result is None:
-            raise SerializationError("Unions must have exactly one value, but found none.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
 
         return self._result
 
@@ -589,30 +724,41 @@ class _ResponseStreamEventDeserializer:
                 self._set_result(ResponseStreamEventModelStreamError.deserialize(de))
 
             case 2:
-                self._set_result(ResponseStreamEventInternalStreamFailure.deserialize(de))
+                self._set_result(
+                    ResponseStreamEventInternalStreamFailure.deserialize(de)
+                )
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
 
     def _set_result(self, value: ResponseStreamEvent) -> None:
         if self._result is not None:
-            raise SerializationError("Unions must have exactly one value, but found more than one.")
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
         self._result = value
+
 
 @dataclass(kw_only=True)
 class InvokeEndpointWithBidirectionalStreamOutput:
-
     invoked_production_variant: str | None = None
     """
     The invoked production variant.
     """
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self)
+        serializer.write_struct(
+            _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT, self
+        )
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.invoked_production_variant is not None:
-            serializer.write_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["InvokedProductionVariant"], self.invoked_production_variant)
+            serializer.write_string(
+                _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members[
+                    "InvokedProductionVariant"
+                ],
+                self.invoked_production_variant,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -625,13 +771,20 @@ class InvokeEndpointWithBidirectionalStreamOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 1:
-                    kwargs["invoked_production_variant"] = de.read_string(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members["InvokedProductionVariant"])
+                    kwargs["invoked_production_variant"] = de.read_string(
+                        _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT.members[
+                            "InvokedProductionVariant"
+                        ]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT, consumer=_consumer)
+        deserializer.read_struct(
+            _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT, consumer=_consumer
+        )
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ModelError(ServiceError):
@@ -666,19 +819,30 @@ class ModelError(ServiceError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_MODEL_ERROR.members["Message"], self.message)
+            serializer.write_string(
+                _SCHEMA_MODEL_ERROR.members["Message"], self.message
+            )
 
         if self.original_status_code is not None:
-            serializer.write_integer(_SCHEMA_MODEL_ERROR.members["OriginalStatusCode"], self.original_status_code)
+            serializer.write_integer(
+                _SCHEMA_MODEL_ERROR.members["OriginalStatusCode"],
+                self.original_status_code,
+            )
 
         if self.original_message is not None:
-            serializer.write_string(_SCHEMA_MODEL_ERROR.members["OriginalMessage"], self.original_message)
+            serializer.write_string(
+                _SCHEMA_MODEL_ERROR.members["OriginalMessage"], self.original_message
+            )
 
         if self.log_stream_arn is not None:
-            serializer.write_string(_SCHEMA_MODEL_ERROR.members["LogStreamArn"], self.log_stream_arn)
+            serializer.write_string(
+                _SCHEMA_MODEL_ERROR.members["LogStreamArn"], self.log_stream_arn
+            )
 
         if self.error_code is not None:
-            serializer.write_string(_SCHEMA_MODEL_ERROR.members["ErrorCode"], self.error_code)
+            serializer.write_string(
+                _SCHEMA_MODEL_ERROR.members["ErrorCode"], self.error_code
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -691,25 +855,36 @@ class ModelError(ServiceError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_MODEL_ERROR.members["Message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_MODEL_ERROR.members["Message"]
+                    )
 
                 case 1:
-                    kwargs["original_status_code"] = de.read_integer(_SCHEMA_MODEL_ERROR.members["OriginalStatusCode"])
+                    kwargs["original_status_code"] = de.read_integer(
+                        _SCHEMA_MODEL_ERROR.members["OriginalStatusCode"]
+                    )
 
                 case 2:
-                    kwargs["original_message"] = de.read_string(_SCHEMA_MODEL_ERROR.members["OriginalMessage"])
+                    kwargs["original_message"] = de.read_string(
+                        _SCHEMA_MODEL_ERROR.members["OriginalMessage"]
+                    )
 
                 case 3:
-                    kwargs["log_stream_arn"] = de.read_string(_SCHEMA_MODEL_ERROR.members["LogStreamArn"])
+                    kwargs["log_stream_arn"] = de.read_string(
+                        _SCHEMA_MODEL_ERROR.members["LogStreamArn"]
+                    )
 
                 case 4:
-                    kwargs["error_code"] = de.read_string(_SCHEMA_MODEL_ERROR.members["ErrorCode"])
+                    kwargs["error_code"] = de.read_string(
+                        _SCHEMA_MODEL_ERROR.members["ErrorCode"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_MODEL_ERROR, consumer=_consumer)
         return kwargs
+
 
 @dataclass(kw_only=True)
 class ServiceUnavailableError(ServiceError):
@@ -729,10 +904,14 @@ class ServiceUnavailableError(ServiceError):
 
     def serialize_members(self, serializer: ShapeSerializer):
         if self.message is not None:
-            serializer.write_string(_SCHEMA_SERVICE_UNAVAILABLE_ERROR.members["Message"], self.message)
+            serializer.write_string(
+                _SCHEMA_SERVICE_UNAVAILABLE_ERROR.members["Message"], self.message
+            )
 
         if self.error_code is not None:
-            serializer.write_string(_SCHEMA_SERVICE_UNAVAILABLE_ERROR.members["ErrorCode"], self.error_code)
+            serializer.write_string(
+                _SCHEMA_SERVICE_UNAVAILABLE_ERROR.members["ErrorCode"], self.error_code
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -745,10 +924,14 @@ class ServiceUnavailableError(ServiceError):
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_SERVICE_UNAVAILABLE_ERROR.members["Message"])
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_SERVICE_UNAVAILABLE_ERROR.members["Message"]
+                    )
 
                 case 1:
-                    kwargs["error_code"] = de.read_string(_SCHEMA_SERVICE_UNAVAILABLE_ERROR.members["ErrorCode"])
+                    kwargs["error_code"] = de.read_string(
+                        _SCHEMA_SERVICE_UNAVAILABLE_ERROR.members["ErrorCode"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -756,21 +939,32 @@ class ServiceUnavailableError(ServiceError):
         deserializer.read_struct(_SCHEMA_SERVICE_UNAVAILABLE_ERROR, consumer=_consumer)
         return kwargs
 
+
 INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM = APIOperation(
-        input = InvokeEndpointWithBidirectionalStreamInput,
-        output = InvokeEndpointWithBidirectionalStreamOutput,
-        schema = _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM,
-        input_schema = _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT,
-        output_schema = _SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("com.amazonaws.sagemakerruntimehttp2#InputValidationError"): InputValidationError,
-ShapeID("com.amazonaws.sagemakerruntimehttp2#InternalServerError"): InternalServerError,
-ShapeID("com.amazonaws.sagemakerruntimehttp2#InternalStreamFailure"): InternalStreamFailure,
-ShapeID("com.amazonaws.sagemakerruntimehttp2#ModelError"): ModelError,
-ShapeID("com.amazonaws.sagemakerruntimehttp2#ModelStreamError"): ModelStreamError,
-ShapeID("com.amazonaws.sagemakerruntimehttp2#ServiceUnavailableError"): ServiceUnavailableError,
-        }),
-        effective_auth_schemes = [
-            ShapeID("aws.auth#sigv4"),
-        ]
+    input=InvokeEndpointWithBidirectionalStreamInput,
+    output=InvokeEndpointWithBidirectionalStreamOutput,
+    schema=_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM,
+    input_schema=_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_INPUT,
+    output_schema=_SCHEMA_INVOKE_ENDPOINT_WITH_BIDIRECTIONAL_STREAM_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.sagemakerruntimehttp2#InputValidationError"
+            ): InputValidationError,
+            ShapeID(
+                "com.amazonaws.sagemakerruntimehttp2#InternalServerError"
+            ): InternalServerError,
+            ShapeID(
+                "com.amazonaws.sagemakerruntimehttp2#InternalStreamFailure"
+            ): InternalStreamFailure,
+            ShapeID("com.amazonaws.sagemakerruntimehttp2#ModelError"): ModelError,
+            ShapeID(
+                "com.amazonaws.sagemakerruntimehttp2#ModelStreamError"
+            ): ModelStreamError,
+            ShapeID(
+                "com.amazonaws.sagemakerruntimehttp2#ServiceUnavailableError"
+            ): ServiceUnavailableError,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
 )

@@ -8,7 +8,9 @@ from smithy_core.shapes import ShapeID
 
 
 class HTTPAuthSchemeResolver:
-    def resolve_auth_scheme(self, auth_parameters: AuthParams[Any, Any]) -> list[AuthOptionProtocol]:
+    def resolve_auth_scheme(
+        self, auth_parameters: AuthParams[Any, Any]
+    ) -> list[AuthOptionProtocol]:
         auth_options: list[AuthOptionProtocol] = []
 
         if (option := _generate_sigv4_option(auth_parameters)) is not None:
@@ -16,9 +18,12 @@ class HTTPAuthSchemeResolver:
 
         return auth_options
 
-def _generate_sigv4_option(auth_params: AuthParams[Any, Any]) -> AuthOptionProtocol | None:
+
+def _generate_sigv4_option(
+    auth_params: AuthParams[Any, Any],
+) -> AuthOptionProtocol | None:
     return AuthOption(
         scheme_id=ShapeID("aws.auth#sigv4"),
         identity_properties={},  # type: ignore
-        signer_properties={}  # type: ignore
+        signer_properties={},  # type: ignore
     )

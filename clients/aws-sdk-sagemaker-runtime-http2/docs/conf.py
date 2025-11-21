@@ -2,29 +2,23 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
 
-project = 'Amazon SageMaker Runtime HTTP2'
-author = 'Amazon Web Services'
-release = '0.1.0'
+sys.path.insert(0, os.path.abspath(".."))
 
-extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-]
+project = "Amazon SageMaker Runtime HTTP2"
+author = "Amazon Web Services"
+release = "0.1.0"
 
-templates_path = ['_templates']
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.viewcode"]
+
+templates_path = ["_templates"]
 exclude_patterns = []
 
 autodoc_default_options = {
-    'exclude-members': 'deserialize,deserialize_kwargs,serialize,serialize_members'
+    "exclude-members": "deserialize,deserialize_kwargs,serialize,serialize_members"
 }
 
-html_theme = 'pydata_sphinx_theme'
-html_theme_options = {
-    "logo": {
-        "text": "Amazon SageMaker Runtime HTTP2",
-    }
-}
+html_theme = "pydata_sphinx_theme"
+html_theme_options = {"logo": {"text": "Amazon SageMaker Runtime HTTP2"}}
 
-autodoc_typehints = 'description'
+autodoc_typehints = "description"
