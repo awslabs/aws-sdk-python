@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Enhancements
+* Add comprehensive integration tests for non-streaming, output streaming, and bidirectional streaming operations.
+
 ## v0.2.0
 
 ### API Changes
@@ -26,7 +29,7 @@
 * New stop reason for Converse and ConverseStream
 
 ### Enhancements
-* Improvements to the underlying AWS CRT HTTP client result in a signifigant decrease in CPU usage. Addresses [aws-sdk-python#11](https://github.com/awslabs/aws-sdk-python/issues/11).
+* Improvements to the underlying AWS CRT HTTP client result in a significant decrease in CPU usage. Addresses [aws-sdk-python#11](https://github.com/awslabs/aws-sdk-python/issues/11).
 
 ### Dependencies
 
