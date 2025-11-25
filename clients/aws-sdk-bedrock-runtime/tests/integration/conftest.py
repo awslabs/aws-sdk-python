@@ -11,25 +11,33 @@ from smithy_http.aio.crt import AWSCRTHTTPClient
 from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient
 from aws_sdk_bedrock_runtime.config import Config
 
-AWS_REGION = "us-west-2"
-ENDPOINT_URI = f"https://bedrock-runtime.{AWS_REGION}.amazonaws.com"
 MODEL_ID = "amazon.titan-text-express-v1"
 BIDIRECTIONAL_MODEL_ID = "amazon.nova-sonic-v1:0"
 
 
-@pytest.fixture
-async def bedrock_client():
-    """Create a new BedrockRuntimeClient with default credential chain."""
+def _create_bedrock_client(region: str):
+    """Helper to create a BedrockRuntimeClient for a given region."""
     http_client = AWSCRTHTTPClient()
-    client = BedrockRuntimeClient(
+    return BedrockRuntimeClient(
         config=Config(
-            endpoint_uri=ENDPOINT_URI,
-            region=AWS_REGION,
+            endpoint_uri=f"https://bedrock-runtime.{region}.amazonaws.com",
+            region=region,
             aws_credentials_identity_resolver=create_default_chain(http_client),
             transport=http_client,
         )
     )
-    return client
+
+
+@pytest.fixture
+def bedrock_client():
+    """Create a BedrockRuntimeClient for us-west-2."""
+    return _create_bedrock_client("us-west-2")
+
+
+@pytest.fixture
+def bedrock_client_us_east_1():
+    """Create a BedrockRuntimeClient for us-east-1 (for nova-sonic model)."""
+    return _create_bedrock_client("us-east-1")
 
 
 @pytest.fixture

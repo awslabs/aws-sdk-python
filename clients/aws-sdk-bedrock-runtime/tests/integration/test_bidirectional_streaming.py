@@ -9,13 +9,9 @@ import json
 import uuid
 from pathlib import Path
 
-import pytest
-from smithy_aws_core.identity.chain import create_default_chain
 from smithy_core.aio.eventstream import DuplexEventStream
-from smithy_http.aio.crt import AWSCRTHTTPClient
 
 from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient
-from aws_sdk_bedrock_runtime.config import Config
 from aws_sdk_bedrock_runtime.models import (
     BidirectionalInputPayloadPart,
     InvokeModelWithBidirectionalStreamInputChunk,
@@ -147,21 +143,6 @@ SESSION_END_EVENT = """{
 }"""
 
 
-@pytest.fixture
-async def bedrock_client():
-    """Create a BedrockRuntimeClient for us-east-1."""
-    http_client = AWSCRTHTTPClient()
-    client = BedrockRuntimeClient(
-        config=Config(
-            endpoint_uri="https://bedrock-runtime.us-east-1.amazonaws.com",
-            region="us-east-1",
-            aws_credentials_identity_resolver=create_default_chain(http_client),
-            transport=http_client,
-        )
-    )
-    return client
-
-
 async def _send_event(
     stream: DuplexEventStream[
         InvokeModelWithBidirectionalStreamInput,
@@ -262,10 +243,12 @@ async def _receive_stream_output(
 
 
 async def test_invoke_model_with_bidirectional_stream(
-    bedrock_client: BedrockRuntimeClient, bidirectional_model_id: str, audio_file: Path
+    bedrock_client_us_east_1: BedrockRuntimeClient,
+    bidirectional_model_id: str,
+    audio_file: Path,
 ) -> None:
     """Test bidirectional streaming with audio input and text/audio output."""
-    stream = await bedrock_client.invoke_model_with_bidirectional_stream(
+    stream = await bedrock_client_us_east_1.invoke_model_with_bidirectional_stream(
         InvokeModelWithBidirectionalStreamOperationInput(
             model_id=bidirectional_model_id
         )
