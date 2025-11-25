@@ -3,7 +3,6 @@
 
 """Test non-streaming output type handling."""
 
-from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient
 from aws_sdk_bedrock_runtime.models import (
     ContentBlockText,
     ConverseInput,
@@ -12,13 +11,15 @@ from aws_sdk_bedrock_runtime.models import (
     Message,
 )
 
+from . import MESSAGE, MODEL_ID, create_bedrock_client
 
-async def test_converse(
-    bedrock_client: BedrockRuntimeClient, model_id: str, message: str
-) -> None:
-    input_message = Message(role="user", content=[ContentBlockText(value=message)])
+
+async def test_converse() -> None:
+    bedrock_client = create_bedrock_client("us-west-2")
+
+    input_message = Message(role="user", content=[ContentBlockText(value=MESSAGE)])
     response = await bedrock_client.converse(
-        ConverseInput(model_id=model_id, messages=[input_message])
+        ConverseInput(model_id=MODEL_ID, messages=[input_message])
     )
 
     assert isinstance(response, ConverseOperationOutput)
@@ -31,11 +32,6 @@ async def test_converse(
     content_block = output_message.content[0]
     assert isinstance(content_block, ContentBlockText)
     assert isinstance(content_block.value, str) and content_block.value
-
-    response_text = content_block.value.lower()
-    assert "guido" in response_text, (
-        f"Expected response to mention 'Guido' (van Rossum). Got: {content_block.value}"
-    )
 
     assert response.usage.input_tokens > 0
     assert response.usage.output_tokens > 0

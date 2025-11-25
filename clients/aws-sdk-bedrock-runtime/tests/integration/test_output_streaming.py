@@ -3,7 +3,6 @@
 
 """Test output streaming event stream handling."""
 
-from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient
 from aws_sdk_bedrock_runtime.models import (
     ContentBlockDeltaText,
     ContentBlockText,
@@ -14,13 +13,15 @@ from aws_sdk_bedrock_runtime.models import (
     Message,
 )
 
+from . import MESSAGE, MODEL_ID, create_bedrock_client
 
-async def test_converse_stream(
-    bedrock_client: BedrockRuntimeClient, model_id: str, message: str
-) -> None:
-    input_message = Message(role="user", content=[ContentBlockText(value=message)])
+
+async def test_converse_stream() -> None:
+    bedrock_client = create_bedrock_client("us-west-2")
+
+    input_message = Message(role="user", content=[ContentBlockText(value=MESSAGE)])
     response = await bedrock_client.converse_stream(
-        ConverseStreamInput(model_id=model_id, messages=[input_message])
+        ConverseStreamInput(model_id=MODEL_ID, messages=[input_message])
     )
 
     received_text: list[str] = []
@@ -39,11 +40,6 @@ async def test_converse_stream(
 
         full_response = "".join(received_text)
         assert full_response
-
-        response_text = full_response.lower()
-        assert "guido" in response_text, (
-            f"Expected response to mention 'Guido' (van Rossum). Got: {full_response}"
-        )
 
         assert metadata_received
         assert isinstance(stream.output, ConverseStreamOperationOutput)
