@@ -219,7 +219,9 @@ async def _receive_stream_output(
 
     async for out in output_stream:
         if not isinstance(out, InvokeModelWithBidirectionalStreamOutputChunk):
-            continue
+            raise RuntimeError(
+                f"Received unexpected event type in stream: {type(out).__name__}"
+            )
 
         payload = out.value.bytes_
         if not payload:
