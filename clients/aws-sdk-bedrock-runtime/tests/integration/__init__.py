@@ -12,7 +12,7 @@ from aws_sdk_bedrock_runtime.config import Config
 MODEL_ID = "amazon.titan-text-express-v1"
 BIDIRECTIONAL_MODEL_ID = "amazon.nova-sonic-v1:0"
 MESSAGE = "Who created the Python programming language?"
-AUDIO_FILE = Path(__file__).parent / "fixtures" / "test.pcm"
+AUDIO_FILE = Path(__file__).parent / "assets" / "test.pcm"
 
 
 def create_bedrock_client(region: str) -> BedrockRuntimeClient:
