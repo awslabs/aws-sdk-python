@@ -1,7 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Test bidirectional streaming duplex event stream handling."""
+"""Test bidirectional event stream handling."""
 
 import asyncio
 import time
