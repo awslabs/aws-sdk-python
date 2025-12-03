@@ -12,6 +12,10 @@
 
 Creates an IAM role and S3 bucket needed for medical scribe integration tests.
 
+Note:
+    This script is intended for local testing only and should not be used for
+    production setups.
+
 Usage:
     uv run scripts/setup_resources.py
 """
