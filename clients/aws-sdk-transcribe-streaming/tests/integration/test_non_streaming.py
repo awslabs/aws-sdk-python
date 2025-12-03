@@ -16,6 +16,8 @@ import os
 import time
 import uuid
 
+import pytest
+
 from aws_sdk_transcribe_streaming.models import (
     ClinicalNoteGenerationSettings,
     GetMedicalScribeStreamInput,
@@ -45,8 +47,8 @@ async def test_get_medical_scribe_stream() -> None:
     role_arn = os.environ.get("HEALTHSCRIBE_ROLE_ARN")
     s3_bucket = os.environ.get("HEALTHSCRIBE_S3_BUCKET")
 
-    assert role_arn, "HEALTHSCRIBE_ROLE_ARN environment variable not set"
-    assert s3_bucket, "HEALTHSCRIBE_S3_BUCKET environment variable not set"
+    if not role_arn or not s3_bucket:
+        pytest.fail("HEALTHSCRIBE_ROLE_ARN or HEALTHSCRIBE_S3_BUCKET not set")
 
     transcribe_client = create_transcribe_client("us-east-1")
     session_id = str(uuid.uuid4())
