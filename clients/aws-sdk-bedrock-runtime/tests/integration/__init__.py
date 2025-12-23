@@ -9,8 +9,8 @@ from smithy_aws_core.identity import EnvironmentCredentialsResolver
 from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient
 from aws_sdk_bedrock_runtime.config import Config
 
-MODEL_ID = "amazon.titan-text-express-v1"
-BIDIRECTIONAL_MODEL_ID = "amazon.nova-sonic-v1:0"
+MODEL_ID = "global.amazon.nova-2-lite-v1:0"
+BIDIRECTIONAL_MODEL_ID = "amazon.nova-2-sonic-v1:0"
 MESSAGE = "Who created the Python programming language?"
 AUDIO_FILE = Path(__file__).parent / "assets" / "test.pcm"
 
