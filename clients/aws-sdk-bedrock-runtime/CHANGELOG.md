@@ -2,8 +2,24 @@
 
 ## Unreleased
 
+* None Yet.
+
+## v0.3.0
+
+### API Changes
+* Adds support for Audio Blocks and Streaming Image Output plus new Stop Reasons of malformed_model_output and malformed_tool_use.
+* Adds support for Bedrock Runtime Reserved Service.
+
+### Breaking
+* Function signature for `resolve_retry_strategy` has been changed to prevent unnecessary code duplication in operation methods. This will affect all 0.3.0 clients.
+
+### Dependencies
+* **Updated**: `smithy_aws_core[eventstream, json]` from `~=0.2.0` to `~=0.3.0`.
+* **Updated**: `smithy_core` from `~=0.2.0` to `~=0.3.0`.
+
 ### Enhancements
 * Add comprehensive integration tests for non-streaming, output streaming, and bidirectional streaming operations.
+
 
 ## v0.2.0
 

@@ -23,6 +23,8 @@ from ._private.schemas import (
     ASYNC_INVOKE_OUTPUT_DATA_CONFIG as _SCHEMA_ASYNC_INVOKE_OUTPUT_DATA_CONFIG,
     ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG as _SCHEMA_ASYNC_INVOKE_S3_OUTPUT_DATA_CONFIG,
     ASYNC_INVOKE_SUMMARY as _SCHEMA_ASYNC_INVOKE_SUMMARY,
+    AUDIO_BLOCK as _SCHEMA_AUDIO_BLOCK,
+    AUDIO_SOURCE as _SCHEMA_AUDIO_SOURCE,
     AUTO_TOOL_CHOICE as _SCHEMA_AUTO_TOOL_CHOICE,
     BIDIRECTIONAL_INPUT_PAYLOAD_PART as _SCHEMA_BIDIRECTIONAL_INPUT_PAYLOAD_PART,
     BIDIRECTIONAL_OUTPUT_PAYLOAD_PART as _SCHEMA_BIDIRECTIONAL_OUTPUT_PAYLOAD_PART,
@@ -66,6 +68,7 @@ from ._private.schemas import (
     DOCUMENT_CONTENT_BLOCK as _SCHEMA_DOCUMENT_CONTENT_BLOCK,
     DOCUMENT_PAGE_LOCATION as _SCHEMA_DOCUMENT_PAGE_LOCATION,
     DOCUMENT_SOURCE as _SCHEMA_DOCUMENT_SOURCE,
+    ERROR_BLOCK as _SCHEMA_ERROR_BLOCK,
     GET_ASYNC_INVOKE as _SCHEMA_GET_ASYNC_INVOKE,
     GET_ASYNC_INVOKE_INPUT as _SCHEMA_GET_ASYNC_INVOKE_INPUT,
     GET_ASYNC_INVOKE_OUTPUT as _SCHEMA_GET_ASYNC_INVOKE_OUTPUT,
@@ -116,6 +119,8 @@ from ._private.schemas import (
     GUARDRAIL_USAGE as _SCHEMA_GUARDRAIL_USAGE,
     GUARDRAIL_WORD_POLICY_ASSESSMENT as _SCHEMA_GUARDRAIL_WORD_POLICY_ASSESSMENT,
     IMAGE_BLOCK as _SCHEMA_IMAGE_BLOCK,
+    IMAGE_BLOCK_DELTA as _SCHEMA_IMAGE_BLOCK_DELTA,
+    IMAGE_BLOCK_START as _SCHEMA_IMAGE_BLOCK_START,
     IMAGE_SOURCE as _SCHEMA_IMAGE_SOURCE,
     INFERENCE_CONFIGURATION as _SCHEMA_INFERENCE_CONFIGURATION,
     INTERNAL_SERVER_EXCEPTION as _SCHEMA_INTERNAL_SERVER_EXCEPTION,
@@ -6101,6 +6106,283 @@ class InferenceConfiguration:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class ErrorBlock:
+    """
+    A block containing error information when content processing fails.
+    """
+
+    message: str | None = None
+    """
+    A human-readable error message describing what went wrong during content
+    processing.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_ERROR_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.message is not None:
+            serializer.write_string(
+                _SCHEMA_ERROR_BLOCK.members["message"], self.message
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_ERROR_BLOCK.members["message"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_ERROR_BLOCK, consumer=_consumer)
+        return kwargs
+
+
+class AudioFormat(StrEnum):
+    MP3 = "mp3"
+    OPUS = "opus"
+    WAV = "wav"
+    AAC = "aac"
+    FLAC = "flac"
+    MP4 = "mp4"
+    OGG = "ogg"
+    MKV = "mkv"
+    MKA = "mka"
+    X_AAC = "x-aac"
+    M4_A = "m4a"
+    MPEG = "mpeg"
+    MPGA = "mpga"
+    PCM = "pcm"
+    WEBM = "webm"
+
+
+@dataclass(kw_only=True)
+class S3Location:
+    """
+    A storage location in an Amazon S3 bucket.
+    """
+
+    uri: str
+    """
+    An object URI starting with ``s3://``.
+    """
+
+    bucket_owner: str | None = None
+    """
+    If the bucket belongs to another AWS account, specify that account's ID.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_S3_LOCATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_S3_LOCATION.members["uri"], self.uri)
+        if self.bucket_owner is not None:
+            serializer.write_string(
+                _SCHEMA_S3_LOCATION.members["bucketOwner"], self.bucket_owner
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["uri"] = de.read_string(_SCHEMA_S3_LOCATION.members["uri"])
+
+                case 1:
+                    kwargs["bucket_owner"] = de.read_string(
+                        _SCHEMA_S3_LOCATION.members["bucketOwner"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_S3_LOCATION, consumer=_consumer)
+        return kwargs
+
+
+@dataclass
+class AudioSourceBytes:
+    """
+    Audio data encoded in base64.
+    """
+
+    value: bytes
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AUDIO_SOURCE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_blob(_SCHEMA_AUDIO_SOURCE.members["bytes"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=deserializer.read_blob(_SCHEMA_AUDIO_SOURCE.members["bytes"]))
+
+
+@dataclass
+class AudioSourceS3Location:
+    """
+    A reference to audio data stored in an Amazon S3 bucket. To see which models
+    support S3 uploads, see `Supported models and features for Converse <https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html>`_
+    .
+    """
+
+    value: S3Location
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AUDIO_SOURCE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AUDIO_SOURCE.members["s3Location"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=S3Location.deserialize(deserializer))
+
+
+@dataclass
+class AudioSourceUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+AudioSource = Union[AudioSourceBytes | AudioSourceS3Location | AudioSourceUnknown]
+
+"""
+The source of audio data, which can be provided either as raw bytes or a
+reference to an S3 location.
+"""
+
+
+class _AudioSourceDeserializer:
+    _result: AudioSource | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> AudioSource:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_AUDIO_SOURCE, self._consumer)
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(AudioSourceBytes.deserialize(de))
+
+            case 1:
+                self._set_result(AudioSourceS3Location.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: AudioSource) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+@dataclass(kw_only=True)
+class AudioBlock:
+    """
+    An audio content block that contains audio data in various supported formats.
+    """
+
+    format: str
+    """
+    The format of the audio data, such as MP3, WAV, FLAC, or other supported audio
+    formats.
+    """
+
+    source: AudioSource = field(repr=False)
+    """
+    The source of the audio data, which can be provided as raw bytes or an S3
+    location.
+    """
+
+    error: ErrorBlock | None = field(repr=False, default=None)
+    """
+    Error information if the audio block could not be processed or contains invalid
+    data.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AUDIO_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_AUDIO_BLOCK.members["format"], self.format)
+        serializer.write_struct(_SCHEMA_AUDIO_BLOCK.members["source"], self.source)
+        if self.error is not None:
+            serializer.write_struct(_SCHEMA_AUDIO_BLOCK.members["error"], self.error)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["format"] = de.read_string(
+                        _SCHEMA_AUDIO_BLOCK.members["format"]
+                    )
+
+                case 1:
+                    kwargs["source"] = _AudioSourceDeserializer().deserialize(de)
+
+                case 2:
+                    kwargs["error"] = ErrorBlock.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_AUDIO_BLOCK, consumer=_consumer)
+        return kwargs
+
+
 class CachePointType(StrEnum):
     DEFAULT = "default"
 
@@ -7248,57 +7530,6 @@ def _deserialize_document_content_blocks(
     return result
 
 
-@dataclass(kw_only=True)
-class S3Location:
-    """
-    A storage location in an Amazon S3 bucket.
-    """
-
-    uri: str
-    """
-    An object URI starting with ``s3://``.
-    """
-
-    bucket_owner: str | None = None
-    """
-    If the bucket belongs to another AWS account, specify that account's ID.
-    """
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_S3_LOCATION, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_S3_LOCATION.members["uri"], self.uri)
-        if self.bucket_owner is not None:
-            serializer.write_string(
-                _SCHEMA_S3_LOCATION.members["bucketOwner"], self.bucket_owner
-            )
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["uri"] = de.read_string(_SCHEMA_S3_LOCATION.members["uri"])
-
-                case 1:
-                    kwargs["bucket_owner"] = de.read_string(
-                        _SCHEMA_S3_LOCATION.members["bucketOwner"]
-                    )
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_S3_LOCATION, consumer=_consumer)
-        return kwargs
-
-
 @dataclass
 class DocumentSourceBytes:
     """
@@ -8055,9 +8286,15 @@ class ImageBlock:
     The format of the image.
     """
 
-    source: ImageSource
+    source: ImageSource = field(repr=False)
     """
     The source for the image.
+    """
+
+    error: ErrorBlock | None = field(repr=False, default=None)
+    """
+    Error information if the image block could not be processed or contains invalid
+    data.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8066,6 +8303,8 @@ class ImageBlock:
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_IMAGE_BLOCK.members["format"], self.format)
         serializer.write_struct(_SCHEMA_IMAGE_BLOCK.members["source"], self.source)
+        if self.error is not None:
+            serializer.write_struct(_SCHEMA_IMAGE_BLOCK.members["error"], self.error)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8084,6 +8323,9 @@ class ImageBlock:
 
                 case 1:
                     kwargs["source"] = _ImageSourceDeserializer().deserialize(de)
+
+                case 2:
+                    kwargs["error"] = ErrorBlock.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9083,6 +9325,25 @@ class ContentBlockVideo:
 
 
 @dataclass
+class ContentBlockAudio:
+    """
+    An audio content block containing audio data in the conversation.
+    """
+
+    value: AudioBlock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK.members["audio"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=AudioBlock.deserialize(deserializer))
+
+
+@dataclass
 class ContentBlockToolUse:
     """
     Information about a tool use request from a model.
@@ -9261,6 +9522,7 @@ ContentBlock = Union[
     | ContentBlockImage
     | ContentBlockDocument
     | ContentBlockVideo
+    | ContentBlockAudio
     | ContentBlockToolUse
     | ContentBlockToolResult
     | ContentBlockGuardContent
@@ -9308,24 +9570,27 @@ class _ContentBlockDeserializer:
                 self._set_result(ContentBlockVideo.deserialize(de))
 
             case 4:
-                self._set_result(ContentBlockToolUse.deserialize(de))
+                self._set_result(ContentBlockAudio.deserialize(de))
 
             case 5:
-                self._set_result(ContentBlockToolResult.deserialize(de))
+                self._set_result(ContentBlockToolUse.deserialize(de))
 
             case 6:
-                self._set_result(ContentBlockGuardContent.deserialize(de))
+                self._set_result(ContentBlockToolResult.deserialize(de))
 
             case 7:
-                self._set_result(ContentBlockCachePoint.deserialize(de))
+                self._set_result(ContentBlockGuardContent.deserialize(de))
 
             case 8:
-                self._set_result(ContentBlockReasoningContent.deserialize(de))
+                self._set_result(ContentBlockCachePoint.deserialize(de))
 
             case 9:
-                self._set_result(ContentBlockCitationsContent.deserialize(de))
+                self._set_result(ContentBlockReasoningContent.deserialize(de))
 
             case 10:
+                self._set_result(ContentBlockCitationsContent.deserialize(de))
+
+            case 11:
                 self._set_result(ContentBlockSearchResult.deserialize(de))
 
             case _:
@@ -9647,6 +9912,7 @@ class ServiceTierType(StrEnum):
     PRIORITY = "priority"
     DEFAULT = "default"
     FLEX = "flex"
+    RESERVED = "reserved"
 
 
 @dataclass(kw_only=True)
@@ -10873,6 +11139,8 @@ class StopReason(StrEnum):
     STOP_SEQUENCE = "stop_sequence"
     GUARDRAIL_INTERVENED = "guardrail_intervened"
     CONTENT_FILTERED = "content_filtered"
+    MALFORMED_MODEL_OUTPUT = "malformed_model_output"
+    MALFORMED_TOOL_USE = "malformed_tool_use"
     MODEL_CONTEXT_WINDOW_EXCEEDED = "model_context_window_exceeded"
 
 
@@ -12124,6 +12392,60 @@ class CitationsDelta:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class ImageBlockDelta:
+    """
+    A streaming delta event that contains incremental image data during streaming
+    responses.
+    """
+
+    source: ImageSource | None = field(repr=False, default=None)
+    """
+    The incremental image source data for this delta event.
+    """
+
+    error: ErrorBlock | None = field(repr=False, default=None)
+    """
+    Error information if this image delta could not be processed.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMAGE_BLOCK_DELTA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.source is not None:
+            serializer.write_struct(
+                _SCHEMA_IMAGE_BLOCK_DELTA.members["source"], self.source
+            )
+
+        if self.error is not None:
+            serializer.write_struct(
+                _SCHEMA_IMAGE_BLOCK_DELTA.members["error"], self.error
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["source"] = _ImageSourceDeserializer().deserialize(de)
+
+                case 1:
+                    kwargs["error"] = ErrorBlock.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_IMAGE_BLOCK_DELTA, consumer=_consumer)
+        return kwargs
+
+
 @dataclass
 class ReasoningContentBlockDeltaText:
     """
@@ -12306,6 +12628,32 @@ class ToolResultBlockDeltaText:
 
 
 @dataclass
+class ToolResultBlockDeltaJson:
+    """
+    The JSON schema for the tool result content block. see `JSON Schema Reference <https://json-schema.org/understanding-json-schema/reference>`_
+    .
+    """
+
+    value: Document
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL_RESULT_BLOCK_DELTA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_document(
+            _SCHEMA_TOOL_RESULT_BLOCK_DELTA.members["json"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_document(
+                _SCHEMA_TOOL_RESULT_BLOCK_DELTA.members["json"]
+            )
+        )
+
+
+@dataclass
 class ToolResultBlockDeltaUnknown:
     """Represents an unknown variant.
 
@@ -12328,7 +12676,9 @@ class ToolResultBlockDeltaUnknown:
         raise NotImplementedError()
 
 
-ToolResultBlockDelta = Union[ToolResultBlockDeltaText | ToolResultBlockDeltaUnknown]
+ToolResultBlockDelta = Union[
+    ToolResultBlockDeltaText | ToolResultBlockDeltaJson | ToolResultBlockDeltaUnknown
+]
 
 """
 Contains incremental updates to tool results information during streaming
@@ -12355,6 +12705,9 @@ class _ToolResultBlockDeltaDeserializer:
         match schema.expect_member_index():
             case 0:
                 self._set_result(ToolResultBlockDeltaText.deserialize(de))
+
+            case 1:
+                self._set_result(ToolResultBlockDeltaJson.deserialize(de))
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
@@ -12548,6 +12901,27 @@ class ContentBlockDeltaCitation:
 
 
 @dataclass
+class ContentBlockDeltaImage:
+    """
+    A streaming delta event containing incremental image data.
+    """
+
+    value: ImageBlockDelta
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_DELTA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_DELTA.members["image"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=ImageBlockDelta.deserialize(deserializer))
+
+
+@dataclass
 class ContentBlockDeltaUnknown:
     """Represents an unknown variant.
 
@@ -12576,6 +12950,7 @@ ContentBlockDelta = Union[
     | ContentBlockDeltaToolResult
     | ContentBlockDeltaReasoningContent
     | ContentBlockDeltaCitation
+    | ContentBlockDeltaImage
     | ContentBlockDeltaUnknown
 ]
 
@@ -12614,6 +12989,9 @@ class _ContentBlockDeltaDeserializer:
 
             case 4:
                 self._set_result(ContentBlockDeltaCitation.deserialize(de))
+
+            case 5:
+                self._set_result(ContentBlockDeltaImage.deserialize(de))
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
@@ -12676,6 +13054,48 @@ class ContentBlockDeltaEvent:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CONTENT_BLOCK_DELTA_EVENT, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class ImageBlockStart:
+    """
+    The initial event in a streaming image block that indicates the start of image
+    content.
+    """
+
+    format: str
+    """
+    The format of the image data that will be streamed in subsequent delta events.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMAGE_BLOCK_START, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_IMAGE_BLOCK_START.members["format"], self.format
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["format"] = de.read_string(
+                        _SCHEMA_IMAGE_BLOCK_START.members["format"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_IMAGE_BLOCK_START, consumer=_consumer)
         return kwargs
 
 
@@ -12860,6 +13280,27 @@ class ContentBlockStartToolResult:
 
 
 @dataclass
+class ContentBlockStartImage:
+    """
+    The initial event indicating the start of a streaming image block.
+    """
+
+    value: ImageBlockStart
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK_START, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK_START.members["image"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=ImageBlockStart.deserialize(deserializer))
+
+
+@dataclass
 class ContentBlockStartUnknown:
     """Represents an unknown variant.
 
@@ -12883,7 +13324,10 @@ class ContentBlockStartUnknown:
 
 
 ContentBlockStart = Union[
-    ContentBlockStartToolUse | ContentBlockStartToolResult | ContentBlockStartUnknown
+    ContentBlockStartToolUse
+    | ContentBlockStartToolResult
+    | ContentBlockStartImage
+    | ContentBlockStartUnknown
 ]
 
 """
@@ -12912,6 +13356,9 @@ class _ContentBlockStartDeserializer:
 
             case 1:
                 self._set_result(ContentBlockStartToolResult.deserialize(de))
+
+            case 2:
+                self._set_result(ContentBlockStartImage.deserialize(de))
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)
