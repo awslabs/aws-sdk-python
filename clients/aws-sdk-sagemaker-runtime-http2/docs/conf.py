@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(".."))
 
 project = "Amazon SageMaker Runtime HTTP2"
 author = "Amazon Web Services"
-release = "0.1.0"
+release = "0.3.0"
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.viewcode"]
 
