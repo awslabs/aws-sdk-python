@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+* None yet.
+
+## v0.3.0
+
+### Breaking
+* Function signature for `resolve_retry_strategy` has been changed to prevent unnecessary code duplication in operation methods. This will affect all 0.3.0 clients.
+
+### Dependencies
+* **Updated**: `smithy_aws_core[eventstream, json]` from `~=0.2.0` to `~=0.3.0`.
+* **Updated**: `smithy_core` from `~=0.2.0` to `~=0.3.0`.
+
 ## v0.2.0
 
 ### API Changes

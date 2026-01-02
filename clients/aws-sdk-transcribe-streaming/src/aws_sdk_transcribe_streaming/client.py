@@ -7,8 +7,7 @@ from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.eventstream import DuplexEventStream
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
-from smithy_core.interfaces.retries import RetryStrategy
-from smithy_core.retries import RetryStrategyOptions, RetryStrategyResolver
+from smithy_core.retries import RetryStrategyResolver
 from smithy_core.types import TypedProperties
 from smithy_http.plugins import user_agent_plugin
 
@@ -105,22 +104,9 @@ class TranscribeStreamingClient:
                 "protocol and transport MUST be set on the config to make calls."
             )
 
-        # Resolve retry strategy from config
-        if isinstance(config.retry_strategy, RetryStrategy):
-            retry_strategy = config.retry_strategy
-        elif isinstance(config.retry_strategy, RetryStrategyOptions):
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=config.retry_strategy
-            )
-        elif config.retry_strategy is None:
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=RetryStrategyOptions()
-            )
-        else:
-            raise TypeError(
-                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
-                f"got {type(config.retry_strategy).__name__}"
-            )
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy
+        )
 
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
@@ -179,22 +165,9 @@ class TranscribeStreamingClient:
                 "protocol and transport MUST be set on the config to make calls."
             )
 
-        # Resolve retry strategy from config
-        if isinstance(config.retry_strategy, RetryStrategy):
-            retry_strategy = config.retry_strategy
-        elif isinstance(config.retry_strategy, RetryStrategyOptions):
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=config.retry_strategy
-            )
-        elif config.retry_strategy is None:
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=RetryStrategyOptions()
-            )
-        else:
-            raise TypeError(
-                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
-                f"got {type(config.retry_strategy).__name__}"
-            )
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy
+        )
 
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
@@ -277,22 +250,9 @@ class TranscribeStreamingClient:
                 "protocol and transport MUST be set on the config to make calls."
             )
 
-        # Resolve retry strategy from config
-        if isinstance(config.retry_strategy, RetryStrategy):
-            retry_strategy = config.retry_strategy
-        elif isinstance(config.retry_strategy, RetryStrategyOptions):
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=config.retry_strategy
-            )
-        elif config.retry_strategy is None:
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=RetryStrategyOptions()
-            )
-        else:
-            raise TypeError(
-                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
-                f"got {type(config.retry_strategy).__name__}"
-            )
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy
+        )
 
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
@@ -356,22 +316,9 @@ class TranscribeStreamingClient:
                 "protocol and transport MUST be set on the config to make calls."
             )
 
-        # Resolve retry strategy from config
-        if isinstance(config.retry_strategy, RetryStrategy):
-            retry_strategy = config.retry_strategy
-        elif isinstance(config.retry_strategy, RetryStrategyOptions):
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=config.retry_strategy
-            )
-        elif config.retry_strategy is None:
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=RetryStrategyOptions()
-            )
-        else:
-            raise TypeError(
-                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
-                f"got {type(config.retry_strategy).__name__}"
-            )
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy
+        )
 
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(
@@ -430,22 +377,9 @@ class TranscribeStreamingClient:
                 "protocol and transport MUST be set on the config to make calls."
             )
 
-        # Resolve retry strategy from config
-        if isinstance(config.retry_strategy, RetryStrategy):
-            retry_strategy = config.retry_strategy
-        elif isinstance(config.retry_strategy, RetryStrategyOptions):
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=config.retry_strategy
-            )
-        elif config.retry_strategy is None:
-            retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
-                options=RetryStrategyOptions()
-            )
-        else:
-            raise TypeError(
-                f"retry_strategy must be RetryStrategy, RetryStrategyOptions, or None, "
-                f"got {type(config.retry_strategy).__name__}"
-            )
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy
+        )
 
         pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
         call = ClientCall(

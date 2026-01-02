@@ -2249,6 +2249,122 @@ INFERENCE_CONFIGURATION = Schema.collection(
     },
 )
 
+ERROR_BLOCK = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ErrorBlock"),
+    traits=[Trait.new(id=ShapeID("smithy.api#sensitive"))],
+    members={"message": {"target": STRING}},
+)
+
+AUDIO_FORMAT = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#AudioFormat"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "MP3": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="mp3")],
+        },
+        "OPUS": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="opus")],
+        },
+        "WAV": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="wav")],
+        },
+        "AAC": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="aac")],
+        },
+        "FLAC": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="flac")],
+        },
+        "MP4": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="mp4")],
+        },
+        "OGG": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="ogg")],
+        },
+        "MKV": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="mkv")],
+        },
+        "MKA": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="mka")],
+        },
+        "X_AAC": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="x-aac")],
+        },
+        "M4A": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="m4a")],
+        },
+        "MPEG": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="mpeg")],
+        },
+        "MPGA": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="mpga")],
+        },
+        "PCM": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="pcm")],
+        },
+        "WEBM": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="webm")],
+        },
+    },
+)
+
+S3_LOCATION = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#S3Location"),
+    members={
+        "uri": {
+            "target": S3_URI,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "bucketOwner": {"target": ACCOUNT_ID},
+    },
+)
+
+AUDIO_SOURCE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#AudioSource"),
+    shape_type=ShapeType.UNION,
+    traits=[Trait.new(id=ShapeID("smithy.api#sensitive"))],
+    members={
+        "bytes": {
+            "target": BLOB,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#length"), value=MappingProxyType({"min": 1})
+                )
+            ],
+        },
+        "s3Location": {"target": S3_LOCATION},
+    },
+)
+
+AUDIO_BLOCK = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#AudioBlock"),
+    members={
+        "format": {
+            "target": AUDIO_FORMAT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "source": {
+            "target": AUDIO_SOURCE,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "error": {"target": ERROR_BLOCK},
+    },
+)
+
 CACHE_POINT_TYPE = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#CachePointType"),
     shape_type=ShapeType.ENUM,
@@ -2520,17 +2636,6 @@ DOCUMENT_CONTENT_BLOCKS = Schema.collection(
     members={"member": {"target": DOCUMENT_CONTENT_BLOCK}},
 )
 
-S3_LOCATION = Schema.collection(
-    id=ShapeID("com.amazonaws.bedrockruntime#S3Location"),
-    members={
-        "uri": {
-            "target": S3_URI,
-            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
-        },
-        "bucketOwner": {"target": ACCOUNT_ID},
-    },
-)
-
 DOCUMENT_SOURCE = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#DocumentSource"),
     shape_type=ShapeType.UNION,
@@ -2699,6 +2804,7 @@ IMAGE_FORMAT = Schema.collection(
 IMAGE_SOURCE = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#ImageSource"),
     shape_type=ShapeType.UNION,
+    traits=[Trait.new(id=ShapeID("smithy.api#sensitive"))],
     members={
         "bytes": {
             "target": BLOB,
@@ -2723,6 +2829,7 @@ IMAGE_BLOCK = Schema.collection(
             "target": IMAGE_SOURCE,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "error": {"target": ERROR_BLOCK},
     },
 )
 
@@ -2970,6 +3077,7 @@ CONTENT_BLOCK = Schema.collection(
         "image": {"target": IMAGE_BLOCK},
         "document": {"target": DOCUMENT_BLOCK},
         "video": {"target": VIDEO_BLOCK},
+        "audio": {"target": AUDIO_BLOCK},
         "toolUse": {"target": TOOL_USE_BLOCK},
         "toolResult": {"target": TOOL_RESULT_BLOCK},
         "guardContent": {"target": GUARDRAIL_CONVERSE_CONTENT_BLOCK},
@@ -3133,6 +3241,10 @@ SERVICE_TIER_TYPE = Schema.collection(
         "FLEX": {
             "target": UNIT,
             "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="flex")],
+        },
+        "RESERVED": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="reserved")],
         },
     },
 )
@@ -3344,6 +3456,22 @@ STOP_REASON = Schema.collection(
             "target": UNIT,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="content_filtered")
+            ],
+        },
+        "MALFORMED_MODEL_OUTPUT": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="malformed_model_output"
+                )
+            ],
+        },
+        "MALFORMED_TOOL_USE": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="malformed_tool_use"
+                )
             ],
         },
         "MODEL_CONTEXT_WINDOW_EXCEEDED": {
@@ -3660,6 +3788,11 @@ CITATIONS_DELTA = Schema.collection(
     },
 )
 
+IMAGE_BLOCK_DELTA = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ImageBlockDelta"),
+    members={"source": {"target": IMAGE_SOURCE}, "error": {"target": ERROR_BLOCK}},
+)
+
 REASONING_CONTENT_BLOCK_DELTA = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#ReasoningContentBlockDelta"),
     shape_type=ShapeType.UNION,
@@ -3674,7 +3807,7 @@ REASONING_CONTENT_BLOCK_DELTA = Schema.collection(
 TOOL_RESULT_BLOCK_DELTA = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#ToolResultBlockDelta"),
     shape_type=ShapeType.UNION,
-    members={"text": {"target": STRING}},
+    members={"text": {"target": STRING}, "json": {"target": DOCUMENT}},
 )
 
 TOOL_RESULT_BLOCKS_DELTA = Schema.collection(
@@ -3702,6 +3835,7 @@ CONTENT_BLOCK_DELTA = Schema.collection(
         "toolResult": {"target": TOOL_RESULT_BLOCKS_DELTA},
         "reasoningContent": {"target": REASONING_CONTENT_BLOCK_DELTA},
         "citation": {"target": CITATIONS_DELTA},
+        "image": {"target": IMAGE_BLOCK_DELTA},
     },
 )
 
@@ -3716,6 +3850,16 @@ CONTENT_BLOCK_DELTA_EVENT = Schema.collection(
             "target": NON_NEGATIVE_INTEGER,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+    },
+)
+
+IMAGE_BLOCK_START = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ImageBlockStart"),
+    members={
+        "format": {
+            "target": IMAGE_FORMAT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        }
     },
 )
 
@@ -3752,6 +3896,7 @@ CONTENT_BLOCK_START = Schema.collection(
     members={
         "toolUse": {"target": TOOL_USE_BLOCK_START},
         "toolResult": {"target": TOOL_RESULT_BLOCK_START},
+        "image": {"target": IMAGE_BLOCK_START},
     },
 )
 
