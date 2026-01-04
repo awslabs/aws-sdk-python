@@ -1,0 +1,34 @@
+# Changelog
+{% for release, changes in releases %}
+## v{{ release }}
+{%- if changes.summary %}
+
+{{ changes.summary }}
+{%- endif %}
+{%- for type_name in ['api-change', 'breaking', 'feature', 'enhancement', 'bugfix', 'dependency'] %}
+{%- for change in changes.changes if change.type == type_name %}
+{%- if loop.first %}
+{%- if type_name == 'api-change' %}
+
+### API Changes
+{%- elif type_name == 'breaking' %}
+
+### Breaking Changes
+{%- elif type_name == 'feature' %}
+
+### Features
+{%- elif type_name == 'enhancement' %}
+
+### Enhancements
+{%- elif type_name == 'bugfix' %}
+
+### Bug fixes
+{%- elif type_name == 'dependency' %}
+
+### Dependencies
+{%- endif %}
+{%- endif %}
+* {{ change.description }}
+{%- endfor %}
+{%- endfor %}
+{% endfor %}
