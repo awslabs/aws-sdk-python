@@ -1,15 +1,11 @@
 # Changelog
 
-## Unreleased
-
-* None yet.
-
 ## v0.3.0
 
-This release proceeds 0.1.0. There is no 0.2.0 as the initial release was intended to be inline
+This release follows 0.1.0. There is no 0.2.0 as the initial release was intended to be inline
 with the `smithy-aws-core` version used in the client.
 
-### Breaking
+### Breaking Changes
 * Function signature for `resolve_retry_strategy` has been changed to prevent unnecessary code duplication in operation methods. This will affect all 0.3.0 clients.
 
 ### Dependencies
