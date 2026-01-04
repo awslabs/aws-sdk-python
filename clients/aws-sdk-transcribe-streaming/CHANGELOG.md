@@ -1,12 +1,8 @@
 # Changelog
 
-## Unreleased
-
-* None yet.
-
 ## v0.3.0
 
-### Breaking
+### Breaking Changes
 * Function signature for `resolve_retry_strategy` has been changed to prevent unnecessary code duplication in operation methods. This will affect all 0.3.0 clients.
 
 ### Dependencies
@@ -19,7 +15,7 @@
 * This release adds support for additional locales in AWS transcribe streaming.
 
 ### Enhancements
-* Add Standard Retry Mode
+* Add Standard Retry Mode.
 
 ### Dependencies
 * **Updated**: `smithy_aws_core[eventstream, json]` from `~=0.1.0` to `~=0.2.0`.
