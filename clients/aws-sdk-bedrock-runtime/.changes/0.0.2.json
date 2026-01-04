@@ -1,0 +1,8 @@
+{
+  "changes": [
+    {
+      "type": "dependency",
+      "description": "Updated support for all smithy dependencies in the 0.0.x minor version."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "changes": [
+    {
+      "type": "api-change",
+      "description": "Add support to automatically enforce safeguards across accounts within an AWS Organization."
+    },
+    {
+      "type": "api-change",
+      "description": "This release includes support for Search Results."
+    },
+    {
+      "type": "api-change",
+      "description": "Amazon Bedrock Runtime Service Tier Support Launch."
+    },
+    {
+      "type": "api-change",
+      "description": "Add support for system tool and web citation response."
+    },
+    {
+      "type": "enhancement",
+      "description": "Add Standard Retry Mode."
+    },
+    {
+      "type": "dependency",
+      "description": "**Updated**: `smithy_aws_core[eventstream, json]` from `~=0.1.0` to `~=0.2.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "**Updated**: `smithy_core` from `~=0.1.0` to `~=0.2.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "**Updated**: `smithy_http[awscrt]~=0.3.0` from `~=0.2.0` to `~=0.3.0`."
+    }
+  ]
+}

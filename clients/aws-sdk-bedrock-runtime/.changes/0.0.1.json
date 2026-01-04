@@ -1,0 +1,12 @@
+{
+  "changes": [
+    {
+      "type": "feature",
+      "description": "Initial Client Release with support for current Amazon Bedrock Runtime operations."
+    },
+    {
+      "type": "feature",
+      "description": "Added support for new InvokeModelWithBidirectionalStream API."
+    }
+  ]
+}
