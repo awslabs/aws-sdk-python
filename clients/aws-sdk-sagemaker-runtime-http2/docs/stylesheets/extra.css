@@ -5,5 +5,5 @@
 }
 
 p:has(span.breadcrumb) {
-margin-top: 0;
+    margin-top: 0;
 }
