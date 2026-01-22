@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import IO, Any
 
 from jinja2 import Template
+from utils import get_package_changes_dir
 
 PROJECT_ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -21,7 +22,7 @@ DEFAULT_TEMPLATE_NAME = "PACKAGE"
 VERSION_FILE_PATTERN = r"^\d+\.\d+\.\d+\.json$"
 
 
-def get_sorted_versions(changes_dir: Path) -> list[str]:
+def get_sorted_versions(changes_dir: Path, reverse: bool = True) -> list[str]:
     """Get sorted list of version numbers from .changes directory."""
     version_pattern = re.compile(VERSION_FILE_PATTERN)
     versions: list[str] = []
@@ -30,8 +31,8 @@ def get_sorted_versions(changes_dir: Path) -> list[str]:
         if file.is_file() and version_pattern.match(file.name):
             versions.append(file.stem)
 
-    # Sort by semantic version (oldest first)
-    versions.sort(key=lambda v: [int(x) for x in v.split(".")])
+    # Sort by semantic version (reverse if True)
+    versions.sort(key=lambda v: [int(x) for x in v.split(".")], reverse=reverse)
     return versions
 
 
@@ -39,7 +40,7 @@ def load_package_releases(changes_dir: Path) -> dict[str, dict[str, Any]]:
     """Load all changelog entries from version JSON files."""
     releases: dict[str, dict[str, Any]] = {}
 
-    for version_number in get_sorted_versions(changes_dir):
+    for version_number in get_sorted_versions(changes_dir, reverse=True):
         filename = changes_dir / f"{version_number}.json"
         try:
             with open(filename) as f:
@@ -75,7 +76,7 @@ def render_changes(
 ) -> None:
     """Render changelog using Jinja template."""
     # Reverse order to show newest first
-    context: dict[str, Any] = {"releases": reversed(list(changes.items()))}
+    context: dict[str, Any] = {"releases": list(changes.items())}
 
     template = Template(template_contents)
 
@@ -86,33 +87,34 @@ def render_changes(
 def render_package_changelog(
     package_name: str, template_name: str | None = None, output_path: Path | None = None
 ) -> int:
-    # Determine changes directory from package name
-    package_dir = PROJECT_ROOT_DIR / "clients" / package_name
-    changes_dir = package_dir / ".changes"
+    # Get changes directory (validates package exists)
+    changes_dir = get_package_changes_dir(package_name)
 
     if not changes_dir.exists():
-        print(f"No .changes directory found for package: {package_name}")
+        print(
+            f"No .changes directory found for package: {package_name}", file=sys.stderr
+        )
         return 1
 
     # Load changes from the directory
     changes: dict[str, dict[str, Any]] = load_package_releases(changes_dir)
 
     if not changes:
-        print(f"No version JSON files found in {changes_dir}")
+        print(f"No version JSON files found in {changes_dir}", file=sys.stderr)
         return 1
 
     # Get template contents
     template_path = TEMPLATES_DIR / (template_name or DEFAULT_TEMPLATE_NAME)
 
     if not template_path.exists():
-        print(f"Template not found: {template_path}")
+        print(f"Template not found: {template_path}", file=sys.stderr)
         return 1
 
     try:
         with open(template_path) as f:
             template_contents = f.read()
     except OSError as e:
-        print(f"Error reading template {template_path}: {e}")
+        print(f"Error reading template {template_path}: {e}", file=sys.stderr)
         return 1
 
     # Render to output

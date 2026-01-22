@@ -7,17 +7,23 @@ Create new changelog entries for a specific package.
 
 import argparse
 import json
-import time
 import uuid
 from pathlib import Path
+
+from utils import get_package_changes_dir
 
 PROJECT_ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-def get_package_changes_dir(package_name: str) -> Path:
-    package_path = PROJECT_ROOT_DIR / "clients" / package_name
-    changes_dir = package_path / ".changes"
-    return changes_dir
+def setup_changes_directories(package_name: str) -> Path:
+    """Set up and return the next-release directory for a package."""
+    changes_dir = get_package_changes_dir(package_name)
+    changes_dir.mkdir(exist_ok=True)
+
+    next_release_dir = changes_dir / "next-release"
+    next_release_dir.mkdir(exist_ok=True)
+
+    return next_release_dir
 
 
 def create_change_entry(
@@ -25,18 +31,11 @@ def create_change_entry(
     description: str,
     package_name: str,
 ) -> str:
-    # Get package .changes directory and ensure it exists
-    changes_dir = get_package_changes_dir(package_name)
-    changes_dir.mkdir(exist_ok=True)
-
-    # Create next-release directory for pending changes
-    next_release_dir = changes_dir / "next-release"
-    next_release_dir.mkdir(exist_ok=True)
+    next_release_dir = setup_changes_directories(package_name)
 
     # Generate unique filename
-    timestamp = int(time.time() * 1_000_000)
     unique_id = uuid.uuid4().hex
-    filename = f"{package_name}-{change_type}-{timestamp}-{unique_id}.json"
+    filename = f"{package_name}-{change_type}-{unique_id}.json"
 
     entry_data = {
         "type": change_type,
@@ -56,13 +55,7 @@ def create_summary_entry(
     package_name: str,
 ) -> str:
     """Create or update the release summary for the next release."""
-    # Get package .changes directory and ensure it exists
-    changes_dir = get_package_changes_dir(package_name)
-    changes_dir.mkdir(exist_ok=True)
-
-    # Create next-release directory for pending changes
-    next_release_dir = changes_dir / "next-release"
-    next_release_dir.mkdir(exist_ok=True)
+    next_release_dir = setup_changes_directories(package_name)
 
     # Summary is stored in a fixed file (only one summary per release)
     summary_file = next_release_dir / "SUMMARY.json"
@@ -86,7 +79,7 @@ def main():
     parser.add_argument(
         "-t",
         "--type",
-        # TODO: Remove the 'breaking' option once this project is stable.
+        # TODO: Prompt the user for confirmation before allowing the 'breaking' or `feature` options.
         choices=(
             "feature",
             "enhancement",

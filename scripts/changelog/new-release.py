@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from utils import get_package_changes_dir
+
 PROJECT_ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 VERSION_PATTERN = r"^\d+\.\d+\.\d+$"
 CHANGE_TYPES_ORDER = {
@@ -30,12 +32,16 @@ def validate_change_entry(change_data: dict[str, Any], entry_file: Path) -> bool
     if "type" not in change_data or change_data["type"] not in CHANGE_TYPES:
         print(
             f"Error: Missing or invalid 'type' field in {entry_file}\n"
-            f"Type must be one of: {CHANGE_TYPES}"
+            f"Type must be one of: {CHANGE_TYPES}",
+            file=sys.stderr,
         )
         return False
 
     if "description" not in change_data or not change_data["description"]:
-        print(f"Error: Missing or empty 'description' field in {entry_file}")
+        print(
+            f"Error: Missing or empty 'description' field in {entry_file}",
+            file=sys.stderr,
+        )
         return False
 
     return True
@@ -53,7 +59,9 @@ def collect_next_release_summary(next_release_dir: Path) -> str | None:
             data = json.load(f)
             return data.get("summary")
     except (OSError, json.JSONDecodeError) as e:
-        print(f"Warning: Could not read summary file {summary_file}: {e}", file=sys.stderr)
+        print(
+            f"Warning: Could not read summary file {summary_file}: {e}", file=sys.stderr
+        )
         return None
 
 
@@ -97,7 +105,7 @@ def create_version_file(
     version_file = changes_dir / f"{version}.json"
 
     if version_file.exists():
-        print(f"Error: Version file {version_file} already exists!")
+        print(f"Error: Version file {version_file} already exists!", file=sys.stderr)
         sys.exit(1)
 
     version_data: dict[str, Any] = {"changes": changes}
@@ -107,6 +115,7 @@ def create_version_file(
 
     with open(version_file, "w") as f:
         json.dump(version_data, f, indent=2)
+        f.write("\n")
 
     return version_file
 
@@ -116,22 +125,22 @@ def cleanup_next_release_dir(next_release_dir: Path) -> int:
 
     for entry_file in next_release_dir.iterdir():
         if entry_file.is_file() and entry_file.suffix == ".json":
-            try:
-                entry_file.unlink()
-                removed_count += 1
-            except OSError as e:
-                print(f"Warning: Could not remove {entry_file}: {e}", file=sys.stderr)
+            entry_file.unlink()
+            removed_count += 1
 
     return removed_count
 
 
 def create_new_release(package_name: str, version: str, dry_run: bool = False) -> int:
-    # Get package directories
-    changes_dir = PROJECT_ROOT_DIR / "clients" / package_name / ".changes"
+    # Get package directories (validates package exists)
+    changes_dir = get_package_changes_dir(package_name)
     next_release_dir = changes_dir / "next-release"
 
     if not changes_dir.exists():
-        print(f"Error: No .changes directory found for package: {package_name}")
+        print(
+            f"Error: No .changes directory found for package: {package_name}",
+            file=sys.stderr,
+        )
         return 1
 
     # Collect summary and changes from next-release
@@ -141,7 +150,8 @@ def create_new_release(package_name: str, version: str, dry_run: bool = False) -
     if not changes:
         print(
             f"No changelog entries found in {next_release_dir}.\n"
-            "Use 'python scripts/changelog/new-entry.py' to create entries first"
+            "Use 'python scripts/changelog/new-entry.py' to create entries first",
+            file=sys.stderr,
         )
         return 1
 
@@ -164,7 +174,7 @@ def create_new_release(package_name: str, version: str, dry_run: bool = False) -
         version_file = create_version_file(changes_dir, version, changes, summary)
         print(f"\nCreated version file: {version_file}")
     except Exception as e:
-        print(f"Error creating version file: {e}")
+        print(f"Error creating version file: {e}", file=sys.stderr)
         return 1
 
     # Clean up next-release directory
@@ -193,7 +203,7 @@ def main() -> int:
 
     # Basic version format validation
     if not bool(re.match(VERSION_PATTERN, args.version)):
-        print("Error: Version must be in format x.y.z (e.g., 1.2.3)")
+        print("Error: Version must be in format x.y.z (e.g., 1.2.3)", file=sys.stderr)
         return 1
 
     return create_new_release(
