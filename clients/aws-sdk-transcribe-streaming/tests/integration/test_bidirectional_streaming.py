@@ -53,7 +53,7 @@ async def _send_audio_chunks(
     await stream.input_stream.send(
         AudioStreamAudioEvent(value=AudioEvent(audio_chunk=b""))
     )
-    await asyncio.sleep(0.4)
+    await asyncio.sleep(1.2)
     await stream.input_stream.close()
 
 
