@@ -49,11 +49,6 @@ async def _send_audio_chunks(
             wait_time = start_time + elapsed_audio_time - time.time()
             await asyncio.sleep(wait_time)
 
-    # Send an empty audio event to signal end of input
-    await stream.input_stream.send(
-        AudioStreamAudioEvent(value=AudioEvent(audio_chunk=b""))
-    )
-    await asyncio.sleep(1.2)
     await stream.input_stream.close()
 
 

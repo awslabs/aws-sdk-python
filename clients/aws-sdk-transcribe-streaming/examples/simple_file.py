@@ -112,10 +112,6 @@ async def write_chunks(audio_stream: EventPublisher[AudioStream]):
             audio_stream, reader, BYTES_PER_SAMPLE, SAMPLE_RATE, CHANNEL_NUMS
         )
 
-    # Send an empty audio event to signal end of input
-    await audio_stream.send(AudioStreamAudioEvent(value=AudioEvent(audio_chunk=b"")))
-    # Small delay to ensure empty frame is sent before close
-    await asyncio.sleep(0.4)
     await audio_stream.close()
 
 
