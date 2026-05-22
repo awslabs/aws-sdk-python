@@ -4,11 +4,8 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#     "aws-sdk-polly",
+#     "aws-sdk-polly~=0.6.0",
 # ]
-#
-# [tool.uv.sources]
-# aws-sdk-polly = { path = "../" }
 # ///
 """
 Speech synthesis to a file using AWS Polly bidirectional streaming.

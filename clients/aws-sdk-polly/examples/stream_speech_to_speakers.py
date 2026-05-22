@@ -4,12 +4,9 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#     "aws-sdk-polly",
+#     "aws-sdk-polly~=0.6.0",
 #     "miniaudio~=1.71",
 # ]
-#
-# [tool.uv.sources]
-# aws-sdk-polly = { path = "../" }
 # ///
 """
 Real-time MP3 speech synthesis playback using AWS Polly bidirectional
