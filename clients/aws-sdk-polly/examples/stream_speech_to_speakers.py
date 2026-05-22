@@ -22,10 +22,10 @@ Prerequisites:
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) installed
 
 Usage:
-- `uv run simple_speaker.py`
-- `uv run simple_speaker.py "Hello from Polly."`
-- `cat story.txt | uv run simple_speaker.py -`
-- `uv run simple_speaker.py --voice Ruth "Hi."`
+- `uv run stream_speech_to_speakers.py`
+- `uv run stream_speech_to_speakers.py "Hello from Polly."`
+- `cat story.txt | uv run stream_speech_to_speakers.py -`
+- `uv run stream_speech_to_speakers.py --voice Ruth "Hi."`
 """
 
 import argparse

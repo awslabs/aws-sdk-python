@@ -4,15 +4,15 @@ Each script is a self-contained [uv](https://docs.astral.sh/uv/getting-started/i
 
 | Script | What it shows | Extra dependencies |
 | --- | --- | --- |
-| [`simple_file.py`](simple_file.py) | Stream synthesized audio and save it to an MP3 file. | None |
-| [`simple_speaker.py`](simple_speaker.py) | Real-time MP3 playback through your speakers as audio arrives. The MP3 decoder handles buffering. | `miniaudio` |
+| [`stream_speech_to_file.py`](stream_speech_to_file.py) | Stream synthesized audio and save it to an MP3 file. | None |
+| [`stream_speech_to_speakers.py`](stream_speech_to_speakers.py) | Real-time MP3 playback through your speakers as audio arrives. The MP3 decoder handles buffering. | `miniaudio` |
 
 ## Prerequisites
 
 - AWS credentials available via environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, optionally `AWS_SESSION_TOKEN`).
 - Python 3.12+.
 - `uv` installed.
-- For `simple_speaker.py`: a working audio output device.
+- For `stream_speech_to_speakers.py`: a working audio output device.
 
 ## Running
 
@@ -20,19 +20,19 @@ All examples accept text as a positional argument, from stdin via `-`, or fall b
 
 ```sh
 # Default text
-uv run simple_file.py
+uv run stream_speech_to_file.py
 
 # Inline text
-uv run simple_file.py "Hello from Polly."
+uv run stream_speech_to_file.py "Hello from Polly."
 
 # From stdin
-cat story.txt | uv run simple_file.py -
+cat story.txt | uv run stream_speech_to_file.py -
 ```
 
 Common flags:
 
 - `--voice` — Polly voice ID (default `Matthew`)
 - `--region` — AWS region (default `us-east-1`)
-- `--output` (`simple_file.py` only) — MP3 output path
+- `--output` (`stream_speech_to_file.py` only) — MP3 output path
 
 The bidi API only supports the `generative` engine, so engine selection is not exposed.
