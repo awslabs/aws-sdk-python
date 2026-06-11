@@ -1,0 +1,4 @@
+{
+  "type": "api-change",
+  "description": "Supporting Request Metadata for Invoke Model and Invoke Model with Response Stream."
+}
