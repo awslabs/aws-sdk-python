@@ -10,6 +10,7 @@ in the sidebar without manual edits.
 import logging
 import sys
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 from generate_all_doc_stubs import discover_clients
@@ -25,6 +26,19 @@ logger = logging.getLogger("generate_nav")
 # Markers in zensical.toml that bound the generated `nav` block.
 NAV_START_MARKER = "# >>> AUTO-NAV >>>"
 NAV_END_MARKER = "# <<< AUTO-NAV <<<"
+
+# Markers in zensical.toml that bound the generated `copyright` line.
+COPYRIGHT_START_MARKER = "# >>> AUTO-COPYRIGHT >>>"
+COPYRIGHT_END_MARKER = "# <<< AUTO-COPYRIGHT <<<"
+
+
+def _replace_block(config: str, start: str, end: str, body: str) -> str:
+    """Replace the content between two markers (inclusive of newlines)."""
+    if start not in config or end not in config:
+        raise ValueError(f"Markers not found. Expected '{start}' and '{end}'.")
+    before, _, rest = config.partition(start)
+    _, _, after = rest.partition(end)
+    return f"{before}{start}\n{body}\n{end}{after}"
 
 
 def _toml_key(value: str) -> str:
@@ -91,18 +105,22 @@ def generate_nav(repo_root: Path) -> bool:
         logger.error(f"Failed to read {config_path.name}: {e}")
         return False
 
-    if NAV_START_MARKER not in config or NAV_END_MARKER not in config:
-        logger.error(
-            f"AUTO-NAV markers not found in {config_path.name}. "
-            f"Expected '{NAV_START_MARKER}' and '{NAV_END_MARKER}'."
+    year = datetime.now(timezone.utc).year
+    copyright_line = (
+        f'copyright = "&copy; {year}, Amazon Web Services, Inc. '
+        f'or its affiliates. All rights reserved."'
+    )
+    try:
+        updated = _replace_block(
+            config, NAV_START_MARKER, NAV_END_MARKER, build_nav_block(clients_dir)
         )
+        updated = _replace_block(
+            updated, COPYRIGHT_START_MARKER, COPYRIGHT_END_MARKER, copyright_line
+        )
+    except ValueError as e:
+        logger.error(f"Failed to update {config_path.name}: {e}")
         return False
-
-    nav_block = build_nav_block(clients_dir)
-
-    before, _, rest = config.partition(NAV_START_MARKER)
-    _, _, after = rest.partition(NAV_END_MARKER)
-    updated = f"{before}{NAV_START_MARKER}\n{nav_block}\n{NAV_END_MARKER}{after}"
+    logger.info(f"Set copyright year to {year}")
 
     try:
         config_path.write_text(updated)
