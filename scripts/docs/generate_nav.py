@@ -2,14 +2,17 @@
 """
 Generate client documentation navigation dynamically.
 
-Run this script before mkdocs build to generate:
-docs/SUMMARY.md - Navigation file for literate-nav plugin
+Run this script before `zensical build` to regenerate the `nav` block in
+zensical.toml (delimited by AUTO-NAV markers) so newly added clients show up
+in the sidebar without manual edits.
 """
 
 import logging
 import sys
 
 from pathlib import Path
+
+from generate_all_doc_stubs import discover_clients
 
 
 logging.basicConfig(
@@ -19,10 +22,54 @@ logging.basicConfig(
 )
 logger = logging.getLogger("generate_nav")
 
+# Markers in zensical.toml that bound the generated `nav` block.
+NAV_START_MARKER = "# >>> AUTO-NAV >>>"
+NAV_END_MARKER = "# <<< AUTO-NAV <<<"
+
+
+def _toml_key(value: str) -> str:
+    """Quote a string for use as a TOML key, escaping as a basic string."""
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def build_nav_block(clients_dir: Path) -> str:
+    """
+    Build the TOML `nav` block mirroring the curated documentation structure.
+
+    Args:
+        clients_dir: Path to the clients directory.
+
+    Returns:
+        The `nav = [...]` TOML snippet (without the surrounding markers).
+    """
+    lines = [
+        "nav = [",
+        '  { Overview = "index.md" },',
+        '  { Contributing = "contributing.md" },',
+        '  { "Available Clients" = [',
+        '    "clients/index.md",',
+    ]
+
+    # Discover clients and add each as a nested item under Available Clients
+    clients = discover_clients(clients_dir)
+    for client in clients:
+        lines.append(
+            f"    {{ {_toml_key(client.service_name)} = "
+            f'"clients/{client.path_name}/index.md" }},'
+        )
+        logger.info(f"Discovered client: {client.service_name}")
+
+    lines.append("  ] },")
+    lines.append("]")
+
+    logger.info(f"Found {len(clients)} total clients")
+    return "\n".join(lines)
+
 
 def generate_nav(repo_root: Path) -> bool:
     """
-    Generate navigation structure for clients using literate-nav SUMMARY.md format.
+    Regenerate the AUTO-NAV block in zensical.toml for all clients.
 
     Args:
         repo_root: Path to the repository root.
@@ -37,39 +84,33 @@ def generate_nav(repo_root: Path) -> bool:
         logger.error(f"Clients directory not found: {clients_dir}")
         return False
 
-    # Build the SUMMARY.md content for literate-nav
-    lines = [
-        "* [Overview](index.md)",
-        "* [Contributing](contributing.md)",
-        "* [Available Clients](clients/index.md)",
-    ]
-
-    # Discover clients and add each as a nested item under Available Clients
-    client_count = 0
-    for client_path in sorted(clients_dir.iterdir()):
-        if not (client_path / "scripts" / "docs" / "generate_doc_stubs.py").exists():
-            continue
-
-        # Extract service name and path from package name
-        # (e.g., "aws-sdk-bedrock-runtime" -> "Bedrock Runtime" / "bedrock-runtime")
-        path_name = client_path.name.replace("aws-sdk-", "")
-        display_name = path_name.replace("-", " ").title()
-
-        lines.append(f"    * [{display_name}](clients/{path_name}/index.md)")
-        logger.info(f"Discovered client: {display_name}")
-        client_count += 1
-
-    logger.info(f"Found {client_count} total clients")
-
-    # Write the SUMMARY.md file to the docs directory
-    summary_path = repo_root / "docs" / "SUMMARY.md"
+    config_path = repo_root / "zensical.toml"
     try:
-        summary_path.write_text("\n".join(lines) + "\n")
+        config = config_path.read_text()
     except OSError as e:
-        logger.error(f"Failed to write SUMMARY.md: {e}")
+        logger.error(f"Failed to read {config_path.name}: {e}")
         return False
 
-    logger.info(f"✅ Generated SUMMARY.md navigation for {client_count} clients")
+    if NAV_START_MARKER not in config or NAV_END_MARKER not in config:
+        logger.error(
+            f"AUTO-NAV markers not found in {config_path.name}. "
+            f"Expected '{NAV_START_MARKER}' and '{NAV_END_MARKER}'."
+        )
+        return False
+
+    nav_block = build_nav_block(clients_dir)
+
+    before, _, rest = config.partition(NAV_START_MARKER)
+    _, _, after = rest.partition(NAV_END_MARKER)
+    updated = f"{before}{NAV_START_MARKER}\n{nav_block}\n{NAV_END_MARKER}{after}"
+
+    try:
+        config_path.write_text(updated)
+    except OSError as e:
+        logger.error(f"Failed to write {config_path.name}: {e}")
+        return False
+
+    logger.info(f"✅ Regenerated navigation in {config_path.name}")
     return True
 
 
