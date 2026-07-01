@@ -1,8 +1,8 @@
 site_name: AWS SDK for Python
 site_description: Documentation for AWS SDK for Python Clients
 
-repo_name: awslabs/aws-sdk-python
-repo_url: https://github.com/awslabs/aws-sdk-python
+repo_name: aws/aws-sdk-python
+repo_url: https://github.com/aws/aws-sdk-python
 
 hooks:
   - docs/hooks/copyright.py
@@ -84,7 +84,7 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/awslabs/aws-sdk-python
+      link: https://github.com/aws/aws-sdk-python
 
 extra_javascript:
   - path: javascript/nav-expand.js

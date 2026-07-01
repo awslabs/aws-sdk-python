@@ -2,7 +2,7 @@
 [![Apache 2 licensed][apache-badge]][apache-url]
 
 [apache-badge]: https://img.shields.io/badge/license-APACHE2-blue.svg
-[apache-url]: https://github.com/awslabs/aws-sdk-python/blob/main/LICENSE
+[apache-url]: https://github.com/aws/aws-sdk-python/blob/main/LICENSE
 
 This directory contains the Developer Guide for the experimental Amazon
 Bedrock Runtime client for Python.

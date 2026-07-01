@@ -2,7 +2,7 @@
 [![Apache 2 licensed][apache-badge]][apache-url]
 
 [apache-badge]: https://img.shields.io/badge/license-APACHE2-blue.svg
-[apache-url]: https://github.com/awslabs/aws-sdk-python/blob/main/LICENSE
+[apache-url]: https://github.com/aws/aws-sdk-python/blob/main/LICENSE
 
 This repository contains experimental async clients for the AWS SDK for Python.
 These new clients will allow you to interact with select AWS services that can
@@ -26,12 +26,12 @@ The SDK uses **GitHub Issues** to track feature requests and issues with the SDK
 we intend to use **GitHub Projects** to provide a high level overview of our roadmap and the
 features we are actively working on.
 
-You can provide feedback or report a bug by submitting an [issue](https://github.com/awslabs/aws-sdk-python/issues/new/choose).
+You can provide feedback or report a bug by submitting an [issue](https://github.com/aws/aws-sdk-python/issues/new/choose).
 This is the preferred mechanism to give feedback so that other users can engage in the conversation, +1 issues, etc.
 
 ## Security
 
-See [CONTRIBUTING](https://github.com/awslabs/aws-sdk-python/blob/develop/CONTRIBUTING.md#security-issue-notifications) for more information.
+See [CONTRIBUTING](https://github.com/aws/aws-sdk-python/blob/develop/CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
 

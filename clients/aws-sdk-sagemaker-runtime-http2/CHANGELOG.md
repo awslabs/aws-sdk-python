@@ -25,7 +25,7 @@
 ## v0.4.0
 
 ### Enhancements
-* Update package docstrings from Sphinx style to Google style for improved readability and consistency with Python community standards. ([#48](https://github.com/awslabs/aws-sdk-python/pull/48))
+* Update package docstrings from Sphinx style to Google style for improved readability and consistency with Python community standards. ([#48](https://github.com/aws/aws-sdk-python/pull/48))
 * Re-generated with smithy-python 0.3.0
 
 ## v0.3.0
