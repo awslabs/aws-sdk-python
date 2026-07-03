@@ -60,7 +60,11 @@ def build_nav_block(clients_dir: Path) -> str:
     lines = [
         "nav = [",
         '  { Overview = "index.md" },',
-        '  { Contributing = "contributing.md" },',
+        '  { Installation = "installation.md" },',
+        '  { Quickstart = "quickstart.md" },',
+        '  { Configuration = "configuration.md" },',
+        '  { Streaming = "streaming.md" },',
+        '  { "Error Handling" = "error-handling.md" },',
         '  { "Available Clients" = [',
         '    "clients/index.md",',
     ]
@@ -75,6 +79,7 @@ def build_nav_block(clients_dir: Path) -> str:
         logger.info(f"Discovered client: {client.service_name}")
 
     lines.append("  ] },")
+    lines.append('  { Contributing = "contributing.md" },')
     lines.append("]")
 
     logger.info(f"Found {len(clients)} total clients")

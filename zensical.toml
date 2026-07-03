@@ -20,7 +20,11 @@ repo_url = "https://github.com/awslabs/aws-sdk-python"
 # >>> AUTO-NAV >>>
 nav = [
   { Overview = "index.md" },
-  { Contributing = "contributing.md" },
+  { Installation = "installation.md" },
+  { Quickstart = "quickstart.md" },
+  { Configuration = "configuration.md" },
+  { Streaming = "streaming.md" },
+  { "Error Handling" = "error-handling.md" },
   { "Available Clients" = [
     "clients/index.md",
     { "Bedrock Runtime" = "clients/bedrock-runtime/index.md" },
@@ -31,6 +35,7 @@ nav = [
     { "Sagemaker Runtime Http2" = "clients/sagemaker-runtime-http2/index.md" },
     { "Transcribe Streaming" = "clients/transcribe-streaming/index.md" },
   ] },
+  { Contributing = "contributing.md" },
 ]
 # <<< AUTO-NAV <<<
 
