@@ -1,0 +1,4 @@
+{
+  "type": "dependency",
+  "description": "Allow service clients to use newer compatible patch releases within the same minor version."
+}

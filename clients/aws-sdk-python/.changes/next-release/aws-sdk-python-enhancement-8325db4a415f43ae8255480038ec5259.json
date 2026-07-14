@@ -1,4 +1,4 @@
 {
-  "type": "enhancement",
+  "type": "dependency",
   "description": "Add support for the following clients:\n  * aws_sdk_connecthealth\n  * aws_sdk_lex_runtime_v2\n  * aws_sdk_polly\n  * aws_sdk_qbusiness"
 }
