@@ -23,10 +23,19 @@ dependencies = []
 
 [project.optional-dependencies]
 bedrock_runtime = ["aws_sdk_bedrock_runtime==0.7.0"]
+connecthealth = ["aws_sdk_connecthealth==0.7.0"]
+lex_runtime_v2 = ["aws_sdk_lex_runtime_v2==0.7.0"]
+polly = ["aws_sdk_polly==0.7.0"]
+qbusiness = ["aws_sdk_qbusiness==0.7.0"]
 sagemaker_runtime_http2 = ["aws_sdk_sagemaker_runtime_http2==0.7.0"]
 transcribe_streaming = ["aws_sdk_transcribe_streaming==0.7.0"]
+
 all = [
     "aws_sdk_python[bedrock_runtime]",
+    "aws_sdk_python[connecthealth]",
+    "aws_sdk_python[lex_runtime_v2]",
+    "aws_sdk_python[polly]",
+    "aws_sdk_python[qbusiness]",
     "aws_sdk_python[sagemaker_runtime_http2]",
     "aws_sdk_python[transcribe_streaming]",
 ]
