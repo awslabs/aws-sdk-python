@@ -42,7 +42,7 @@ mkdocs-autorefs==1.4.4
     #   mkdocstrings-python
 mkdocs-get-deps==0.2.2
     # via mkdocs
-mkdocstrings==1.0.4
+mkdocstrings==1.0.6
     # via
     #   -r requirements-docs.in
     #   mkdocstrings-python
@@ -52,11 +52,11 @@ packaging==26.2
     # via mkdocs
 pathspec==1.1.1
     # via mkdocs
-platformdirs==4.10.0
+platformdirs==4.11.0
     # via mkdocs-get-deps
 pygments==2.20.0
     # via zensical
-pymdown-extensions==11.0
+pymdown-extensions==11.0.1
     # via
     #   mkdocstrings
     #   zensical
@@ -77,5 +77,5 @@ tomli==2.4.1
     # via zensical
 watchdog==6.0.0
     # via mkdocs
-zensical==0.0.46
+zensical==0.0.51
     # via -r requirements-docs.in
