@@ -1,8 +1,9 @@
 # macOS system files
 .DS_Store
 
-# Docs build artifacts
+# MkDocs build artifacts
 site/
+docs/SUMMARY.md
 docs/clients/
 **/docs/client/
 
