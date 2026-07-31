@@ -1,0 +1,57 @@
+[project]
+name = "aws-credentials-sts"
+dynamic = ["version"]
+requires-python = ">=3.12"
+authors = [
+  {name = "Amazon Web Services"},
+]
+description = "STS-based credentials support for the AWS SDK for Python."
+readme = "README.md"
+license = {text = "Apache License 2.0"}
+keywords = ["aws", "credentials", "sts", "sdk", "smithy"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Natural Language :: English",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Free Threading :: 2 - Beta",
+  "Topic :: Software Development :: Libraries",
+]
+# TODO: Sync these with latest release before merging
+dependencies = [
+  "aws-sdk-sts~=0.1.0",
+  "smithy-aws-core~=0.7.0",
+  "smithy-core~=0.6.0",
+  "smithy-http~=0.4.0",
+]
+
+[project.urls]
+"Code" = "https://github.com/aws/aws-sdk-python/tree/develop/packages/aws-credentials-sts/"
+"Issue tracker" = "https://github.com/aws/aws-sdk-python/issues"
+
+[project.entry-points."smithy_aws_core.identity.chain_providers"]
+ProfileAssumeRole = "aws_credentials_sts.providers:ProfileAssumeRoleProvider"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/aws_credentials_sts/__init__.py"
+
+[tool.hatch.build]
+exclude = [
+  "tests",
+]
+
+[tool.ruff]
+src = ["src"]
