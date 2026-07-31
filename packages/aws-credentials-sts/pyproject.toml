@@ -26,11 +26,10 @@ classifiers = [
   "Programming Language :: Python :: Free Threading :: 2 - Beta",
   "Topic :: Software Development :: Libraries",
 ]
-# TODO: Sync these with latest release before merging
 dependencies = [
-  "aws-sdk-sts~=0.1.0",
-  "smithy-aws-core~=0.7.0",
-  "smithy-core~=0.6.0",
+  "aws-sdk-sts~=0.8.0",
+  "smithy-aws-core~=0.8.0",
+  "smithy-core~=0.7.0",
   "smithy-http~=0.4.0",
 ]
 
