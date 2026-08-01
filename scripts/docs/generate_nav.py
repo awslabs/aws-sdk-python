@@ -11,6 +11,8 @@ import sys
 
 from pathlib import Path
 
+from utils import get_sdk_id
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,6 +35,7 @@ def generate_nav(repo_root: Path) -> bool:
     logger.info("⏳ Generating navigation structure...")
 
     clients_dir = repo_root / "clients"
+    models_dir = repo_root / "codegen" / "aws-models"
     if not clients_dir.exists():
         logger.error(f"Clients directory not found: {clients_dir}")
         return False
@@ -44,16 +47,13 @@ def generate_nav(repo_root: Path) -> bool:
         "* [Available Clients](clients/index.md)",
     ]
 
-    # Discover clients and add each as a nested item under Available Clients
     client_count = 0
     for client_path in sorted(clients_dir.iterdir()):
         if not (client_path / "scripts" / "docs" / "generate_doc_stubs.py").exists():
             continue
 
-        # Extract service name and path from package name
-        # (e.g., "aws-sdk-bedrock-runtime" -> "Bedrock Runtime" / "bedrock-runtime")
         path_name = client_path.name.replace("aws-sdk-", "")
-        display_name = path_name.replace("-", " ").title()
+        display_name = get_sdk_id(models_dir / f"{path_name}.json")
 
         lines.append(f"    * [{display_name}](clients/{path_name}/index.md)")
         logger.info(f"Discovered client: {display_name}")
