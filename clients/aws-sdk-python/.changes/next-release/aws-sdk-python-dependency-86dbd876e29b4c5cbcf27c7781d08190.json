@@ -1,0 +1,4 @@
+{
+  "type": "dependency",
+  "description": "Add support for the following clients:\n  * `aws-sdk-api-gateway`\n  * `aws-sdk-bedrock`\n  * `aws-sdk-bedrock-agent`\n  * `aws-sdk-bedrock-agent-runtime`\n  * `aws-sdk-bedrock-agentcore`\n  * `aws-sdk-bedrock-agentcore-control`\n  * `aws-sdk-bedrock-data-automation`\n  * `aws-sdk-guardduty`\n  * `aws-sdk-lambda`\n  * `aws-sdk-sns`\n  * `aws-sdk-sts`"
+}
