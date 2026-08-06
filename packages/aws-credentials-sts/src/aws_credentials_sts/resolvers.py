@@ -39,6 +39,7 @@ _ACCOUNT_ID = "aws_account_id"
 _ROLE_ARN = "role_arn"
 _ROLE_SESSION_NAME = "role_session_name"
 _EXTERNAL_ID = "external_id"
+_DURATION_SECONDS = "duration_seconds"
 _SOURCE_PROFILE = "source_profile"
 _CREDENTIAL_SOURCE = "credential_source"
 _REGION = "region"
@@ -91,6 +92,7 @@ class AssumeRoleCredentialsResolver(
         role_arn: str,
         role_session_name: str | None = None,
         external_id: str | None = None,
+        duration_seconds: int | None = None,
         region: str | None = None,
         http_client: HTTPClient | None = None,
     ) -> None:
@@ -100,6 +102,7 @@ class AssumeRoleCredentialsResolver(
             role_session_name or f"aws-sdk-python-{uuid.uuid4().hex[:16]}"
         )
         self._external_id = external_id
+        self._duration_seconds = duration_seconds
         self._region = region or _DEFAULT_STS_REGION
         self._http_client = http_client
         self._credentials: AWSCredentialsIdentity | None = None
@@ -146,6 +149,7 @@ class AssumeRoleCredentialsResolver(
                 role_arn=self._role_arn,
                 role_session_name=self._role_session_name,
                 external_id=self._external_id,
+                duration_seconds=self._duration_seconds,
             )
         )
 
@@ -254,6 +258,7 @@ class ProfileAssumeRoleCredentialsResolver(
             role_arn=role_arn,
             role_session_name=config_file.get(profile_name, _ROLE_SESSION_NAME),
             external_id=config_file.get(profile_name, _EXTERNAL_ID),
+            duration_seconds=self._parse_duration_seconds(profile_name),
             region=self._region,
             http_client=self._http_client,
         )
@@ -365,3 +370,12 @@ class ProfileAssumeRoleCredentialsResolver(
             )
             return provider_factory()
         return None
+
+    def _parse_duration_seconds(self, profile_name: str) -> int | None:
+        duration_seconds = self._config_file.get(profile_name, _DURATION_SECONDS)
+        if duration_seconds is None:
+            return None
+        try:
+            return int(duration_seconds)
+        except ValueError:
+            return None

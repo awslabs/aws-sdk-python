@@ -190,6 +190,51 @@ async def test_resolver_env_token_file_precedence(tmp_path: Path) -> None:
     _assert_expected_identity(identity)
 
 
+@pytest.mark.parametrize("token", ["Bearer foo\r\nInjected: bar", "Bearer foo\nbar"])
+async def test_resolver_env_token_rejects_crlf(token: str) -> None:
+    response_body = json.dumps(DEFAULT_RESPONSE_DATA)
+    http_client = mock_http_client_response(200, response_body.encode())
+
+    with patch.dict(
+        os.environ,
+        {
+            ContainerCredentialsResolver.ENV_VAR_FULL: ("http://169.254.170.23/full"),
+            ContainerCredentialsResolver.ENV_VAR_AUTH_TOKEN: token,
+        },
+        clear=True,
+    ):
+        resolver = ContainerCredentialsResolver(http_client)
+        with pytest.raises(
+            SmithyIdentityError, match="Auth token value is not a legal header value"
+        ):
+            await resolver.get_identity(properties={})
+
+    http_client.send.assert_not_called()
+
+
+async def test_resolver_env_token_file_rejects_crlf(tmp_path: Path) -> None:
+    response_body = json.dumps(DEFAULT_RESPONSE_DATA)
+    http_client = mock_http_client_response(200, response_body.encode())
+    token_file = tmp_path / "token_file"
+    token_file.write_text("Bearer foo\r\nInjected: bar")
+
+    with patch.dict(
+        os.environ,
+        {
+            ContainerCredentialsResolver.ENV_VAR_FULL: ("http://169.254.170.23/full"),
+            ContainerCredentialsResolver.ENV_VAR_AUTH_TOKEN_FILE: str(token_file),
+        },
+        clear=True,
+    ):
+        resolver = ContainerCredentialsResolver(http_client)
+        with pytest.raises(
+            SmithyIdentityError, match="Auth token value is not a legal header value"
+        ):
+            await resolver.get_identity(properties={})
+
+    http_client.send.assert_not_called()
+
+
 async def test_resolver_valid_credentials_reused() -> None:
     response_data = dict(DEFAULT_RESPONSE_DATA)
     expiration = datetime.now(UTC) + timedelta(minutes=10)

@@ -9,6 +9,7 @@ from smithy_core.exceptions import SmithyIdentityError
 from smithy_http import Field, Fields
 from smithy_http.aio import HTTPRequest
 from smithy_http.aio.interfaces import HTTPClient, HTTPResponse
+from smithy_http.interfaces import HTTPRequestConfiguration
 
 _CONTAINER_METADATA_IP = "169.254.170.2"
 _CONTAINER_METADATA_ALLOWED_HOSTS = {
@@ -33,6 +34,8 @@ class HttpCredentialsClient:
         retries: int = _DEFAULT_RETRIES,
     ):
         self._http_client = http_client
+        # TODO: Also apply this value as the connect timeout once smithy_http's
+        # HTTPRequestConfiguration supports it.
         self._timeout = timeout
         self._retries = retries
 
@@ -49,7 +52,10 @@ class HttpCredentialsClient:
                     destination=uri,
                     fields=fields,
                 )
-                response: HTTPResponse = await self._http_client.send(request)
+                response: HTTPResponse = await self._http_client.send(
+                    request,
+                    request_config=HTTPRequestConfiguration(read_timeout=self._timeout),
+                )
                 body = await response.consume_body_async()
                 if response.status != 200:
                     raise SmithyIdentityError(
@@ -73,14 +79,17 @@ class HttpCredentialsClient:
         ) from last_exc
 
     def _validate_allowed_url(self, uri: URI) -> None:
+        if uri.scheme == "https":
+            return
+
         if self._is_loopback(uri.host):
             return
 
         if not self._is_allowed_container_metadata_host(uri.host):
             raise SmithyIdentityError(
                 f"Unsupported host '{uri.host}'. "
-                f"Can only retrieve metadata from a loopback address or "
-                f"one of: {', '.join(_CONTAINER_METADATA_ALLOWED_HOSTS)}"
+                f"Can only retrieve metadata from an HTTPS endpoint, a loopback "
+                f"address, or one of: {', '.join(_CONTAINER_METADATA_ALLOWED_HOSTS)}"
             )
 
     def _is_loopback(self, hostname: str) -> bool:

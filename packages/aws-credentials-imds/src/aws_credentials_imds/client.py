@@ -9,7 +9,7 @@ from typing import Literal
 from smithy_core import URI
 from smithy_core.aio.interfaces.retries import RetryStrategy
 from smithy_core.aio.retries import SimpleRetryStrategy
-from smithy_core.exceptions import SmithyError
+from smithy_core.exceptions import SmithyError, SmithyIdentityError
 from smithy_http import Field, Fields
 from smithy_http.aio import HTTPRequest
 from smithy_http.aio.interfaces import HTTPClient
@@ -133,6 +133,10 @@ class IMDSTokenCache:
             )
             response = await self._http_client.send(request)
             token_value = await response.consume_body_async()
+            if response.status != 200:
+                raise SmithyIdentityError(
+                    f"IMDS returned {response.status} when fetching a metadata token."
+                )
             self._token = IMDSToken(token_value.decode("utf-8"), self._config.token_ttl)
 
     async def get_token(self) -> IMDSToken:
@@ -175,4 +179,8 @@ class IMDSClient:
         )
         response = await self._http_client.send(request=request)
         body = await response.consume_body_async()
+        if response.status != 200:
+            raise SmithyIdentityError(
+                f"IMDS returned {response.status} for path '{path}'."
+            )
         return body.decode("utf-8")

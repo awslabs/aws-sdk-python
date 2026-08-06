@@ -250,6 +250,20 @@ async def test_assume_role_request_forwards_external_id() -> None:
     assert request.external_id == "my-external-id"
 
 
+async def test_assume_role_request_forwards_duration_seconds() -> None:
+    resolver = AssumeRoleCredentialsResolver(
+        source_resolver=AsyncMock(),
+        role_arn=ROLE_ARN,
+        duration_seconds=3600,
+    )
+    sts_client = _mock_sts_client(resolver, _valid_output())
+
+    await resolver.get_identity(properties={})
+
+    request = sts_client.assume_role.call_args.args[0]
+    assert request.duration_seconds == 3600
+
+
 async def test_role_session_name_generated_when_unset() -> None:
     resolver = AssumeRoleCredentialsResolver(
         source_resolver=AsyncMock(), role_arn=ROLE_ARN
@@ -344,6 +358,60 @@ async def test_source_profile_with_static_credentials(
     identity = await delegate._source_resolver.get_identity(properties={})
     assert identity.access_key_id == "akid"
     assert identity.secret_access_key == "secret"
+
+
+async def test_profile_duration_seconds_forwarded_to_delegate(
+    merged_config: Callable[..., MergedConfig],
+) -> None:
+    config_file = merged_config(
+        {
+            "role": {
+                "role_arn": ROLE_ARN,
+                "source_profile": "base",
+                "duration_seconds": "43200",
+            },
+            "base": {
+                "aws_access_key_id": "akid",
+                "aws_secret_access_key": "secret",
+            },
+        }
+    )
+    resolver = ProfileAssumeRoleCredentialsResolver(
+        profile_name="role", config_file=config_file
+    )
+
+    delegate = await resolver._create_assume_role_resolver(
+        profile_name="role", visited=("role",)
+    )
+
+    assert delegate._duration_seconds == 43200
+
+
+async def test_profile_invalid_duration_seconds_ignored(
+    merged_config: Callable[..., MergedConfig],
+) -> None:
+    config_file = merged_config(
+        {
+            "role": {
+                "role_arn": ROLE_ARN,
+                "source_profile": "base",
+                "duration_seconds": "not-a-number",
+            },
+            "base": {
+                "aws_access_key_id": "akid",
+                "aws_secret_access_key": "secret",
+            },
+        }
+    )
+    resolver = ProfileAssumeRoleCredentialsResolver(
+        profile_name="role", config_file=config_file
+    )
+
+    delegate = await resolver._create_assume_role_resolver(
+        profile_name="role", visited=("role",)
+    )
+
+    assert delegate._duration_seconds is None
 
 
 async def test_first_profile_credentials_ignored_in_favor_of_source(

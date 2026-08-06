@@ -117,12 +117,17 @@ class ContainerCredentialsResolver(
                     f"Unable to open {os.environ[self.ENV_VAR_AUTH_TOKEN_FILE]}."
                 ) from error
 
-            fields.set_field(Field(name="Authorization", values=[auth_token]))
+            fields.set_field(self._build_auth_field(auth_token))
         elif self.ENV_VAR_AUTH_TOKEN in os.environ:
             auth_token = os.environ[self.ENV_VAR_AUTH_TOKEN]
-            fields.set_field(Field(name="Authorization", values=[auth_token]))
+            fields.set_field(self._build_auth_field(auth_token))
 
         return fields
+
+    def _build_auth_field(self, auth_token: str) -> Field:
+        if "\r" in auth_token or "\n" in auth_token:
+            raise SmithyIdentityError("Auth token value is not a legal header value.")
+        return Field(name="Authorization", values=[auth_token])
 
     def _read_file(self, filename: str) -> str:
         with open(filename) as token_file:

@@ -56,7 +56,7 @@ async def test_client_https_host() -> None:
     client = HttpCredentialsClient(http_client)
 
     credentials = await client.get_credentials(
-        URI(scheme="https", host="169.254.170.2"), Fields()
+        URI(scheme="https", host="example.com"), Fields()
     )
 
     _assert_expected_credentials(credentials, "akid123", "s3cr3t", "session_token")
@@ -94,6 +94,17 @@ async def test_client_invalid_json() -> None:
 
     with pytest.raises(SmithyIdentityError):
         await client.get_credentials(URI(scheme="http", host="169.254.170.2"), Fields())
+
+
+async def test_client_applies_read_timeout() -> None:
+    response_body = json.dumps(DEFAULT_RESPONSE_DATA)
+    http_client = mock_http_client_response(200, response_body.encode())
+    client = HttpCredentialsClient(http_client, timeout=5)
+
+    await client.get_credentials(URI(scheme="http", host="169.254.170.2"), Fields())
+
+    _, kwargs = http_client.send.call_args
+    assert kwargs["request_config"].read_timeout == 5
 
 
 async def test_client_retries() -> None:

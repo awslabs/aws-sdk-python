@@ -15,6 +15,7 @@ from aws_credentials_imds.client import (
 )
 from smithy_core import URI
 from smithy_core.aio.retries import SimpleRetryStrategy
+from smithy_core.exceptions import SmithyIdentityError
 from smithy_http.aio import HTTPRequest
 
 
@@ -97,6 +98,7 @@ async def test_token_cache_refresh() -> None:
     config.endpoint_uri.scheme = "http"
     config.endpoint_uri.host = "169.254.169.254"
     response_mock = AsyncMock()
+    response_mock.status = 200
     response_mock.consume_body_async.return_value = b"new-token-value"
     http_client.send.return_value = response_mock
     token_cache = IMDSTokenCache(http_client, config)
@@ -105,6 +107,23 @@ async def test_token_cache_refresh() -> None:
     assert token_cache._token is not None
     assert token_cache._token.value == "new-token-value"
     assert token_cache._token._ttl == 100
+
+
+async def test_token_cache_refresh_non_200() -> None:
+    # A non-200 response must not be cached as the token value.
+    http_client = AsyncMock()
+    config = MagicMock()
+    config.token_ttl = 100
+    config.endpoint_uri.scheme = "http"
+    config.endpoint_uri.host = "169.254.169.254"
+    response_mock = AsyncMock()
+    response_mock.status = 401
+    response_mock.consume_body_async.return_value = b"Unauthorized"
+    http_client.send.return_value = response_mock
+    token_cache = IMDSTokenCache(http_client, config)
+    with pytest.raises(SmithyIdentityError):
+        await token_cache._refresh()
+    assert token_cache._token is None
 
 
 async def test_token_cache_get_token() -> None:
@@ -128,6 +147,7 @@ async def test_imds_client_get() -> None:
     http_client = AsyncMock()
     config = IMDSConfig()
     response = AsyncMock()
+    response.status = 200
     response.consume_body_async.return_value = b"metadata-response"
     http_client.send.return_value = response
 
@@ -144,3 +164,21 @@ async def test_imds_client_get() -> None:
     assert request.destination.path == "/test-path"
     assert request.method == "GET"
     assert request.fields["x-aws-ec2-metadata-token"].values == ["mocked-token"]
+
+
+async def test_imds_client_get_non_200() -> None:
+    # A non-200 metadata response must raise instead of returning the body.
+    http_client = AsyncMock()
+    config = IMDSConfig()
+    response = AsyncMock()
+    response.status = 404
+    response.consume_body_async.return_value = b"Not Found"
+    http_client.send.return_value = response
+
+    client = IMDSClient(http_client, config)
+    client._token_cache.get_token = AsyncMock(
+        return_value=IMDSToken("mocked-token", config.token_ttl)
+    )
+
+    with pytest.raises(SmithyIdentityError):
+        await client.get(path="/test-path")
