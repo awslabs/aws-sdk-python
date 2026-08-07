@@ -293,27 +293,6 @@ async def test_role_session_name_stable_across_refreshes() -> None:
     assert first.args[0].role_session_name == second.args[0].role_session_name
 
 
-async def test_invalidate_clears_cache_and_source() -> None:
-    source_resolver = AsyncMock()
-    resolver = AssumeRoleCredentialsResolver(
-        source_resolver=source_resolver, role_arn=ROLE_ARN
-    )
-    sts_client = _mock_sts_client(
-        resolver,
-        _valid_output(access_key_id="test-access-key-1"),
-        _valid_output(access_key_id="test-access-key-2"),
-    )
-
-    identity_one = await resolver.get_identity(properties={})
-    await resolver.invalidate()
-    identity_two = await resolver.get_identity(properties={})
-
-    assert identity_one.access_key_id == "test-access-key-1"
-    assert identity_two.access_key_id == "test-access-key-2"
-    assert sts_client.assume_role.call_count == 2
-    source_resolver.invalidate.assert_awaited_once()
-
-
 # ---------------------------------------------------------------------------
 # ProfileAssumeRoleCredentialsResolver
 # ---------------------------------------------------------------------------
@@ -840,18 +819,3 @@ async def test_get_identity_creates_and_reuses_delegate(
     assert delegate.get_identity.await_count == 2
 
 
-async def test_invalidate_delegates_when_initialized(
-    merged_config: Callable[..., MergedConfig],
-) -> None:
-    config_file = merged_config(
-        {"role": {"role_arn": ROLE_ARN, "source_profile": "base"}}
-    )
-    resolver = ProfileAssumeRoleCredentialsResolver(
-        profile_name="role", config_file=config_file
-    )
-    delegate = AsyncMock()
-    resolver._delegate = delegate
-
-    await resolver.invalidate()
-
-    delegate.invalidate.assert_awaited_once()

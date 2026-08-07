@@ -125,10 +125,7 @@ class AssumeRoleCredentialsResolver(
             return self._credentials
 
     async def invalidate(self) -> None:
-        """Discard assumed credentials and invalidate the source resolver."""
-        async with self._refresh_lock:
-            self._credentials = None
-        await self._source_resolver.invalidate()
+        """No-op until the rejected identity is passed in to expire selectively."""
 
     async def _assume_role(self) -> AWSCredentialsIdentity:
         from aws_sdk_sts.client import AsyncSTSClient
@@ -215,9 +212,7 @@ class ProfileAssumeRoleCredentialsResolver(
         return await self._delegate.get_identity(properties=properties)
 
     async def invalidate(self) -> None:
-        """Invalidate assumed credentials if resolution has been initialized."""
-        if self._delegate is not None:
-            await self._delegate.invalidate()
+        """No-op until the rejected identity is passed in to expire selectively."""
 
     async def _create_assume_role_resolver(
         self,

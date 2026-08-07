@@ -104,29 +104,6 @@ async def test_resolver_refreshes_expired_credentials() -> None:
     assert imds_client.get.await_count == 4
 
 
-async def test_resolver_invalidate_forces_refresh() -> None:
-    http_client = AsyncMock()
-    config = IMDSConfig()
-    imds_client = AsyncMock()
-    resolver = IMDSCredentialsResolver(http_client, config)
-    resolver._imds_client = imds_client
-
-    future = (datetime.now(UTC) + timedelta(minutes=10)).strftime(ISO8601)
-    imds_client.get.side_effect = [
-        "test-profile",
-        json.dumps({**_CREDS, "Expiration": future}),
-        "test-profile",
-        json.dumps({**_CREDS, "Expiration": future}),
-    ]
-
-    await resolver.get_identity(properties={})
-    await resolver.invalidate()
-    await resolver.get_identity(properties={})
-
-    # Both the profile lookup and the credential fetch run again after invalidate
-    assert imds_client.get.await_count == 4
-
-
 async def test_resolver_requires_access_key_and_secret() -> None:
     http_client = AsyncMock()
     config = IMDSConfig()

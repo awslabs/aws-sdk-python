@@ -82,8 +82,7 @@ class ContainerCredentialsResolver(
         return self._credentials
 
     async def invalidate(self) -> None:
-        """Discard cached credentials so the next resolution re-queries the endpoint."""
-        self._credentials = None
+        """No-op until the rejected identity is passed in to expire selectively."""
 
     async def _resolve_uri_from_env(self) -> URI:
         if self.ENV_VAR in os.environ:
