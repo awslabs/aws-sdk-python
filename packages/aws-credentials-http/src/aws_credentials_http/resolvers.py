@@ -81,9 +81,6 @@ class ContainerCredentialsResolver(
         )
         return self._credentials
 
-    async def invalidate(self) -> None:
-        """No-op until the rejected identity is passed in to expire selectively."""
-
     async def _resolve_uri_from_env(self) -> URI:
         if self.ENV_VAR in os.environ:
             return URI(

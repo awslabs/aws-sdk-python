@@ -66,6 +66,3 @@ class IMDSCredentialsResolver(
             account_id=account_id,
         )
         return self._credentials
-
-    async def invalidate(self) -> None:
-        """No-op until the rejected identity is passed in to expire selectively."""

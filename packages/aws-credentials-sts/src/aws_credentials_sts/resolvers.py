@@ -124,9 +124,6 @@ class AssumeRoleCredentialsResolver(
             self._credentials = await self._assume_role()
             return self._credentials
 
-    async def invalidate(self) -> None:
-        """No-op until the rejected identity is passed in to expire selectively."""
-
     async def _assume_role(self) -> AWSCredentialsIdentity:
         from aws_sdk_sts.client import AsyncSTSClient
         from aws_sdk_sts.config import Config
@@ -210,9 +207,6 @@ class ProfileAssumeRoleCredentialsResolver(
                         visited=(self._profile_name,),
                     )
         return await self._delegate.get_identity(properties=properties)
-
-    async def invalidate(self) -> None:
-        """No-op until the rejected identity is passed in to expire selectively."""
 
     async def _create_assume_role_resolver(
         self,
