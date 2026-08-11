@@ -4,7 +4,7 @@ This package provides STS-based credential resolvers and a chain provider:
 
 - `AssumeRoleCredentialsResolver` - assumes an explicit `role_arn` using
   credentials from a `source_resolver`.
-- `ProfileAssumeRoleCredentialsResolver` — assumes the role configured in a
+- `ProfileAssumeRoleCredentialsResolver` - assumes a role configured in a
   named profile in the shared config/credentials files.
 
 ## Installation
