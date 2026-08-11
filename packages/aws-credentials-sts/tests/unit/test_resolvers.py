@@ -817,5 +817,3 @@ async def test_get_identity_creates_and_reuses_delegate(
     # The delegate is built once and reused across calls.
     assert resolver._delegate is delegate
     assert delegate.get_identity.await_count == 2
-
-
