@@ -1,0 +1,4 @@
+{
+  "type": "api-change",
+  "description": "Adding support for fine-grained access control for AgentCore Memory through managed AgentCore Gateway HTTP Connectors."
+}
