@@ -244,7 +244,7 @@ async def _receive_stream_output(
 
 async def test_invoke_model_with_bidirectional_stream() -> None:
     """Test bidirectional streaming with audio input and text/audio output."""
-    bedrock_client = create_bedrock_client("us-east-1")
+    bedrock_client = await create_bedrock_client("us-east-1")
 
     stream = await bedrock_client.invoke_model_with_bidirectional_stream(
         InvokeModelWithBidirectionalStreamOperationInput(

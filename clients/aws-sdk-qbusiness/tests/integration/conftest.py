@@ -207,7 +207,7 @@ async def qbusiness_app():
     index_name = f"integ-test-qbusiness-index-{unique_suffix}"
     retriever_name = f"integ-test-qbusiness-retriever-{unique_suffix}"
 
-    client = create_qbusiness_client(REGION)
+    client = await create_qbusiness_client(REGION)
     application_id: str | None = None
     try:
         application_id = await _create_qbusiness_app(
