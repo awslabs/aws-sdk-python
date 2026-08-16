@@ -95,7 +95,7 @@ class ContainerCredentialsResolver(
                 host=parsed.hostname or "",
                 port=parsed.port,
                 path=parsed.path,
-                query=parsed.query,
+                query=parsed.query or None,
             )
         else:
             raise SmithyIdentityError(
