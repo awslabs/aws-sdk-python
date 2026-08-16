@@ -126,16 +126,18 @@ class AssumeRoleCredentialsResolver(
 
     async def _assume_role(self) -> AWSCredentialsIdentity:
         from aws_sdk_sts.client import AsyncSTSClient
-        from aws_sdk_sts.config import Config
+        from aws_sdk_sts.config import AsyncSTSConfig
         from aws_sdk_sts.models import AssumeRoleInput
 
         if self._client is None:
+            overrides: dict[str, object] = {
+                "aws_credentials_identity_resolver": self._source_resolver,
+                "region": self._region,
+            }
+            if self._http_client is not None:
+                overrides["transport"] = self._http_client
             self._client = AsyncSTSClient(
-                config=Config(
-                    aws_credentials_identity_resolver=self._source_resolver,
-                    region=self._region,
-                    transport=self._http_client,
-                )
+                config=await AsyncSTSConfig.resolve(**overrides)
             )
 
         response = await self._client.assume_role(
