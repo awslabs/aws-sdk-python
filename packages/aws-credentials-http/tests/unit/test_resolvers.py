@@ -74,6 +74,35 @@ async def test_resolver_env_full() -> None:
     )
     http_request = http_client.send.call_args_list[0].args[0]
     assert http_request.destination == expected_url
+    assert http_request.destination.query is None
+    _assert_expected_identity(identity)
+
+
+async def test_resolver_env_full_with_query() -> None:
+    response_body = json.dumps(DEFAULT_RESPONSE_DATA)
+    http_client = mock_http_client_response(200, response_body.encode())
+
+    with patch.dict(
+        os.environ,
+        {
+            ContainerCredentialsResolver.ENV_VAR_FULL: (
+                "http://169.254.170.23/full?role=task%2Fworker&version=1"
+            )
+        },
+        clear=True,
+    ):
+        resolver = ContainerCredentialsResolver(http_client)
+        identity = await resolver.get_identity(properties={})
+
+    expected_url = URI(
+        scheme="http",
+        host="169.254.170.23",
+        path="/full",
+        query="role=task%2Fworker&version=1",
+    )
+    http_request = http_client.send.call_args_list[0].args[0]
+    assert http_request.destination == expected_url
+    assert http_request.destination.query == "role=task%2Fworker&version=1"
     _assert_expected_identity(identity)
 
 
