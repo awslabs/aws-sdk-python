@@ -18037,10 +18037,10 @@ AMAZON_BEDROCK_CONTROL_PLANE_SERVICE = Schema(
     ],
 )
 
-RETRIEVAL_FILTER.members["andAll"] = Schema.member(
-    id=RETRIEVAL_FILTER.id.with_member("andAll"), target=RETRIEVAL_FILTER_LIST, index=11
-)
-
 RETRIEVAL_FILTER.members["orAll"] = Schema.member(
     id=RETRIEVAL_FILTER.id.with_member("orAll"), target=RETRIEVAL_FILTER_LIST, index=12
+)
+
+RETRIEVAL_FILTER.members["andAll"] = Schema.member(
+    id=RETRIEVAL_FILTER.id.with_member("andAll"), target=RETRIEVAL_FILTER_LIST, index=11
 )
