@@ -23,7 +23,7 @@ from . import REGION, create_connecthealth_client
 async def test_list_domains(connecthealth_resources) -> None:
     """Test non-streaming ListDomains operation."""
     _ = connecthealth_resources
-    client = create_connecthealth_client(REGION)
+    client = await create_connecthealth_client(REGION)
 
     response = await client.list_domains(input=ListDomainsInput())
 
@@ -35,7 +35,7 @@ async def test_list_domains(connecthealth_resources) -> None:
 async def test_get_domain(connecthealth_resources) -> None:
     """Test non-streaming GetDomain operation."""
     domain_id, _, _ = connecthealth_resources
-    client = create_connecthealth_client(REGION)
+    client = await create_connecthealth_client(REGION)
 
     response = await client.get_domain(input=GetDomainInput(domain_id=domain_id))
 
@@ -54,7 +54,7 @@ async def test_get_domain(connecthealth_resources) -> None:
 async def test_list_subscriptions(connecthealth_resources) -> None:
     """Test non-streaming ListSubscriptions operation."""
     domain_id, subscription_id, _ = connecthealth_resources
-    client = create_connecthealth_client(REGION)
+    client = await create_connecthealth_client(REGION)
 
     response = await client.list_subscriptions(
         input=ListSubscriptionsInput(domain_id=domain_id)
@@ -72,7 +72,7 @@ async def test_list_subscriptions(connecthealth_resources) -> None:
 async def test_get_subscription(connecthealth_resources) -> None:
     """Test non-streaming GetSubscription operation."""
     domain_id, subscription_id, _ = connecthealth_resources
-    client = create_connecthealth_client(REGION)
+    client = await create_connecthealth_client(REGION)
 
     response = await client.get_subscription(
         input=GetSubscriptionInput(domain_id=domain_id, subscription_id=subscription_id)

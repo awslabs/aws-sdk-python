@@ -40,7 +40,7 @@ from smithy_aws_core.identity import EnvironmentCredentialsResolver
 from smithy_core.aio.interfaces.eventstream import EventPublisher, EventReceiver
 
 from aws_sdk_polly.client import PollyClient
-from aws_sdk_polly.config import Config
+from aws_sdk_polly.config import AsyncPollyConfig
 from aws_sdk_polly.models import (
     CloseStreamEvent,
     StartSpeechSynthesisStreamActionStream,
@@ -239,7 +239,7 @@ async def main():
     text_chunks = get_text_chunks(args.text)
 
     client = PollyClient(
-        config=Config(
+        config=await AsyncPollyConfig.resolve(
             endpoint_uri=f"https://polly.{args.region}.amazonaws.com",
             region=args.region,
             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),

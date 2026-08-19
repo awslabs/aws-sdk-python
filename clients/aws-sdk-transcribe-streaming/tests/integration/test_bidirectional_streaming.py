@@ -88,7 +88,7 @@ async def _receive_transcription_output(
 
 async def test_start_stream_transcription() -> None:
     """Test bidirectional streaming with audio input and transcription output."""
-    transcribe_client = create_transcribe_client("us-west-2")
+    transcribe_client = await create_transcribe_client("us-west-2")
 
     stream = await transcribe_client.start_stream_transcription(
         input=StartStreamTranscriptionInput(

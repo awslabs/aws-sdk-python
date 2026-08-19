@@ -10,7 +10,7 @@ from . import ENGINE, REGION, VOICE_ID, create_polly_client
 
 async def test_describe_voices() -> None:
     """Test non-streaming DescribeVoices operation."""
-    client = create_polly_client(REGION)
+    client = await create_polly_client(REGION)
 
     response = await client.describe_voices(input=DescribeVoicesInput(engine=ENGINE))
 

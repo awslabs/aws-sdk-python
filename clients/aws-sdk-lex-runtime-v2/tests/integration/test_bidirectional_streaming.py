@@ -125,7 +125,7 @@ async def _receive_events(
 
 async def test_start_conversation(lex_bot: str) -> None:
     """Test bidirectional streaming StartConversation operation."""
-    client = create_lex_client(REGION)
+    client = await create_lex_client(REGION)
 
     stream = await client.start_conversation(
         input=StartConversationInput(

@@ -94,7 +94,7 @@ async def _receive_chat_output(
 
 async def test_chat_bidirectional_streaming(qbusiness_app: str) -> None:
     """Test bidirectional streaming with text input and chat output."""
-    qbusiness_client = create_qbusiness_client(REGION)
+    qbusiness_client = await create_qbusiness_client(REGION)
 
     stream = await qbusiness_client.chat(
         input=ChatInput(application_id=qbusiness_app, client_token=str(uuid.uuid4()))

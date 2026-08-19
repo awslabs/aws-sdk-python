@@ -17,7 +17,7 @@ from . import MESSAGE, MODEL_ID, create_bedrock_client
 
 
 async def test_converse_stream() -> None:
-    bedrock_client = create_bedrock_client("us-west-2")
+    bedrock_client = await create_bedrock_client("us-west-2")
 
     input_message = Message(role="user", content=[ContentBlockText(value=MESSAGE)])
     response = await bedrock_client.converse_stream(
