@@ -287,7 +287,7 @@ SENSITIVE_MARKDOWN_STRING = Schema(
     traits=[
         Trait.new(
             id=ShapeID("smithy.api#pattern"),
-            value="^[a-zA-Z0-9\\s\\*_\\-#\\[\\]\\(\\)\\.,:;!?'\"`<>~/]+$",
+            value="^[\\p{L}\\p{N}\\s\\*_\\-#\\[\\]\\(\\)\\.,:;!?'\"`<>~/|+=&%@\\\\{}^]+$",
         ),
         Trait.new(id=ShapeID("smithy.api#sensitive")),
     ],

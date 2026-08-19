@@ -1,0 +1,40 @@
+{
+  "changes": [
+    {
+      "type": "dependency",
+      "description": "Allow service clients to use newer compatible patch releases within the same minor version."
+    },
+    {
+      "type": "dependency",
+      "description": "Add support for the following clients:\n  * aws_sdk_connecthealth\n  * aws_sdk_lex_runtime_v2\n  * aws_sdk_polly\n  * aws_sdk_qbusiness"
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `aws-sdk-bedrock-runtime` from `~=0.7.0` to `~=0.8.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `aws-sdk-connecthealth` from `~=0.7.0` to `~=0.8.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `aws-sdk-lex-runtime-v2` from `~=0.7.0` to `~=0.8.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `aws-sdk-polly` from `~=0.7.0` to `~=0.8.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `aws-sdk-qbusiness` from `~=0.7.0` to `~=0.8.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `aws-sdk-sagemaker-runtime-http2` from `~=0.7.0` to `~=0.8.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `aws-sdk-transcribe-streaming` from `~=0.7.0` to `~=0.8.0`."
+    }
+  ]
+}

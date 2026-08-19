@@ -11,7 +11,7 @@ from . import BOT_ALIAS_ID, LOCALE_ID, REGION, create_lex_client
 
 async def test_recognize_text(lex_bot: str) -> None:
     """Test non-streaming RecognizeText operation."""
-    client = create_lex_client(REGION)
+    client = await create_lex_client(REGION)
     response = await client.recognize_text(
         input=RecognizeTextInput(
             bot_id=lex_bot,

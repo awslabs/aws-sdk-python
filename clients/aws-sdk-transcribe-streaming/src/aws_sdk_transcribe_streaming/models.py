@@ -1781,9 +1781,12 @@ class InternalFailureException(ServiceError):
 @dataclass(kw_only=True)
 class LimitExceededException(ServiceError):
     """
-    Your client has exceeded one of the Amazon Transcribe limits. This is
-    typically the audio length limit. Break your audio stream into smaller
-    chunks and try your request again.
+    Your client has exceeded one of the Amazon Transcribe limits, typically
+    the concurrent stream service quota. This error can also occur if a
+    stream exceeds the maximum session duration. In rare cases, this error
+    can also occur if you increase your number of concurrent streams too
+    quickly. Reduce your number of concurrent streams and try your request
+    again using an exponential backoff strategy.
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -2291,9 +2294,12 @@ class CallAnalyticsTranscriptResultStreamBadRequestException:
 @dataclass
 class CallAnalyticsTranscriptResultStreamLimitExceededException:
     """
-    Your client has exceeded one of the Amazon Transcribe limits. This is
-    typically the audio length limit. Break your audio stream into smaller
-    chunks and try your request again.
+    Your client has exceeded one of the Amazon Transcribe limits, typically
+    the concurrent stream service quota. This error can also occur if a
+    stream exceeds the maximum session duration. In rare cases, this error
+    can also occur if you increase your number of concurrent streams too
+    quickly. Reduce your number of concurrent streams and try your request
+    again using an exponential backoff strategy.
     """
 
     value: LimitExceededException
@@ -3805,6 +3811,9 @@ class MediaEncoding(UnknownEnumMixin, StrEnum):
     PCM = "pcm"
     OGG_OPUS = "ogg-opus"
     FLAC = "flac"
+    G711_ALAW = "g711-alaw"
+    G711_ULAW = "g711-ulaw"
+    G729 = "g729"
 
 
 @dataclass(kw_only=True)
@@ -5305,9 +5314,12 @@ class MedicalScribeResultStreamBadRequestException:
 @dataclass
 class MedicalScribeResultStreamLimitExceededException:
     """
-    Your client has exceeded one of the Amazon Transcribe limits. This is
-    typically the audio length limit. Break your audio stream into smaller
-    chunks and try your request again.
+    Your client has exceeded one of the Amazon Transcribe limits, typically
+    the concurrent stream service quota. This error can also occur if a
+    stream exceeds the maximum session duration. In rare cases, this error
+    can also occur if you increase your number of concurrent streams too
+    quickly. Reduce your number of concurrent streams and try your request
+    again using an exponential backoff strategy.
     """
 
     value: LimitExceededException
@@ -5646,9 +5658,12 @@ class MedicalTranscriptResultStreamBadRequestException:
 @dataclass
 class MedicalTranscriptResultStreamLimitExceededException:
     """
-    Your client has exceeded one of the Amazon Transcribe limits. This is
-    typically the audio length limit. Break your audio stream into smaller
-    chunks and try your request again.
+    Your client has exceeded one of the Amazon Transcribe limits, typically
+    the concurrent stream service quota. This error can also occur if a
+    stream exceeds the maximum session duration. In rare cases, this error
+    can also occur if you increase your number of concurrent streams too
+    quickly. Reduce your number of concurrent streams and try your request
+    again using an exponential backoff strategy.
     """
 
     value: LimitExceededException
@@ -7941,6 +7956,11 @@ START_MEDICAL_STREAM_TRANSCRIPTION = APIOperation(
 )
 
 
+class TranscriptFormat(UnknownEnumMixin, StrEnum):
+    SPOKEN = "spoken"
+    WRITTEN = "written"
+
+
 @dataclass(kw_only=True)
 class StartStreamTranscriptionInput:
     """Dataclass for StartStreamTranscriptionInput structure."""
@@ -8297,6 +8317,21 @@ class StartStreamTranscriptionInput:
     many times as you want until 1:30 PM.
     """
 
+    transcript_format: TranscriptFormat | None = None
+    """
+    Specify how numbers, dates, and other alphanumeric entities are rendered
+    in your transcription results.
+
+    - `WRITTEN` renders these entities in their standard written form (for
+      example, `$50`, `10:30 AM`, and `101`).
+
+    - `SPOKEN` renders these entities as words, exactly as they were spoken
+      (for example, `fifty dollars`, `ten thirty a m`, and `one oh one`).
+
+    If you don't specify a value, Amazon Transcribe uses `WRITTEN` by
+    default.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_START_STREAM_TRANSCRIPTION_INPUT, self)
 
@@ -8457,6 +8492,12 @@ class StartStreamTranscriptionInput:
             serializer.write_integer(
                 _SCHEMA_START_STREAM_TRANSCRIPTION_INPUT.members["SessionResumeWindow"],
                 self.session_resume_window,
+            )
+
+        if self.transcript_format is not None:
+            serializer.write_string(
+                _SCHEMA_START_STREAM_TRANSCRIPTION_INPUT.members["TranscriptFormat"],
+                self.transcript_format,
             )
 
     @classmethod
@@ -8642,6 +8683,15 @@ class StartStreamTranscriptionInput:
                         ]
                     )
 
+                case 24:
+                    kwargs["transcript_format"] = TranscriptFormat(
+                        de.read_string(
+                            _SCHEMA_START_STREAM_TRANSCRIPTION_INPUT.members[
+                                "TranscriptFormat"
+                            ]
+                        )
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -8796,9 +8846,12 @@ class TranscriptResultStreamBadRequestException:
 @dataclass
 class TranscriptResultStreamLimitExceededException:
     """
-    Your client has exceeded one of the Amazon Transcribe limits. This is
-    typically the audio length limit. Break your audio stream into smaller
-    chunks and try your request again.
+    Your client has exceeded one of the Amazon Transcribe limits, typically
+    the concurrent stream service quota. This error can also occur if a
+    stream exceeds the maximum session duration. In rare cases, this error
+    can also occur if you increase your number of concurrent streams too
+    quickly. Reduce your number of concurrent streams and try your request
+    again using an exponential backoff strategy.
     """
 
     value: LimitExceededException
@@ -9078,6 +9131,9 @@ class StartStreamTranscriptionOutput:
     your request.
     """
 
+    transcript_format: TranscriptFormat | None = None
+    """Provides the transcript format that you specified in your request."""
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_START_STREAM_TRANSCRIPTION_OUTPUT, self)
 
@@ -9236,6 +9292,12 @@ class StartStreamTranscriptionOutput:
                     "SessionResumeWindow"
                 ],
                 self.session_resume_window,
+            )
+
+        if self.transcript_format is not None:
+            serializer.write_string(
+                _SCHEMA_START_STREAM_TRANSCRIPTION_OUTPUT.members["TranscriptFormat"],
+                self.transcript_format,
             )
 
     @classmethod
@@ -9424,6 +9486,15 @@ class StartStreamTranscriptionOutput:
                         _SCHEMA_START_STREAM_TRANSCRIPTION_OUTPUT.members[
                             "SessionResumeWindow"
                         ]
+                    )
+
+                case 25:
+                    kwargs["transcript_format"] = TranscriptFormat(
+                        de.read_string(
+                            _SCHEMA_START_STREAM_TRANSCRIPTION_OUTPUT.members[
+                                "TranscriptFormat"
+                            ]
+                        )
                     )
 
                 case _:

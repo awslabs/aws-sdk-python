@@ -201,9 +201,12 @@ from ._private.schemas import (
     THROTTLING_EXCEPTION as _SCHEMA_THROTTLING_EXCEPTION,
     TOKEN_USAGE as _SCHEMA_TOKEN_USAGE,
     TOOL as _SCHEMA_TOOL,
+    TOOL_ADDITION_BLOCK as _SCHEMA_TOOL_ADDITION_BLOCK,
     TOOL_CHOICE as _SCHEMA_TOOL_CHOICE,
     TOOL_CONFIGURATION as _SCHEMA_TOOL_CONFIGURATION,
     TOOL_INPUT_SCHEMA as _SCHEMA_TOOL_INPUT_SCHEMA,
+    TOOL_REFERENCE as _SCHEMA_TOOL_REFERENCE,
+    TOOL_REMOVAL_BLOCK as _SCHEMA_TOOL_REMOVAL_BLOCK,
     TOOL_RESULT_BLOCK as _SCHEMA_TOOL_RESULT_BLOCK,
     TOOL_RESULT_BLOCK_DELTA as _SCHEMA_TOOL_RESULT_BLOCK_DELTA,
     TOOL_RESULT_BLOCK_START as _SCHEMA_TOOL_RESULT_BLOCK_START,
@@ -10356,6 +10359,160 @@ class SearchResultBlock:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class ToolReference:
+    """
+    A reference to a tool in the tool configuration. Used with
+    `ToolAdditionBlock` and `ToolRemovalBlock` to identify which tool to add
+    or remove mid-conversation.
+    """
+
+    type: str | None = None
+    """The type of tool reference."""
+
+    name: str | None = None
+    """
+    The name of the tool. Must match the name of a tool declared in the
+    top-level tool configuration.
+    """
+
+    server_name: str | None = None
+    """
+    The name of the MCP server that provides the tool. Required when
+    referencing an MCP tool.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL_REFERENCE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.type is not None:
+            serializer.write_string(_SCHEMA_TOOL_REFERENCE.members["type"], self.type)
+
+        if self.name is not None:
+            serializer.write_string(_SCHEMA_TOOL_REFERENCE.members["name"], self.name)
+
+        if self.server_name is not None:
+            serializer.write_string(
+                _SCHEMA_TOOL_REFERENCE.members["serverName"], self.server_name
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["type"] = de.read_string(
+                        _SCHEMA_TOOL_REFERENCE.members["type"]
+                    )
+
+                case 1:
+                    kwargs["name"] = de.read_string(
+                        _SCHEMA_TOOL_REFERENCE.members["name"]
+                    )
+
+                case 2:
+                    kwargs["server_name"] = de.read_string(
+                        _SCHEMA_TOOL_REFERENCE.members["serverName"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_TOOL_REFERENCE, consumer=_consumer)
+        return kwargs
+
+    @classmethod
+    def _smithy_default(cls) -> Self:
+        return cls()
+
+
+@dataclass(kw_only=True)
+class ToolAdditionBlock:
+    """
+    A content block for adding a tool to the available tool set
+    mid-conversation. Each block references a single tool via its `tool`
+    field. Use within a `system` role message to make a tool available
+    without re-sending the full tool configuration.
+    """
+
+    tool: ToolReference
+    """A reference to the tool to add to the available tool set."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL_ADDITION_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL_ADDITION_BLOCK.members["tool"], self.tool)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["tool"] = ToolReference.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_TOOL_ADDITION_BLOCK, consumer=_consumer)
+        if "tool" not in kwargs:
+            kwargs["tool"] = ToolReference._smithy_default()
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class ToolRemovalBlock:
+    """
+    A content block for removing a tool from the available tool set
+    mid-conversation. Each block references a single tool via its `tool`
+    field. Use within a `system` role message to remove a tool without
+    re-sending the full tool configuration.
+    """
+
+    tool: ToolReference
+    """A reference to the tool to remove from the available tool set."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL_REMOVAL_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_TOOL_REMOVAL_BLOCK.members["tool"], self.tool)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["tool"] = ToolReference.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_TOOL_REMOVAL_BLOCK, consumer=_consumer)
+        if "tool" not in kwargs:
+            kwargs["tool"] = ToolReference._smithy_default()
+        return kwargs
+
+
 class VideoFormat(UnknownEnumMixin, StrEnum):
     MKV = "mkv"
     MOV = "mov"
@@ -11171,6 +11328,54 @@ class ContentBlockSearchResult:
 
 
 @dataclass
+class ContentBlockToolAddition:
+    """
+    A content block for adding a tool to the available tool set
+    mid-conversation. Each block references a single tool via its `tool`
+    field. Use within a `system` role message to make a tool available
+    without re-sending the full tool configuration.
+    """
+
+    value: ToolAdditionBlock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK.members["toolAddition"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=ToolAdditionBlock.deserialize(deserializer))
+
+
+@dataclass
+class ContentBlockToolRemoval:
+    """
+    A content block for removing a tool from the available tool set
+    mid-conversation. Each block references a single tool via its `tool`
+    field. Use within a `system` role message to remove a tool without
+    re-sending the full tool configuration.
+    """
+
+    value: ToolRemovalBlock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONTENT_BLOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_CONTENT_BLOCK.members["toolRemoval"], self.value
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=ToolRemovalBlock.deserialize(deserializer))
+
+
+@dataclass
 class ContentBlockUnknown:
     """
     Represents an unknown variant.
@@ -11207,6 +11412,8 @@ ContentBlock = Union[
     | ContentBlockReasoningContent
     | ContentBlockCitationsContent
     | ContentBlockSearchResult
+    | ContentBlockToolAddition
+    | ContentBlockToolRemoval
     | ContentBlockUnknown
 ]
 """
@@ -11270,6 +11477,12 @@ class _ContentBlockDeserializer:
 
             case 11:
                 self._set_result(ContentBlockSearchResult.deserialize(de))
+
+            case 12:
+                self._set_result(ContentBlockToolAddition.deserialize(de))
+
+            case 13:
+                self._set_result(ContentBlockToolRemoval.deserialize(de))
 
             case _:
                 self._set_result(ContentBlockUnknown(tag=schema.expect_member_name()))
@@ -11626,6 +11839,19 @@ class OutputConfig:
     text_format: OutputFormat | None = None
     """Structured output parameters to control the model's text response."""
 
+    effort: str | None = None
+    """
+    The effort level for the model to use when generating a response. Higher
+    effort levels allow the model to spend more time reasoning before
+    responding. Supported values are `low`, `medium`, `high`, `xhigh`, and
+    `max`.
+
+    Note:
+        When extended thinking is disabled, the effort level is capped at
+        `high`. Use effort `high` or below, or enable thinking to use higher
+        effort levels.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_OUTPUT_CONFIG, self)
 
@@ -11633,6 +11859,11 @@ class OutputConfig:
         if self.text_format is not None:
             serializer.write_struct(
                 _SCHEMA_OUTPUT_CONFIG.members["textFormat"], self.text_format
+            )
+
+        if self.effort is not None:
+            serializer.write_string(
+                _SCHEMA_OUTPUT_CONFIG.members["effort"], self.effort
             )
 
     @classmethod
@@ -11647,6 +11878,11 @@ class OutputConfig:
             match schema.expect_member_index():
                 case 0:
                     kwargs["text_format"] = OutputFormat.deserialize(de)
+
+                case 1:
+                    kwargs["effort"] = de.read_string(
+                        _SCHEMA_OUTPUT_CONFIG.members["effort"]
+                    )
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

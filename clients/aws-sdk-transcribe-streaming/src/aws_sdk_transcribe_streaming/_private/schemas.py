@@ -1469,6 +1469,22 @@ MEDIA_ENCODING = Schema.collection(
             "target": UNIT,
             "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="flac")],
         },
+        "G711_ALAW": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="g711-alaw")
+            ],
+        },
+        "G711_ULAW": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="g711-ulaw")
+            ],
+        },
+        "G729": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="g729")],
+        },
     },
 )
 
@@ -2790,6 +2806,21 @@ START_MEDICAL_STREAM_TRANSCRIPTION = Schema(
     ],
 )
 
+TRANSCRIPT_FORMAT = Schema.collection(
+    id=ShapeID("com.amazonaws.transcribestreaming#TranscriptFormat"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "SPOKEN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="spoken")],
+        },
+        "WRITTEN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="written")],
+        },
+    },
+)
+
 START_STREAM_TRANSCRIPTION_INPUT = Schema.collection(
     id=ShapeID("com.amazonaws.transcribestreaming#StartStreamTranscriptionInput"),
     traits=[
@@ -3018,6 +3049,15 @@ START_STREAM_TRANSCRIPTION_INPUT = Schema.collection(
                 Trait.new(
                     id=ShapeID("smithy.api#httpHeader"),
                     value="x-amzn-transcribe-session-resume-window",
+                )
+            ],
+        },
+        "TranscriptFormat": {
+            "target": TRANSCRIPT_FORMAT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#httpHeader"),
+                    value="x-amzn-transcribe-transcript-format",
                 )
             ],
         },
@@ -3279,6 +3319,15 @@ START_STREAM_TRANSCRIPTION_OUTPUT = Schema.collection(
                 Trait.new(
                     id=ShapeID("smithy.api#httpHeader"),
                     value="x-amzn-transcribe-session-resume-window",
+                )
+            ],
+        },
+        "TranscriptFormat": {
+            "target": TRANSCRIPT_FORMAT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#httpHeader"),
+                    value="x-amzn-transcribe-transcript-format",
                 )
             ],
         },

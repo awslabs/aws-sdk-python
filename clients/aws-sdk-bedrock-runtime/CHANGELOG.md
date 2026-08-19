@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.10.0
+
+### Dependencies
+* Bump `smithy-aws-core` from `~=0.9.0` to `~=0.10.0`.
+
+## v0.9.0
+
+### Dependencies
+* Bump `smithy-core` from `~=0.7.0` to `~=0.8.0`.
+* Bump `smithy-aws-core` from `~=0.8.0` to `~=0.9.0`.
+
+## v0.8.0
+
+### API Changes
+* Added support for mid-conversation tool changes in the Amazon Bedrock Converse and ConverseStream APIs.
+
+### Enhancements
+* Re-generated with smithy-python 0.4.0
+
+### Dependencies
+* Bump `smithy-aws-core` from `~=0.7.0` to `~=0.8.0`.
+* Bump `smithy-core` from `~=0.6.0` to `~=0.7.0`.
+
 ## v0.7.0
 
 ### API Changes
@@ -38,7 +61,7 @@
 
 ### Enhancements
 * Re-generated with smithy-python 0.3.0
-* Update package docstrings from Sphinx style to Google style for improved readability and consistency with Python community standards. ([#48](https://github.com/awslabs/aws-sdk-python/pull/48))
+* Update package docstrings from Sphinx style to Google style for improved readability and consistency with Python community standards. ([#48](https://github.com/aws/aws-sdk-python/pull/48))
 
 ## v0.3.0
 
@@ -81,7 +104,7 @@
 * Removed unused `serialize.py` and `deserialize.py` modules.
 
 ### Enhancements
-* Improvements to the underlying AWS CRT HTTP client result in a significant decrease in CPU usage. Addresses [aws-sdk-python#11](https://github.com/awslabs/aws-sdk-python/issues/11).
+* Improvements to the underlying AWS CRT HTTP client result in a significant decrease in CPU usage. Addresses [aws-sdk-python#11](https://github.com/aws/aws-sdk-python/issues/11).
 
 ### Dependencies
 * **Updated**: `smithy_http[awscrt]` from `~=0.1.0` to `~=0.2.0`.

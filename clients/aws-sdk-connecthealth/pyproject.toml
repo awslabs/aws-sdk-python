@@ -2,7 +2,7 @@
 
 [project]
 name = "aws_sdk_connecthealth"
-version = "0.7.0"
+version = "0.10.0"
 description = "aws_sdk_connecthealth client"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -23,16 +23,15 @@ classifiers = [
 ]
 
 dependencies = [
-    "smithy_aws_core[eventstream, json]~=0.7.0",
-    "smithy_core~=0.6.0",
+    "smithy_aws_core[eventstream, json]~=0.10.0",
+    "smithy_core~=0.8.0",
     "smithy_http[awscrt]~=0.4.0"
 ]
 
 [dependency-groups]
 docs = [
-    "mkdocs==1.6.1",
-    "mkdocs-material==9.7.0",
-    "mkdocstrings[python]==1.0.0",
+    "mkdocstrings[python]~=1.0.4",
+    "zensical~=0.0.53",
 ]
 test = [
     "boto3",

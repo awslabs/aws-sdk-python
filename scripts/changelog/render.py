@@ -137,7 +137,7 @@ def main() -> int:
         "-p",
         "--package",
         required=True,
-        help="Package name (looks in clients/<name>/.changes)",
+        help="Package name (looks in clients/<name>/.changes or packages/<name>/.changes)",
     )
     parser.add_argument(
         "-t",

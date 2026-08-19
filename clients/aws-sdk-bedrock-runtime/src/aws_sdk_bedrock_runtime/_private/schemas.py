@@ -3622,6 +3622,59 @@ SEARCH_RESULT_BLOCK = Schema.collection(
     },
 )
 
+TOOL_REFERENCE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ToolReference"),
+    members={
+        "type": {
+            "target": STRING,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#length"),
+                    value=MappingProxyType({"min": 1, "max": 64}),
+                )
+            ],
+        },
+        "name": {
+            "target": STRING,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#length"),
+                    value=MappingProxyType({"min": 1, "max": 128}),
+                )
+            ],
+        },
+        "serverName": {
+            "target": STRING,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#length"),
+                    value=MappingProxyType({"min": 1, "max": 128}),
+                )
+            ],
+        },
+    },
+)
+
+TOOL_ADDITION_BLOCK = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ToolAdditionBlock"),
+    members={
+        "tool": {
+            "target": TOOL_REFERENCE,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        }
+    },
+)
+
+TOOL_REMOVAL_BLOCK = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockruntime#ToolRemovalBlock"),
+    members={
+        "tool": {
+            "target": TOOL_REFERENCE,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        }
+    },
+)
+
 VIDEO_FORMAT = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#VideoFormat"),
     shape_type=ShapeType.ENUM,
@@ -3817,6 +3870,8 @@ CONTENT_BLOCK = Schema.collection(
         "reasoningContent": {"target": REASONING_CONTENT_BLOCK},
         "citationsContent": {"target": CITATIONS_CONTENT_BLOCK},
         "searchResult": {"target": SEARCH_RESULT_BLOCK},
+        "toolAddition": {"target": TOOL_ADDITION_BLOCK},
+        "toolRemoval": {"target": TOOL_REMOVAL_BLOCK},
     },
 )
 
@@ -3930,7 +3985,17 @@ OUTPUT_FORMAT = Schema.collection(
 
 OUTPUT_CONFIG = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockruntime#OutputConfig"),
-    members={"textFormat": {"target": OUTPUT_FORMAT}},
+    members={
+        "textFormat": {"target": OUTPUT_FORMAT},
+        "effort": {
+            "target": STRING,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#length"), value=MappingProxyType({"max": 16})
+                )
+            ],
+        },
+    },
 )
 
 PERFORMANCE_CONFIG_LATENCY = Schema.collection(

@@ -18,7 +18,7 @@ docs-generate:
 	uv run --no-sync python scripts/docs/generate_doc_stubs.py -c $(CLIENT_DIR) -o $(DOCS_OUTPUT_DIR)
 
 docs: docs-generate
-	uv run --no-sync mkdocs build
+	uv run --no-sync zensical build
 
 docs-serve:
 	@[ -d site ] || $(MAKE) docs

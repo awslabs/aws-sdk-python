@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.10.0
+
+### Dependencies
+* Bump `smithy-aws-core` from `~=0.9.0` to `~=0.10.0`.
+
+## v0.9.0
+
+### Dependencies
+* Bump `smithy-core` from `~=0.7.0` to `~=0.8.0`.
+* Bump `smithy-aws-core` from `~=0.8.0` to `~=0.9.0`.
+
+## v0.8.0
+
+### Enhancements
+* Re-generated with smithy-python 0.4.0
+
+### Dependencies
+* Bump `smithy-aws-core` from `~=0.7.0` to `~=0.8.0`.
+* Bump `smithy-core` from `~=0.6.0` to `~=0.7.0`.
+
 ## v0.7.0
 
 ### Features

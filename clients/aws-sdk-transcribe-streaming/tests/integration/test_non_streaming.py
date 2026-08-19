@@ -43,7 +43,7 @@ ROLE_PROPAGATION_RETRY_DELAY = 5
 
 async def _run_medical_scribe_session(role_arn: str, s3_bucket: str) -> None:
     """Run a full Medical Scribe streaming session and verify its completion."""
-    transcribe_client = create_transcribe_client("us-east-1")
+    transcribe_client = await create_transcribe_client("us-east-1")
     session_id = str(uuid.uuid4())
 
     stream = await transcribe_client.start_medical_scribe_stream(

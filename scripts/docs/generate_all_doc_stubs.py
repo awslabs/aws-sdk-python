@@ -15,6 +15,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
+from utils import get_sdk_id
+
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s - %(name)s - %(levelname)s] %(message)s",
@@ -35,12 +37,13 @@ class ClientInfo:
     path_name: str
 
 
-def discover_clients(clients_dir: Path) -> list[ClientInfo]:
+def discover_clients(clients_dir: Path, models_dir: Path) -> list[ClientInfo]:
     """
     Discover all clients that have a generate_doc_stubs.py script.
 
     Args:
         clients_dir: Path to the clients directory.
+        models_dir: Path to the Smithy models directory.
 
     Returns:
         List of ClientInfo objects.
@@ -54,10 +57,9 @@ def discover_clients(clients_dir: Path) -> list[ClientInfo]:
         if not script_path.exists():
             continue
 
-        # Convert "aws-sdk-bedrock-runtime" -> "Bedrock Runtime" / "bedrock-runtime"
         package_name = client_dir.name
         path_name = package_name.replace("aws-sdk-", "")
-        service_name = path_name.replace("-", " ").title()
+        service_name = get_sdk_id(models_dir / f"{path_name}.json")
         clients.append(ClientInfo(client_dir, service_name, package_name, path_name))
 
     return clients
@@ -197,9 +199,10 @@ def main() -> int:
     repo_root = Path(__file__).parent.parent.parent
     clients_dir = repo_root / "clients"
     docs_dir = repo_root / "docs"
+    models_dir = repo_root / "codegen" / "aws-models"
 
     try:
-        clients = discover_clients(clients_dir)
+        clients = discover_clients(clients_dir, models_dir)
 
         if not generate_all_doc_stubs(clients, docs_dir):
             return 1

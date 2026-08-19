@@ -56,4 +56,4 @@ If you discover a potential security issue in this project we ask that you notif
 
 ## Licensing
 
-See the [LICENSE](https://github.com/awslabs/aws-sdk-python/blob/develop/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
+See the [LICENSE](https://github.com/aws/aws-sdk-python/blob/develop/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.

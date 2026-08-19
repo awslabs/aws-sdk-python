@@ -35,6 +35,13 @@ jobs:
           while IFS= read -r service; do
             [ -z "$service" ] && continue
 
+            # New services must be skipped since they have no client package yet.
+            # Our release infra generates a changelog entry for us.
+            if [ ! -d "clients/aws-sdk-${service}" ]; then
+              echo "Skipping new service '${service}' (no package yet; changelog generated through release infra)."
+              continue
+            fi
+
             changelog_dir="clients/aws-sdk-${service}/.changes/next-release"
 
             if [ ! -d "$changelog_dir" ]; then

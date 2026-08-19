@@ -1,6 +1,6 @@
 ## Generating Client Documentation
 
-Material for MkDocs is used for documentation. You can generate the documentation HTML
+Zensical is used for documentation. You can generate the documentation HTML
 for this client locally with the following:
 
 ```bash
