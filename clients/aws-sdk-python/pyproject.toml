@@ -29,15 +29,21 @@ bedrock_agent_runtime = ["aws_sdk_bedrock_agent_runtime~=0.10.0"]
 bedrock_agentcore = ["aws_sdk_bedrock_agentcore~=0.10.0"]
 bedrock_agentcore_control = ["aws_sdk_bedrock_agentcore_control~=0.10.0"]
 bedrock_data_automation = ["aws_sdk_bedrock_data_automation~=0.10.0"]
+bedrock_data_automation_runtime = ["aws_sdk_bedrock_data_automation_runtime~=0.10.0"]
 bedrock_runtime = ["aws_sdk_bedrock_runtime~=0.10.0"]
+cloudtrail = ["aws_sdk_cloudtrail~=0.10.0"]
+cognito_identity = ["aws_sdk_cognito_identity~=0.10.0"]
 connecthealth = ["aws_sdk_connecthealth~=0.10.0"]
+dynamodb = ["aws_sdk_dynamodb~=0.10.0"]
 guardduty = ["aws_sdk_guardduty~=0.10.0"]
 lambda = ["aws_sdk_lambda~=0.10.0"]
 lex_runtime_v2 = ["aws_sdk_lex_runtime_v2~=0.10.0"]
 polly = ["aws_sdk_polly~=0.10.0"]
 qbusiness = ["aws_sdk_qbusiness~=0.10.0"]
 sagemaker_runtime_http2 = ["aws_sdk_sagemaker_runtime_http2~=0.10.0"]
+secrets_manager = ["aws_sdk_secrets_manager~=0.10.0"]
 sns = ["aws_sdk_sns~=0.10.0"]
+sqs = ["aws_sdk_sqs~=0.10.0"]
 sts = ["aws_sdk_sts~=0.10.0"]
 transcribe_streaming = ["aws_sdk_transcribe_streaming~=0.10.0"]
 
@@ -49,15 +55,21 @@ all = [
     "aws_sdk_python[bedrock_agentcore]",
     "aws_sdk_python[bedrock_agentcore_control]",
     "aws_sdk_python[bedrock_data_automation]",
+    "aws_sdk_python[bedrock_data_automation_runtime]",
     "aws_sdk_python[bedrock_runtime]",
+    "aws_sdk_python[cloudtrail]",
+    "aws_sdk_python[cognito_identity]",
     "aws_sdk_python[connecthealth]",
+    "aws_sdk_python[dynamodb]",
     "aws_sdk_python[guardduty]",
     "aws_sdk_python[lambda]",
     "aws_sdk_python[lex_runtime_v2]",
     "aws_sdk_python[polly]",
     "aws_sdk_python[qbusiness]",
     "aws_sdk_python[sagemaker_runtime_http2]",
+    "aws_sdk_python[secrets_manager]",
     "aws_sdk_python[sns]",
+    "aws_sdk_python[sqs]",
     "aws_sdk_python[sts]",
     "aws_sdk_python[transcribe_streaming]",
 ]

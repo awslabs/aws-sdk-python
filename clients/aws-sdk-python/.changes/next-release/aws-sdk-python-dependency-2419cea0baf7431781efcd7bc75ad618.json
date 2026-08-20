@@ -1,0 +1,4 @@
+{
+  "type": "dependency",
+  "description": "Add support for the following clients:\n  * `aws-sdk-bedrock-data-automation-runtime`\n  * `aws-sdk-cloudtrail`\n  * `aws-sdk-cognito-identity`\n  * `aws-sdk-dynamodb`\n  * `aws-sdk-secrets-manager`\n  * `aws-sdk-sqs`"
+}
