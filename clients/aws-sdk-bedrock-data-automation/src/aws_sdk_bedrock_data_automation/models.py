@@ -6085,18 +6085,18 @@ class SensitiveDataDetectionMode(UnknownEnumMixin, StrEnum):
     """Mode for sensitive data detection"""
 
     DETECTION = "DETECTION"
-    """Only detect sensitive data without redaction    """
+    """Only detect sensitive data without redaction"""
     DETECTION_AND_REDACTION = "DETECTION_AND_REDACTION"
-    """Detect and redact sensitive data    """
+    """Detect and redact sensitive data"""
 
 
 class SensitiveDataDetectionScopeType(UnknownEnumMixin, StrEnum):
     """Types of sensitive data detection scope"""
 
     STANDARD = "STANDARD"
-    """Standard PII detection    """
+    """Standard PII detection"""
     CUSTOM = "CUSTOM"
-    """Custom PII detection    """
+    """Custom PII detection"""
 
 
 def _serialize_sensitive_data_detection_scope(
@@ -6134,81 +6134,81 @@ class PIIEntityType(UnknownEnumMixin, StrEnum):
     """
 
     ALL = "ALL"
-    """All supported PII entity types    """
+    """All supported PII entity types"""
     ADDRESS = "ADDRESS"
     """
     A physical address, such as '100 Main Street, Anytown, USA' or 'Suite
     #12, Building 123'
     """
     AGE = "AGE"
-    """An individual's age, including the quantity and unit of time    """
+    """An individual's age, including the quantity and unit of time"""
     NAME = "NAME"
     """
     An individual's name. Does not include titles such as Dr., Mr., Mrs.,
     or Miss
     """
     EMAIL = "EMAIL"
-    """An email address, such as marymajor@email.com    """
+    """An email address, such as marymajor@email.com"""
     PHONE = "PHONE"
-    """A phone number. Also includes fax and pager numbers    """
+    """A phone number. Also includes fax and pager numbers"""
     USERNAME = "USERNAME"
     """
     A user name that identifies an account, such as a login name, screen
     name, nick name, or handle
     """
     PASSWORD = "PASSWORD"
-    """An alphanumeric string that is used as a password    """
+    """An alphanumeric string that is used as a password"""
     DRIVER_ID = "DRIVER_ID"
-    """The number assigned to a driver's license    """
+    """The number assigned to a driver's license"""
     LICENSE_PLATE = "LICENSE_PLATE"
     """
     A license plate for a vehicle issued by the state or country where the
     vehicle is registered
     """
     VEHICLE_IDENTIFICATION_NUMBER = "VEHICLE_IDENTIFICATION_NUMBER"
-    """A Vehicle Identification Number (VIN) that uniquely identifies a vehicle    """
+    """A Vehicle Identification Number (VIN) that uniquely identifies a vehicle"""
     CREDIT_DEBIT_CARD_CVV = "CREDIT_DEBIT_CARD_CVV"
     """
     A three-digit card verification code (CVV) for VISA, MasterCard, and
     Discover cards, or four-digit for American Express
     """
     CREDIT_DEBIT_CARD_EXPIRY = "CREDIT_DEBIT_CARD_EXPIRY"
-    """The expiration date for a credit or debit card    """
+    """The expiration date for a credit or debit card"""
     CREDIT_DEBIT_CARD_NUMBER = "CREDIT_DEBIT_CARD_NUMBER"
-    """The number for a credit or debit card    """
+    """The number for a credit or debit card"""
     PIN = "PIN"
-    """A four-digit personal identification number (PIN)    """
+    """A four-digit personal identification number (PIN)"""
     INTERNATIONAL_BANK_ACCOUNT_NUMBER = "INTERNATIONAL_BANK_ACCOUNT_NUMBER"
     """
     An International Bank Account Number with specific formats for each
     country
     """
     SWIFT_CODE = "SWIFT_CODE"
-    """A SWIFT code - standard format of Bank Identifier Code (BIC)    """
+    """A SWIFT code - standard format of Bank Identifier Code (BIC)"""
     IP_ADDRESS = "IP_ADDRESS"
-    """An IPv4 address, such as 198.51.100.0    """
+    """An IPv4 address, such as 198.51.100.0"""
     MAC_ADDRESS = "MAC_ADDRESS"
     """
     A media access control (MAC) address - unique identifier for network
     interface controller
     """
     URL = "URL"
-    """A web address, such as www.example.com    """
+    """A web address, such as www.example.com"""
     AWS_ACCESS_KEY = "AWS_ACCESS_KEY"
-    """A unique identifier associated with AWS secret access key    """
+    """A unique identifier associated with AWS secret access key"""
     AWS_SECRET_KEY = "AWS_SECRET_KEY"
     """
     A unique identifier associated with AWS access key for signing
     programmatic requests
     """
     US_BANK_ACCOUNT_NUMBER = "US_BANK_ACCOUNT_NUMBER"
-    """A US bank account number, typically 10 to 12 digits long    """
+    """A US bank account number, typically 10 to 12 digits long"""
     US_BANK_ROUTING_NUMBER = "US_BANK_ROUTING_NUMBER"
-    """A US bank account routing number, typically nine digits long    """
+    """A US bank account routing number, typically nine digits long"""
     US_INDIVIDUAL_TAX_IDENTIFICATION_NUMBER = "US_INDIVIDUAL_TAX_IDENTIFICATION_NUMBER"
-    """A US Individual Taxpayer Identification Number (ITIN)    """
+    """A US Individual Taxpayer Identification Number (ITIN)"""
     US_PASSPORT_NUMBER = "US_PASSPORT_NUMBER"
-    """A US passport number, ranging from six to nine alphanumeric characters    """
+    """A US passport number, ranging from six to nine alphanumeric characters"""
     US_SOCIAL_SECURITY_NUMBER = "US_SOCIAL_SECURITY_NUMBER"
     """
     A US Social Security Number (SSN) - nine-digit number for US citizens
@@ -6220,9 +6220,9 @@ class PIIEntityType(UnknownEnumMixin, StrEnum):
     healthcare benefits
     """
     CA_SOCIAL_INSURANCE_NUMBER = "CA_SOCIAL_INSURANCE_NUMBER"
-    """A Canadian Social Insurance Number (SIN) - nine-digit unique identifier    """
+    """A Canadian Social Insurance Number (SIN) - nine-digit unique identifier"""
     UK_NATIONAL_HEALTH_SERVICE_NUMBER = "UK_NATIONAL_HEALTH_SERVICE_NUMBER"
-    """A UK National Health Service Number - 10-17 digit number    """
+    """A UK National Health Service Number - 10-17 digit number"""
     UK_NATIONAL_INSURANCE_NUMBER = "UK_NATIONAL_INSURANCE_NUMBER"
     """
     A UK National Insurance Number (NINO) for accessing National Insurance
@@ -6265,9 +6265,9 @@ class PIIRedactionMaskMode(UnknownEnumMixin, StrEnum):
     """Mode for redacting detected PII"""
 
     PII = "PII"
-    """Replace with generic PII marker [PII]    """
+    """Replace with generic PII marker [PII]"""
     ENTITY_TYPE = "ENTITY_TYPE"
-    """Replace with specific entity type marker, e.g. [NAME]/[SSN] etc.    """
+    """Replace with specific entity type marker, e.g. [NAME]/[SSN] etc."""
 
 
 @dataclass(kw_only=True)

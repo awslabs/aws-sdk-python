@@ -8,6 +8,7 @@ for the client, operations, models (structures, unions, enums), and errors.
 
 import argparse
 import logging
+import re
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -115,19 +116,43 @@ class ClientInfo:
 class DocStubGenerator:
     """Generate markdown API Reference stubs for AWS SDK for Python clients."""
 
-    def __init__(self, client_dir: Path, output_dir: Path) -> None:
+    def __init__(self, client_dir: Path, output_dir: Path, service_name: str | None = None) -> None:
         """
         Initialize the documentation generator.
 
         Args:
             client_dir: Path to the client source directory
             output_dir: Path to the output directory for generated doc stubs
+            service_name: Display name for the service (e.g. the Smithy sdkId
+                "SNS"). When omitted, falls back to a title-cased derivation of
+                the package name, which does not preserve acronym casing.
         """
         self.client_dir = client_dir
         self.output_dir = output_dir
-        # Extract service name from package name
-        # (e.g., "aws_sdk_bedrock_runtime" -> "Bedrock Runtime")
-        self.service_name = client_dir.name.replace("aws_sdk_", "").replace("_", " ").title()
+        # Use the explicit override, then the sdkId from the package, then
+        # fall back to a title-cased package name (does not keep acronym
+        # casing, so "sns" becomes "Sns").
+        self.service_name = (
+            service_name
+            or self._sdk_id_from_package(client_dir)
+            or client_dir.name.replace("aws_sdk_", "").replace("_", " ").title()
+        )
+
+    @staticmethod
+    def _sdk_id_from_package(client_dir: Path) -> str | None:
+        """
+        Read the authoritative service name (Smithy sdkId) from the package.
+
+        The generated ``_private/schemas.py`` carries the ``aws.api#service``
+        trait's ``sdkId`` (e.g. "SNS"), the same field the sidebar navigation
+        uses, so it keeps acronym casing that the package name does not.
+        Returns None if the file or value is absent.
+        """
+        schemas = client_dir / "_private" / "schemas.py"
+        if not schemas.is_file():
+            return None
+        match = re.search(r'"sdkId":\s*"([^"]+)"', schemas.read_text())
+        return match.group(1) if match else None
 
     def generate(self) -> bool:
         """
@@ -166,10 +191,13 @@ class DocStubGenerator:
         if not client_class:
             raise ValueError(f"No class ending with 'Client' found in {package_name}.client")
 
-        config_class = config_module.members.get("Config")
+        config_class = self._find_class_with_suffix(config_module, "Config")
+        if not config_class:
+            raise ValueError(f"No class ending with 'Config' found in {package_name}.config")
+
         plugin_alias = config_module.members.get("Plugin")
-        if not config_class or not plugin_alias:
-            raise ValueError(f"Missing Config or Plugin in {package_name}.config")
+        if not plugin_alias:
+            raise ValueError(f"Missing Plugin in {package_name}.config")
 
         config = TypeInfo(name=config_class.name, module_path=config_class.path)
         plugin = TypeInfo(name=plugin_alias.name, module_path=plugin_alias.path)
@@ -194,8 +222,12 @@ class DocStubGenerator:
         )
 
     def _find_class_with_suffix(self, module: Module, suffix: str) -> Class | None:
-        """Find the class in the module with a matching suffix."""
+        """Find the class defined in the module with a matching suffix."""
         for cls in module.classes.values():
+            # Skip imported classes so a same-package import (e.g. a *Config
+            # class re-exported from config.py) can't shadow the defined one.
+            if cls.is_imported:
+                continue
             if cls.name.endswith(suffix):
                 return cls
         return None
@@ -616,6 +648,12 @@ def main() -> int:
         required=True,
         help="Output directory for generated doc stubs",
     )
+    parser.add_argument(
+        "-s",
+        "--service-name",
+        default=None,
+        help="Display name for the service (Smithy sdkId, e.g. 'SNS')",
+    )
 
     args = parser.parse_args()
     client_dir = args.client_dir.resolve()
@@ -626,7 +664,7 @@ def main() -> int:
         return 1
 
     try:
-        generator = DocStubGenerator(client_dir, output_dir)
+        generator = DocStubGenerator(client_dir, output_dir, args.service_name)
         success = generator.generate()
         return 0 if success else 1
     except Exception as e:

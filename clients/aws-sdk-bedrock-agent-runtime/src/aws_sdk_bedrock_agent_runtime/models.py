@@ -5470,7 +5470,7 @@ class AgenticRetrieveType(UnknownEnumMixin, StrEnum):
     """The type of retrieval source."""
 
     BEDROCK_KNOWLEDGE_BASE = "BedrockKnowledgeBase"
-    """A Bedrock knowledge base retrieval source.    """
+    """A Bedrock knowledge base retrieval source."""
 
 
 @dataclass(kw_only=True)
@@ -5563,24 +5563,24 @@ class AgenticRetrieveStatus(UnknownEnumMixin, StrEnum):
     """The status of an agentic retrieval step."""
 
     IN_PROGRESS = "IN_PROGRESS"
-    """The step is currently in progress.    """
+    """The step is currently in progress."""
     SUCCEEDED = "SUCCEEDED"
-    """The step completed successfully.    """
+    """The step completed successfully."""
     FAILED = "FAILED"
-    """The step failed.    """
+    """The step failed."""
 
 
 class AgenticRetrieveStep(UnknownEnumMixin, StrEnum):
     """The step in the agentic retrieval process."""
 
     PLANNING = "Planning"
-    """The planning phase of retrieval.    """
+    """The planning phase of retrieval."""
     RETRIEVAL = "Retrieval"
-    """The retrieval phase where data is fetched.    """
+    """The retrieval phase where data is fetched."""
     SPECULATIVE_RETRIEVAL = "SpeculativeRetrieval"
-    """A speculative retrieval phase for optimization.    """
+    """A speculative retrieval phase for optimization."""
     FULL_DOCUMENT_EXPANSION = "FullDocumentExpansion"
-    """The full document expansion phase.    """
+    """The full document expansion phase."""
 
 
 @dataclass(kw_only=True)

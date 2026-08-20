@@ -2961,7 +2961,7 @@ def _deserialize_tags(
 
 class PropagateTagsMode(UnknownEnumMixin, StrEnum):
     NONE = "None"
-    """Tag propagation is disabled. No tags are applied to managed resources.    """
+    """Tag propagation is disabled. No tags are applied to managed resources."""
     EXPLICIT = "Explicit"
     """
     Tags specified in `ExplicitTags` are applied to managed resources at

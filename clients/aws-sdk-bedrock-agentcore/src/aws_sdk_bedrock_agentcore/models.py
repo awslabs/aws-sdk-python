@@ -25376,11 +25376,11 @@ def _deserialize_harness_messages(
 
 class HarnessBedrockApiFormat(UnknownEnumMixin, StrEnum):
     CONVERSE_STREAM = "converse_stream"
-    """Use the Bedrock Converse Stream API format.    """
+    """Use the Bedrock Converse Stream API format."""
     RESPONSES = "responses"
-    """Use the Responses API format.    """
+    """Use the Responses API format."""
     CHAT_COMPLETIONS = "chat_completions"
-    """Use the Chat Completions API format.    """
+    """Use the Chat Completions API format."""
 
 
 @dataclass(kw_only=True)
@@ -25768,9 +25768,9 @@ class HarnessLiteLlmModelConfig:
 
 class HarnessOpenAiApiFormat(UnknownEnumMixin, StrEnum):
     CHAT_COMPLETIONS = "chat_completions"
-    """Use the Chat Completions API format.    """
+    """Use the Chat Completions API format."""
     RESPONSES = "responses"
-    """Use the Responses API format.    """
+    """Use the Responses API format."""
 
 
 @dataclass(kw_only=True)
@@ -36785,15 +36785,15 @@ class BlockchainChainId(UnknownEnumMixin, StrEnum):
     """
 
     BASE = "BASE"
-    """Base Mainnet (EVM L2)    """
+    """Base Mainnet (EVM L2)"""
     BASE_SEPOLIA = "BASE_SEPOLIA"
-    """Base Sepolia testnet (EVM L2)    """
+    """Base Sepolia testnet (EVM L2)"""
     ETHEREUM = "ETHEREUM"
-    """Ethereum Mainnet (EVM L1)    """
+    """Ethereum Mainnet (EVM L1)"""
     SOLANA = "SOLANA"
-    """Solana Mainnet    """
+    """Solana Mainnet"""
     SOLANA_DEVNET = "SOLANA_DEVNET"
-    """Solana Devnet testnet    """
+    """Solana Devnet testnet"""
 
 
 class InstrumentBalanceToken(UnknownEnumMixin, StrEnum):
