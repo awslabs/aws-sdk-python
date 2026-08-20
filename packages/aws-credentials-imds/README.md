@@ -50,9 +50,11 @@ import asyncio
 
 from aws_credentials_imds import IMDSCredentialsResolver
 
+
 async def main() -> None:
     resolver = IMDSCredentialsResolver()
     identity = await resolver.get_identity(properties={})
+
 
 asyncio.run(main())
 ```

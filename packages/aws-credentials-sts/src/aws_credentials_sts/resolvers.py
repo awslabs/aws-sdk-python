@@ -10,6 +10,7 @@ from collections.abc import Callable
 from importlib import metadata
 from typing import TYPE_CHECKING, cast
 
+from smithy_aws_core.config import AwsConfigOverrides
 from smithy_aws_core.config.merged_config import MergedConfig
 from smithy_aws_core.identity import (
     AWSCredentialsIdentity,
@@ -130,7 +131,7 @@ class AssumeRoleCredentialsResolver(
         from aws_sdk_sts.models import AssumeRoleInput
 
         if self._client is None:
-            overrides: dict[str, object] = {
+            overrides: AwsConfigOverrides = {
                 "aws_credentials_identity_resolver": self._source_resolver,
                 "region": self._region,
             }

@@ -39,9 +39,11 @@ import asyncio
 
 from aws_credentials_http import ContainerCredentialsResolver
 
+
 async def main() -> None:
     resolver = ContainerCredentialsResolver()
     identity = await resolver.get_identity(properties={})
+
 
 asyncio.run(main())
 ```
