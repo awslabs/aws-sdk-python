@@ -47,6 +47,7 @@ shared config/credentials files:
 from aws_credentials_sts import ProfileAssumeRoleCredentialsResolver
 from smithy_aws_core.config import load_config
 
+
 async def build_client() -> ServiceClient:
     return ServiceClient(
         config=ServiceClientConfig(
@@ -68,12 +69,14 @@ import asyncio
 from aws_credentials_sts import AssumeRoleCredentialsResolver
 from smithy_aws_core.identity import EnvironmentCredentialsResolver
 
+
 async def main() -> None:
     resolver = AssumeRoleCredentialsResolver(
         source_resolver=EnvironmentCredentialsResolver(),
         role_arn="arn:aws:iam::123456789012:role/example-role",
     )
     identity = await resolver.get_identity(properties={})
+
 
 asyncio.run(main())
 ```

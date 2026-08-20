@@ -20,7 +20,7 @@ from . import (
 
 async def test_synthesize_speech() -> None:
     """Test output-streaming SynthesizeSpeech operation."""
-    client = create_polly_client(REGION)
+    client = await create_polly_client(REGION)
 
     response = await client.synthesize_speech(
         input=SynthesizeSpeechInput(

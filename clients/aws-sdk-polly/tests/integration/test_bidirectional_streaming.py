@@ -96,7 +96,7 @@ async def _receive_audio(
 
 async def test_start_speech_synthesis_stream() -> None:
     """Test bidirectional streaming with text input and audio output."""
-    client = create_polly_client(REGION)
+    client = await create_polly_client(REGION)
 
     stream = await client.start_speech_synthesis_stream(
         input=StartSpeechSynthesisStreamInput(

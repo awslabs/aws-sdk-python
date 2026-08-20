@@ -2278,7 +2278,7 @@ class DatasetStatus(UnknownEnumMixin, StrEnum):
     """Dataset lifecycle and operation status."""
 
     CREATING = "CREATING"
-    """CreateDataset async ingestion in progress. All writes are blocked.    """
+    """CreateDataset async ingestion in progress. All writes are blocked."""
     UPDATING = "UPDATING"
     """
     An async example mutation or CreateDatasetVersion is in progress. All
@@ -2295,7 +2295,7 @@ class DatasetStatus(UnknownEnumMixin, StrEnum):
     guards.
     """
     CREATE_FAILED = "CREATE_FAILED"
-    """Initial ingestion failed. DRAFT record exists but contains no examples.    """
+    """Initial ingestion failed. DRAFT record exists but contains no examples."""
     UPDATE_FAILED = "UPDATE_FAILED"
     """
     Last example mutation or CreateDatasetVersion failed. DRAFT may be
@@ -21768,7 +21768,7 @@ class DraftStatus(UnknownEnumMixin, StrEnum):
     versions have been published yet.
     """
     UNMODIFIED = "UNMODIFIED"
-    """DRAFT content matches the latest published version exactly.    """
+    """DRAFT content matches the latest published version exactly."""
 
 
 @dataclass(kw_only=True)
@@ -39021,11 +39021,11 @@ class _HarnessMemoryConfigurationDeserializer:
 
 class HarnessBedrockApiFormat(UnknownEnumMixin, StrEnum):
     CONVERSE_STREAM = "converse_stream"
-    """Use the Bedrock Converse Stream API format.    """
+    """Use the Bedrock Converse Stream API format."""
     RESPONSES = "responses"
-    """Use the Responses API format.    """
+    """Use the Responses API format."""
     CHAT_COMPLETIONS = "chat_completions"
-    """Use the Chat Completions API format.    """
+    """Use the Chat Completions API format."""
 
 
 @dataclass(kw_only=True)
@@ -39413,9 +39413,9 @@ class HarnessLiteLlmModelConfig:
 
 class HarnessOpenAiApiFormat(UnknownEnumMixin, StrEnum):
     CHAT_COMPLETIONS = "chat_completions"
-    """Use the Chat Completions API format.    """
+    """Use the Chat Completions API format."""
     RESPONSES = "responses"
-    """Use the Responses API format.    """
+    """Use the Responses API format."""
 
 
 @dataclass(kw_only=True)
@@ -52201,7 +52201,7 @@ class OnBehalfOfTokenExchangeGrantTypeType(UnknownEnumMixin, StrEnum):
     supporting on-behalf-of flows.
     """
     JWT_AUTHORIZATION_GRANT = "JWT_AUTHORIZATION_GRANT"
-    """RFC 7523 JWT authorization grant, adopted by Microsoft Entra ID.    """
+    """RFC 7523 JWT authorization grant, adopted by Microsoft Entra ID."""
 
 
 def _serialize_scopes_list_type(
@@ -59082,9 +59082,9 @@ class PaymentCredentialProviderVendorType(UnknownEnumMixin, StrEnum):
     """
 
     COINBASE_CDP = "CoinbaseCDP"
-    """Coinbase Developer Platform.    """
+    """Coinbase Developer Platform."""
     STRIPE_PRIVY = "StripePrivy"
-    """Stripe and Privy.    """
+    """Stripe and Privy."""
 
 
 @dataclass(kw_only=True)

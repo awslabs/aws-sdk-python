@@ -6,7 +6,7 @@ from smithy_core.interceptors import Interceptor, RequestContext
 from smithy_http import Field
 from smithy_http.aio.interfaces import HTTPRequest
 
-from .config import Config
+from .config import AsyncAPIGatewayConfig
 
 
 class _AcceptHeaderInterceptor(Interceptor[Any, Any, HTTPRequest, None]):
@@ -21,5 +21,5 @@ class _AcceptHeaderInterceptor(Interceptor[Any, Any, HTTPRequest, None]):
         return request
 
 
-def accept_header_plugin(config: Config):
+def accept_header_plugin(config: AsyncAPIGatewayConfig):
     config.interceptors.append(_AcceptHeaderInterceptor())

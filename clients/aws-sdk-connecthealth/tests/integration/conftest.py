@@ -153,7 +153,7 @@ async def connecthealth_resources():
     bucket_name = f"integ-test-connecthealth-bucket-{unique_suffix}"
 
     s3_client = boto3.client("s3", region_name=REGION)
-    client = create_connecthealth_client(REGION)
+    client = await create_connecthealth_client(REGION)
 
     domain_id: str | None = None
     subscription_id: str | None = None

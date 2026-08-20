@@ -12,7 +12,7 @@ from . import REGION, create_qbusiness_client
 
 async def test_chat_sync(qbusiness_app: str) -> None:
     """Test non-streaming ChatSync operation."""
-    qbusiness_client = create_qbusiness_client(REGION)
+    qbusiness_client = await create_qbusiness_client(REGION)
 
     response = await qbusiness_client.chat_sync(
         input=ChatSyncInput(

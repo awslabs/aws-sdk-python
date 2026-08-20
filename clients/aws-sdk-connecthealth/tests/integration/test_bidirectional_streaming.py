@@ -157,7 +157,7 @@ async def test_start_medical_scribe_listening_session(connecthealth_resources) -
     """Test bidirectional streaming with audio input and transcript output."""
     domain_id, subscription_id, output_s3_uri = connecthealth_resources
 
-    client = create_connecthealth_client(REGION)
+    client = await create_connecthealth_client(REGION)
     endpoint_plugin = streaming_endpoint_plugin(REGION)
     session_id = str(uuid.uuid4())
 

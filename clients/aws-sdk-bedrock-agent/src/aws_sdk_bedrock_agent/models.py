@@ -4653,9 +4653,9 @@ class AliasInvocationState(UnknownEnumMixin, StrEnum):
     """Enum representing the invocation state of an agent alias"""
 
     ACCEPT_INVOCATIONS = "ACCEPT_INVOCATIONS"
-    """Agent is actively processing requests    """
+    """Agent is actively processing requests"""
     REJECT_INVOCATIONS = "REJECT_INVOCATIONS"
-    """Agent is paused and will not accept new requests    """
+    """Agent is paused and will not accept new requests"""
 
 
 @dataclass(kw_only=True)

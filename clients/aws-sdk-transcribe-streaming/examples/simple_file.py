@@ -37,7 +37,7 @@ from aws_sdk_transcribe_streaming.client import (
     StartStreamTranscriptionInput,
     TranscribeStreamingClient,
 )
-from aws_sdk_transcribe_streaming.config import Config
+from aws_sdk_transcribe_streaming.config import AsyncTranscribeStreamingConfig
 from aws_sdk_transcribe_streaming.models import (
     AudioEvent,
     AudioStream,
@@ -118,7 +118,7 @@ async def write_chunks(audio_stream: EventPublisher[AudioStream]):
 async def main():
     # Initialize the Transcribe Streaming client
     client = TranscribeStreamingClient(
-        config=Config(
+        config=await AsyncTranscribeStreamingConfig.resolve(
             endpoint_uri=ENDPOINT_URI,
             region=AWS_REGION,
             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
