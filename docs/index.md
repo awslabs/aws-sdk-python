@@ -1,64 +1,61 @@
 # AWS SDK for Python
 
-The AWS SDK for Python provides async-first clients for select AWS services.
-Each client is distributed as a lightweight, per-service package.
+The AWS SDK for Python provides asynchronous clients for supported AWS services.
+Each service has its own package.
 
-!!! warning "Developer Preview: Not for production use"
+!!! warning "Developer preview: Not for production use"
 
-    This SDK is intended for evaluation and testing in pre-production
-    environments. APIs and behavior may change before general availability. For
-    production workloads, use
-    [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html).
+    Use this SDK for evaluation and pre-production testing. Interfaces and
+    behavior may change before general availability. Use
+    [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)
+    for production workloads.
 
 [Browse clients](clients/index.md){ .md-button .md-button--primary }
 [View source](https://github.com/aws/aws-sdk-python){ .md-button }
 
-## What it provides
+## Features
 
-Use these clients when your application needs non-blocking access to supported
-AWS services, including services with streaming and real-time APIs. The clients
-are built on Python's `async`/`await` and generated from
-[Smithy](https://smithy.io/) service models.
+- **Async operations.** Every service operation is an `async` method that works
+  with `asyncio`.
+- **Per-service packages.** Install only the clients your application uses.
+- **Type annotations.** Operations, input models, and response models include
+  type annotations, so editors and type checkers do not need separate stub
+  packages.
+- **Streaming support.** Clients for streaming services support event streams
+  and bidirectional streaming.
 
-- **Async operations**: Call AWS services without blocking an `asyncio`
-  application.
-- **Per-service packages**: Install only the clients your application needs.
-- **Type annotations**: Get editor completion and type checking for operations,
-  input models, and response models without separate stub packages.
-- **Streaming support**: First-class support for event streams and
-  bidirectional streaming operations.
+The code generator builds each client from its service's
+[Smithy](https://smithy.io/) model.
 
-## Packages
+## Install a client
 
-The clients require Python 3.12 or later. Choose a per-service package or use
-the `aws-sdk-python` meta-package for a compatible set of clients.
+The clients require Python 3.12 or later.
 
-=== "One service"
+=== "One client"
 
-    Install only the client you need. For example, install the Amazon DynamoDB
-    client with:
+    Install the Amazon DynamoDB client from its service package:
 
     ```bash
     pip install aws-sdk-dynamodb
     ```
 
-=== "Multiple services"
+=== "Several clients"
 
-    Select clients as extras of the `aws-sdk-python` meta-package. The
-    meta-package selects compatible client versions for you:
+    The `aws-sdk-python` meta-package keeps its client dependencies on
+    compatible versions. Select the clients you need through package extras:
 
     ```bash
     pip install "aws-sdk-python[bedrock_runtime,sts]"
     ```
 
-See [Available Clients](clients/index.md) for the full list of service
-packages.
+The [available clients](clients/index.md) page lists every service package.
 
-## Example
+## List DynamoDB tables
 
 After you [configure AWS credentials](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html)
-and grant permission to call `dynamodb:ListTables`, you can list your DynamoDB
-tables:
+and grant `dynamodb:ListTables` permission, use the
+[Amazon DynamoDB client](clients/dynamodb/index.md) to list up to ten tables in
+`us-east-1`:
 
 ```python
 import asyncio
@@ -80,13 +77,12 @@ async def main():
 asyncio.run(main())
 ```
 
-The configuration resolver can load credentials and other shared settings from
-the standard AWS configuration sources. Each client operation accepts a typed
-input model and returns a typed response model.
+`AsyncDynamoDBConfig.resolve()` loads credentials and other shared settings
+from the standard AWS configuration sources. The `region` argument overrides
+the configured region for this client.
 
-## Next steps
+## Documentation and support
 
-- Browse the [available clients and API reference](clients/index.md).
-- Learn how to [contribute to the SDK](contributing.md).
-- [Open a GitHub issue](https://github.com/aws/aws-sdk-python/issues/new/choose)
-  to report a problem or share feedback.
+- [Browse client API references](clients/index.md)
+- [Contribute to the SDK](contributing.md)
+- [Report a bug or request a feature](https://github.com/aws/aws-sdk-python/issues/new/choose)
