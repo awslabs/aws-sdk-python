@@ -33,11 +33,19 @@ extra stub packages.
 ## Installation
 
 Each service client is its own package on PyPI and requires Python 3.12 or
-later. Create and activate a virtual environment and then install the clients
-you need:
+later. Create and activate a virtual environment, then install the clients you
+need:
 
 ```bash
-pip install aws-sdk-bedrock-runtime
+pip install aws-sdk-dynamodb
+```
+
+If your application uses several services, you can instead install the
+`aws-sdk-python` meta-package and select clients as extras. It coordinates
+compatible client versions through its own `MAJOR.MINOR` version:
+
+```bash
+pip install "aws-sdk-python[bedrock_runtime,sts]"
 ```
 
 See [Available Clients](clients/index.md) for the full list of service
@@ -45,47 +53,27 @@ packages.
 
 ## Quick example
 
-Send a message to a model with the Amazon Bedrock Runtime client:
+List your DynamoDB tables with the Amazon DynamoDB client:
 
 ```python
 import asyncio
 
-from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient, ConverseInput
-from aws_sdk_bedrock_runtime.config import Config
-from aws_sdk_bedrock_runtime.models import ContentBlockText, Message
-from smithy_aws_core.identity import EnvironmentCredentialsResolver
+from aws_sdk_dynamodb.client import AsyncDynamoDBClient
+from aws_sdk_dynamodb.config import AsyncDynamoDBConfig
+from aws_sdk_dynamodb.models import ListTablesInput
 
 
 async def main():
-    client = BedrockRuntimeClient(
-        config=Config(
-            region="us-east-1",
-            aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
-        )
-    )
+    config = await AsyncDynamoDBConfig.resolve(region="us-east-1")
 
-    response = await client.converse(
-        ConverseInput(
-            model_id="global.anthropic.claude-opus-4-8",  # (1)!
-            messages=[
-                Message(
-                    role="user",
-                    content=[ContentBlockText(value="Tell me a fun fact about Python.")],
-                )
-            ],
-        )
-    )
-
-    print(response.output.value.content[0].value)
+    async with AsyncDynamoDBClient(config=config) as client:
+        response = await client.list_tables(input=ListTablesInput(limit=10))
+        for table in response.table_names or []:
+            print(table)
 
 
 asyncio.run(main())
 ```
-
-1.  This model may not be the latest available and could be deprecated in the
-    future. See [Models at a glance](https://docs.aws.amazon.com/bedrock/latest/userguide/model-cards.html)
-    in the Amazon Bedrock User Guide for the current list of models and their
-    IDs.
 
 ## Explore
 
