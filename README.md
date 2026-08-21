@@ -40,21 +40,19 @@ you the option to install only what fits your needs.
 
 ## Installation
 
-The SDK requires Python 3.12 or later and publishes a separate package for
-each AWS service client. Install the client packages that the following
-examples use:
+The SDK requires Python 3.12 or later and publishes each service client as a
+separate package. For example, the following command installs the DynamoDB
+and Transcribe Streaming clients as individual packages:
 
+```bash
+python -m pip install aws-sdk-dynamodb aws-sdk-transcribe-streaming
 ```
-python -m pip install aws-sdk-sts aws-sdk-bedrock-runtime
-```
 
-This command installs both clients as individual packages.
-
-Alternatively, install the same clients as optional dependencies of the
+The same clients are also available as optional dependencies of the
 `aws-sdk-python` meta-package:
 
-```
-python -m pip install "aws-sdk-python[sts,bedrock_runtime]"
+```bash
+python -m pip install "aws-sdk-python[dynamodb,transcribe_streaming]"
 ```
 
 The meta-package installs only the service clients that you select as extras;
@@ -65,41 +63,45 @@ Use the meta-package when your application depends on several clients. Install
 individual client packages when your application uses only one or two services
 and you want the smallest dependency set.
 
-### Bidirectional streaming transport
-
-Some operations use bidirectional (duplex) event streams. The default aiohttp
-transport doesn't support duplex streaming. To use these operations, install
-the client's `awscrt` extra and set `AWSCRTHTTPClient` as the transport:
-
-```
-python -m pip install "aws-sdk-bedrock-runtime[awscrt]"
-```
-
-```python
-from aws_sdk_bedrock_runtime.client import AsyncBedrockRuntimeClient
-from aws_sdk_bedrock_runtime.config import AsyncBedrockRuntimeConfig
-from smithy_http.aio.crt import AWSCRTHTTPClient
-
-
-async def create_client() -> AsyncBedrockRuntimeClient:
-    config = await AsyncBedrockRuntimeConfig.resolve(
-        region="us-east-1",
-        transport=AWSCRTHTTPClient(),
-    )
-    return AsyncBedrockRuntimeClient(config=config)
-```
-
 ## Quick start
 
-The following example calls Amazon STS `GetCallerIdentity` to verify your
-setup. The example doesn't configure the AWS Region or credentials in code.
-The SDK reads the Region from the `AWS_REGION` environment variable or your
-shared AWS config file, and resolves credentials from default sources such
-as environment variables and the shared AWS `credentials` file. For
-credential setup instructions and the authentication methods the Developer
-Preview supports, see
-[Authenticating with AWS](https://docs.aws.amazon.com/sdk-for-python/v1/guide/getting-started-authentication.html)
+First, create a virtual environment to keep this project's packages separate
+from other Python projects, and activate it:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Then install the Amazon STS client used in this example:
+
+```bash
+python -m pip install aws-sdk-sts
+```
+
+Next, set up credentials (in e.g. `~/.aws/credentials`):
+
+```ini
+[default]
+aws_access_key_id = YOUR_ACCESS_KEY_ID
+aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
+aws_session_token = YOUR_SESSION_TOKEN
+```
+
+Omit `aws_session_token` if you use long-term credentials.
+For the credential sources that the Developer Preview supports, see
+[Credential providers](https://docs.aws.amazon.com/sdk-for-python/v1/guide/credential-providers.html)
 in the developer guide.
+
+Then, set up a default Region (in e.g. `~/.aws/config`):
+
+```ini
+[default]
+region = us-east-1
+```
+
+Finally, run the following example, which calls Amazon STS `GetCallerIdentity`
+to verify your setup:
 
 ```python
 import asyncio
@@ -117,6 +119,30 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+## Bidirectional streaming transport
+
+Some operations use bidirectional (duplex) event streams. The default aiohttp
+transport doesn't support duplex streaming. To use these operations, install
+the client's `awscrt` extra and set `AWSCRTHTTPClient` as the transport:
+
+```bash
+python -m pip install "aws-sdk-bedrock-runtime[awscrt]"
+```
+
+```python
+from aws_sdk_bedrock_runtime.client import AsyncBedrockRuntimeClient
+from aws_sdk_bedrock_runtime.config import AsyncBedrockRuntimeConfig
+from smithy_http.aio.crt import AWSCRTHTTPClient
+
+
+async def create_client() -> AsyncBedrockRuntimeClient:
+    config = await AsyncBedrockRuntimeConfig.resolve(
+        region="us-east-1",
+        transport=AWSCRTHTTPClient(),
+    )
+    return AsyncBedrockRuntimeClient(config=config)
 ```
 
 ## Resources
