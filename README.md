@@ -88,7 +88,6 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
 aws_session_token = YOUR_SESSION_TOKEN
 ```
 
-Omit `aws_session_token` if you use long-term credentials.
 For the credential sources that the Developer Preview supports, see
 [Credential providers](https://docs.aws.amazon.com/sdk-for-python/v1/guide/credential-providers.html)
 in the developer guide.
