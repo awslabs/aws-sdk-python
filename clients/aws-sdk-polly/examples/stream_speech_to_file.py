@@ -4,8 +4,11 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#     "aws-sdk-polly~=0.6.0",
+#     "aws-sdk-polly[awscrt]",
 # ]
+#
+# [tool.uv.sources]
+# aws-sdk-polly = { path = "../" }
 # ///
 """
 Speech synthesis to a file using AWS Polly bidirectional streaming.
@@ -34,8 +37,9 @@ from pathlib import Path
 
 from smithy_aws_core.identity import EnvironmentCredentialsResolver
 from smithy_core.aio.interfaces.eventstream import EventPublisher, EventReceiver
+from smithy_http.aio.crt import AWSCRTHTTPClient
 
-from aws_sdk_polly.client import PollyClient
+from aws_sdk_polly.client import AsyncPollyClient
 from aws_sdk_polly.config import AsyncPollyConfig
 from aws_sdk_polly.models import (
     CloseStreamEvent,
@@ -132,32 +136,32 @@ async def main():
     args = parse_args()
     text_chunks = get_text_chunks(args.text)
 
-    client = PollyClient(
+    async with AsyncPollyClient(
         config=await AsyncPollyConfig.resolve(
             endpoint_uri=f"https://polly.{args.region}.amazonaws.com",
             region=args.region,
             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
+            transport=AWSCRTHTTPClient(),
         )
-    )
-
-    stream = await client.start_speech_synthesis_stream(
-        input=StartSpeechSynthesisStreamInput(
-            engine="generative",
-            output_format="mp3",
-            sample_rate=str(SAMPLE_RATE),
-            voice_id=args.voice,
+    ) as client:
+        stream = await client.start_speech_synthesis_stream(
+            input=StartSpeechSynthesisStreamInput(
+                engine="generative",
+                output_format="mp3",
+                sample_rate=str(SAMPLE_RATE),
+                voice_id=args.voice,
+            )
         )
-    )
 
-    _, output_stream = await stream.await_output()
-    if output_stream is None:
-        raise RuntimeError("Polly stream did not return an output stream")
+        _, output_stream = await stream.await_output()
+        if output_stream is None:
+            raise RuntimeError("Polly stream did not return an output stream")
 
-    print("Synthesizing audio...")
-    await asyncio.gather(
-        send_text(stream.input_stream, text_chunks),
-        write_audio(output_stream, args.output),
-    )
+        print("Synthesizing audio...")
+        await asyncio.gather(
+            send_text(stream.input_stream, text_chunks),
+            write_audio(output_stream, args.output),
+        )
 
 
 if __name__ == "__main__":

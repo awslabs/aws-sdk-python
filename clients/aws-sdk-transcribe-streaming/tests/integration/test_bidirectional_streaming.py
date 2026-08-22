@@ -7,6 +7,7 @@ import asyncio
 import time
 
 from smithy_core.aio.eventstream import DuplexEventStream
+from smithy_http.aio.crt import AWSCRTHTTPClient
 
 from aws_sdk_transcribe_streaming.models import (
     AudioEvent,
@@ -21,7 +22,6 @@ from aws_sdk_transcribe_streaming.models import (
 )
 
 from . import AUDIO_FILE, create_transcribe_client
-
 
 SAMPLE_RATE = 16000
 BYTES_PER_SAMPLE = 2
@@ -88,20 +88,21 @@ async def _receive_transcription_output(
 
 async def test_start_stream_transcription() -> None:
     """Test bidirectional streaming with audio input and transcription output."""
-    transcribe_client = await create_transcribe_client("us-west-2")
-
-    stream = await transcribe_client.start_stream_transcription(
-        input=StartStreamTranscriptionInput(
-            language_code=LanguageCode.EN_US,
-            media_sample_rate_hertz=SAMPLE_RATE,
-            media_encoding=MediaEncoding.PCM,
+    async with await create_transcribe_client(
+        "us-west-2", transport=AWSCRTHTTPClient()
+    ) as transcribe_client:
+        stream = await transcribe_client.start_stream_transcription(
+            input=StartStreamTranscriptionInput(
+                language_code=LanguageCode.EN_US,
+                media_sample_rate_hertz=SAMPLE_RATE,
+                media_encoding=MediaEncoding.PCM,
+            )
         )
-    )
 
-    results = await asyncio.gather(
-        _send_audio_chunks(stream), _receive_transcription_output(stream)
-    )
-    got_transcript_events, transcripts = results[1]
+        results = await asyncio.gather(
+            _send_audio_chunks(stream), _receive_transcription_output(stream)
+        )
+        got_transcript_events, transcripts = results[1]
 
-    assert got_transcript_events, "Expected to receive transcript events"
-    assert len(transcripts) > 0, "Expected to receive at least one transcript"
+        assert got_transcript_events, "Expected to receive transcript events"
+        assert len(transcripts) > 0, "Expected to receive at least one transcript"
