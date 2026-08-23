@@ -3,7 +3,7 @@
 The AWS SDK for Python provides asynchronous clients for supported AWS services.
 Each service has its own package.
 
-!!! warning "Developer preview: Not for production use"
+!!! warning "Developer Preview: Not for production use"
 
     Use this SDK for evaluation and pre-production testing. Interfaces and
     behavior may change before general availability. Use
@@ -29,33 +29,58 @@ The code generator builds each client from its service's
 
 ## Install a client
 
-The clients require Python 3.12 or later.
+The clients require Python 3.12 or later. Follow the
+[uv installation guide](https://docs.astral.sh/uv/getting-started/installation/),
+then create and activate a virtual environment:
+
+```bash
+uv venv --python 3.12
+source .venv/bin/activate
+```
 
 === "One client"
 
     Install the Amazon DynamoDB client from its service package:
 
     ```bash
-    pip install aws-sdk-dynamodb
+    uv pip install aws-sdk-dynamodb
     ```
 
 === "Several clients"
 
-    The `aws-sdk-python` meta-package keeps its client dependencies on
-    compatible versions. Select the clients you need through package extras:
+    Use the `aws-sdk-python` meta-package to install several clients at
+    compatible versions. Select clients with package extras:
 
     ```bash
-    pip install "aws-sdk-python[bedrock_runtime,sts]"
+    uv pip install "aws-sdk-python[bedrock-runtime,sts]"
     ```
 
-The [available clients](clients/index.md) page lists every service package.
+See [available clients](clients/index.md) for a list of service packages.
 
 ## List DynamoDB tables
 
-After you [configure AWS credentials](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html)
-and grant `dynamodb:ListTables` permission, use the
-[Amazon DynamoDB client](clients/dynamodb/index.md) to list up to ten tables in
-`us-east-1`:
+Before running the example, grant an identity `dynamodb:ListTables` permission
+and configure AWS credentials. The default credential chain checks these
+built-in sources:
+
+- Environment variables such as `AWS_ACCESS_KEY_ID`,
+  `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`
+- Shared AWS config and credentials files, including `credential_process`
+
+Other supported providers come from `aws-credentials-*` packages. Install and
+configure the package for your environment:
+
+- `aws-credentials-sts` for profile-based AssumeRole
+- `aws-credentials-http` for Amazon ECS or Amazon EKS container credentials
+- `aws-credentials-imds` for Amazon EC2 instance metadata
+
+The SDK detects installed provider packages and adds them to the chain
+automatically. You do not need to pass a credential resolver or change the
+client code. The IAM Identity Center (SSO) credential provider and the login
+credentials provider are not yet supported.
+
+Use the [Amazon DynamoDB client](clients/dynamodb/index.md) to list up to ten
+tables in `us-east-1`:
 
 ```python
 import asyncio
@@ -67,19 +92,20 @@ from aws_sdk_dynamodb.models import ListTablesInput
 
 async def main():
     config = await AsyncDynamoDBConfig.resolve(region="us-east-1")
-    client = AsyncDynamoDBClient(config=config)
 
-    response = await client.list_tables(input=ListTablesInput(limit=10))
-    for table in response.table_names or []:
-        print(table)
+    async with AsyncDynamoDBClient(config=config) as client:
+        response = await client.list_tables(input=ListTablesInput(limit=10))
+        for table in response.table_names:
+            print(table)
 
 
 asyncio.run(main())
 ```
 
-`AsyncDynamoDBConfig.resolve()` loads credentials and other shared settings
-from the standard AWS configuration sources. The `region` argument overrides
-the configured region for this client.
+`AsyncDynamoDBConfig.resolve()` loads shared settings such as retry
+configuration. Here, the `region` argument overrides a region set in the
+environment or shared config. The client resolves credentials through the
+default chain when it sends the request.
 
 ## Documentation and support
 

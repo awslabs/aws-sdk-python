@@ -16,11 +16,13 @@ p:has(span.breadcrumb) {
 /* Keep the Developer Preview announcement prominent across the docs site. */
 .md-banner {
   background-color: #ffe0a3;
+  border-bottom: 1px solid #d98b00;
   color: #291b00;
 }
 
 [data-md-color-scheme="slate"] .md-banner {
   background-color: #332407;
+  border-bottom-color: #8f650b;
   color: #fff4d6;
 }
 
