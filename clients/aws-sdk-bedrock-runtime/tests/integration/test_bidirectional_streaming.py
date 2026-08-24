@@ -9,6 +9,7 @@ import json
 import uuid
 
 from smithy_core.aio.eventstream import DuplexEventStream
+from smithy_http.aio.crt import AWSCRTHTTPClient
 
 from aws_sdk_bedrock_runtime.models import (
     BidirectionalInputPayloadPart,
@@ -244,39 +245,40 @@ async def _receive_stream_output(
 
 async def test_invoke_model_with_bidirectional_stream() -> None:
     """Test bidirectional streaming with audio input and text/audio output."""
-    bedrock_client = await create_bedrock_client("us-east-1")
-
-    stream = await bedrock_client.invoke_model_with_bidirectional_stream(
-        InvokeModelWithBidirectionalStreamOperationInput(
-            model_id=BIDIRECTIONAL_MODEL_ID
+    async with await create_bedrock_client(
+        "us-east-1", transport=AWSCRTHTTPClient()
+    ) as bedrock_client:
+        stream = await bedrock_client.invoke_model_with_bidirectional_stream(
+            InvokeModelWithBidirectionalStreamOperationInput(
+                model_id=BIDIRECTIONAL_MODEL_ID
+            )
         )
-    )
 
-    prompt_name = str(uuid.uuid4())
-    content_name = str(uuid.uuid4())
-    audio_content_name = str(uuid.uuid4())
+        prompt_name = str(uuid.uuid4())
+        content_name = str(uuid.uuid4())
+        audio_content_name = str(uuid.uuid4())
 
-    init_events = [
-        START_SESSION_EVENT,
-        START_PROMPT_EVENT % prompt_name,
-        TEXT_CONTENT_START_EVENT % (prompt_name, content_name, "SYSTEM"),
-        TEXT_INPUT_EVENT % (prompt_name, content_name, DEFAULT_SYSTEM_PROMPT),
-        CONTENT_END_EVENT % (prompt_name, content_name),
-    ]
+        init_events = [
+            START_SESSION_EVENT,
+            START_PROMPT_EVENT % prompt_name,
+            TEXT_CONTENT_START_EVENT % (prompt_name, content_name, "SYSTEM"),
+            TEXT_INPUT_EVENT % (prompt_name, content_name, DEFAULT_SYSTEM_PROMPT),
+            CONTENT_END_EVENT % (prompt_name, content_name),
+        ]
 
-    for event in init_events:
-        await _send_event(stream, event)
+        for event in init_events:
+            await _send_event(stream, event)
 
-    await _send_event(
-        stream, AUDIO_CONTENT_START_EVENT % (prompt_name, audio_content_name)
-    )
+        await _send_event(
+            stream, AUDIO_CONTENT_START_EVENT % (prompt_name, audio_content_name)
+        )
 
-    results = await asyncio.gather(
-        _send_audio_chunks(stream, prompt_name, audio_content_name),
-        _receive_stream_output(stream),
-    )
-    got_text, got_audio, all_text_output = results[1]
+        results = await asyncio.gather(
+            _send_audio_chunks(stream, prompt_name, audio_content_name),
+            _receive_stream_output(stream),
+        )
+        got_text, got_audio, all_text_output = results[1]
 
-    assert got_text, "Expected to receive text output"
-    assert got_audio, "Expected to receive audio output"
-    assert len(all_text_output) > 0, "Expected non-empty text output"
+        assert got_text, "Expected to receive text output"
+        assert got_audio, "Expected to receive audio output"
+        assert len(all_text_output) > 0, "Expected non-empty text output"

@@ -7,6 +7,7 @@ import asyncio
 import uuid
 
 from smithy_core.aio.eventstream import DuplexEventStream
+from smithy_http.aio.crt import AWSCRTHTTPClient
 
 from aws_sdk_qbusiness.models import (
     ChatInput,
@@ -94,16 +95,19 @@ async def _receive_chat_output(
 
 async def test_chat_bidirectional_streaming(qbusiness_app: str) -> None:
     """Test bidirectional streaming with text input and chat output."""
-    qbusiness_client = await create_qbusiness_client(REGION)
+    async with await create_qbusiness_client(
+        REGION, transport=AWSCRTHTTPClient()
+    ) as qbusiness_client:
+        stream = await qbusiness_client.chat(
+            input=ChatInput(
+                application_id=qbusiness_app, client_token=str(uuid.uuid4())
+            )
+        )
 
-    stream = await qbusiness_client.chat(
-        input=ChatInput(application_id=qbusiness_app, client_token=str(uuid.uuid4()))
-    )
+        results = await asyncio.gather(
+            _send_chat_events(stream), _receive_chat_output(stream)
+        )
+        got_text_events, got_metadata_event = results[1]
 
-    results = await asyncio.gather(
-        _send_chat_events(stream), _receive_chat_output(stream)
-    )
-    got_text_events, got_metadata_event = results[1]
-
-    assert got_text_events, "Expected to receive text output events"
-    assert got_metadata_event, "Expected to receive a metadata event"
+        assert got_text_events, "Expected to receive text output events"
+        assert got_metadata_event, "Expected to receive a metadata event"

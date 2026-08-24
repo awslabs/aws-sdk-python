@@ -283,6 +283,7 @@ from ._private.schemas import (
     DELETE_WORKLOAD_IDENTITY as _SCHEMA_DELETE_WORKLOAD_IDENTITY,
     DELETE_WORKLOAD_IDENTITY_INPUT as _SCHEMA_DELETE_WORKLOAD_IDENTITY_INPUT,
     DELETE_WORKLOAD_IDENTITY_OUTPUT as _SCHEMA_DELETE_WORKLOAD_IDENTITY_OUTPUT,
+    DERIVED_EVALUATOR_CONFIG as _SCHEMA_DERIVED_EVALUATOR_CONFIG,
     DESCRIPTORS as _SCHEMA_DESCRIPTORS,
     EBS_VOLUME_CONFIGURATION as _SCHEMA_EBS_VOLUME_CONFIGURATION,
     EC2_CONFIGURATION as _SCHEMA_EC2_CONFIGURATION,
@@ -654,6 +655,8 @@ from ._private.schemas import (
     MODIFY_REFLECTION_CONFIGURATION as _SCHEMA_MODIFY_REFLECTION_CONFIGURATION,
     MODIFY_SELF_MANAGED_CONFIGURATION as _SCHEMA_MODIFY_SELF_MANAGED_CONFIGURATION,
     MODIFY_STRATEGY_CONFIGURATION as _SCHEMA_MODIFY_STRATEGY_CONFIGURATION,
+    NAMESPACE_KEY_ENTRY as _SCHEMA_NAMESPACE_KEY_ENTRY,
+    NAMESPACE_KEY_VALIDATION as _SCHEMA_NAMESPACE_KEY_VALIDATION,
     NETWORK_CONFIGURATION as _SCHEMA_NETWORK_CONFIGURATION,
     NUMBER_VALIDATION as _SCHEMA_NUMBER_VALIDATION,
     NUMERICAL_SCALE_DEFINITION as _SCHEMA_NUMERICAL_SCALE_DEFINITION,
@@ -768,6 +771,7 @@ from ._private.schemas import (
     SUBMIT_REGISTRY_RECORD_FOR_APPROVAL as _SCHEMA_SUBMIT_REGISTRY_RECORD_FOR_APPROVAL,
     SUBMIT_REGISTRY_RECORD_FOR_APPROVAL_INPUT as _SCHEMA_SUBMIT_REGISTRY_RECORD_FOR_APPROVAL_INPUT,
     SUBMIT_REGISTRY_RECORD_FOR_APPROVAL_OUTPUT as _SCHEMA_SUBMIT_REGISTRY_RECORD_FOR_APPROVAL_OUTPUT,
+    SUBSCRIPTION_REQUIRED_EXCEPTION as _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION,
     SUMMARY_CONSOLIDATION_OVERRIDE as _SCHEMA_SUMMARY_CONSOLIDATION_OVERRIDE,
     SUMMARY_MEMORY_STRATEGY_INPUT as _SCHEMA_SUMMARY_MEMORY_STRATEGY_INPUT,
     SUMMARY_OVERRIDE_CONFIGURATION_INPUT as _SCHEMA_SUMMARY_OVERRIDE_CONFIGURATION_INPUT,
@@ -7942,14 +7946,14 @@ class GetAgentRuntimeOutput:
     role_arn: str
     """The IAM role ARN that provides permissions for the AgentCore Runtime."""
 
-    network_configuration: NetworkConfiguration
-    """The network configuration for the AgentCore Runtime."""
-
     status: AgentRuntimeStatus
     """The current status of the AgentCore Runtime."""
 
     lifecycle_configuration: LifecycleConfiguration
     """The life cycle configuration for the AgentCore Runtime."""
+
+    network_configuration: NetworkConfiguration | None = None
+    """The network configuration for the AgentCore Runtime."""
 
     failure_reason: str | None = None
     """The reason for failure if the AgentCore Runtime is in a failed state."""
@@ -8023,10 +8027,12 @@ class GetAgentRuntimeOutput:
         serializer.write_string(
             _SCHEMA_GET_AGENT_RUNTIME_OUTPUT.members["roleArn"], self.role_arn
         )
-        serializer.write_struct(
-            _SCHEMA_GET_AGENT_RUNTIME_OUTPUT.members["networkConfiguration"],
-            self.network_configuration,
-        )
+        if self.network_configuration is not None:
+            serializer.write_struct(
+                _SCHEMA_GET_AGENT_RUNTIME_OUTPUT.members["networkConfiguration"],
+                self.network_configuration,
+            )
+
         serializer.write_string(
             _SCHEMA_GET_AGENT_RUNTIME_OUTPUT.members["status"], self.status
         )
@@ -8249,8 +8255,6 @@ class GetAgentRuntimeOutput:
             kwargs["last_updated_at"] = datetime.fromtimestamp(0, tz=timezone.utc)
         if "role_arn" not in kwargs:
             kwargs["role_arn"] = ""
-        if "network_configuration" not in kwargs:
-            kwargs["network_configuration"] = NetworkConfiguration._smithy_default()
         if "status" not in kwargs:
             kwargs["status"] = AgentRuntimeStatus._corrected("")
         if "lifecycle_configuration" not in kwargs:
@@ -20839,6 +20843,12 @@ class DatasetSchemaType(UnknownEnumMixin, StrEnum):
     data generation where each example is a scenario used to generate full
     conversations.
     """
+    THIRD_PARTY_EVALUATION_V1 = "THIRD_PARTY_EVALUATION_V1"
+    """
+    Third-party evaluation schema, version 1. Supports single-turn (string
+    input) and multi-turn (message list input) across third-party evaluation
+    frameworks.
+    """
 
 
 @dataclass(kw_only=True)
@@ -23994,6 +24004,65 @@ class _EvaluatorModelConfigDeserializer:
 
 
 @dataclass(kw_only=True)
+class DerivedEvaluatorConfig:
+    """
+    The configuration for a derived evaluator. It reuses an existing
+    evaluator's logic on your own model.
+    """
+
+    base_evaluator_id: str
+    """
+    The identifier of the base evaluator whose logic to run (a `Builtin.*`
+    or `ThirdParty.*` evaluator).
+    """
+
+    model_config: EvaluatorModelConfig
+    """The configuration of the evaluator model that you supply."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DERIVED_EVALUATOR_CONFIG, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_DERIVED_EVALUATOR_CONFIG.members["baseEvaluatorId"],
+            self.base_evaluator_id,
+        )
+        serializer.write_struct(
+            _SCHEMA_DERIVED_EVALUATOR_CONFIG.members["modelConfig"], self.model_config
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["base_evaluator_id"] = de.read_string(
+                        _SCHEMA_DERIVED_EVALUATOR_CONFIG.members["baseEvaluatorId"]
+                    )
+
+                case 1:
+                    kwargs["model_config"] = (
+                        _EvaluatorModelConfigDeserializer().deserialize(de)
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DERIVED_EVALUATOR_CONFIG, consumer=_consumer)
+        if "base_evaluator_id" not in kwargs:
+            kwargs["base_evaluator_id"] = ""
+        if "model_config" not in kwargs:
+            kwargs["model_config"] = EvaluatorModelConfigUnknown(tag="")
+        return kwargs
+
+
+@dataclass(kw_only=True)
 class CategoricalScaleDefinition:
     """
     The definition of a categorical rating scale option that provides a
@@ -24418,6 +24487,27 @@ class EvaluatorConfigCodeBased:
 
 
 @dataclass
+class EvaluatorConfigDerived:
+    """
+    The configuration for an evaluator derived from an existing base
+    evaluator (a built-in or third-party evaluator), run on your own model.
+    The base evaluator supplies the prompt and scoring.
+    """
+
+    value: DerivedEvaluatorConfig
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_EVALUATOR_CONFIG, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_EVALUATOR_CONFIG.members["derived"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=DerivedEvaluatorConfig.deserialize(deserializer))
+
+
+@dataclass
 class EvaluatorConfigUnknown:
     """
     Represents an unknown variant.
@@ -24442,7 +24532,10 @@ class EvaluatorConfigUnknown:
 
 
 EvaluatorConfig = Union[
-    EvaluatorConfigLlmAsAJudge | EvaluatorConfigCodeBased | EvaluatorConfigUnknown
+    EvaluatorConfigLlmAsAJudge
+    | EvaluatorConfigCodeBased
+    | EvaluatorConfigDerived
+    | EvaluatorConfigUnknown
 ]
 """
 The configuration that defines how an evaluator assesses agent
@@ -24471,6 +24564,9 @@ class _EvaluatorConfigDeserializer:
 
             case 1:
                 self._set_result(EvaluatorConfigCodeBased.deserialize(de))
+
+            case 2:
+                self._set_result(EvaluatorConfigDerived.deserialize(de))
 
             case _:
                 self._set_result(
@@ -24982,6 +25078,21 @@ class GetEvaluatorInput:
         return kwargs
 
 
+class EvaluatorType(UnknownEnumMixin, StrEnum):
+    BUILTIN = "Builtin"
+    THIRD_PARTY = "ThirdParty"
+    CUSTOM = "Custom"
+    CODE = "CustomCode"
+    CUSTOM_DERIVED = "CustomDerived"
+
+
+class Provider(UnknownEnumMixin, StrEnum):
+    AWS = "AWS"
+    DEEP_EVAL = "DeepEval"
+    AUTO_EVAL = "AutoEval"
+    CUSTOM = "Custom"
+
+
 @dataclass(kw_only=True)
 class GetEvaluatorOutput:
     """Dataclass for GetEvaluatorOutput structure."""
@@ -25019,6 +25130,29 @@ class GetEvaluatorOutput:
     description: str | None = field(repr=False, default=None)
     """The description of the evaluator."""
 
+    evaluator_type: EvaluatorType | None = None
+    """
+    The kind of evaluator resource. Valid values:
+
+    - `Builtin` -- An Amazon Web Services-managed global evaluator.
+
+    - `ThirdParty` -- An Amazon Web Services-managed global evaluator from a
+      third-party provider.
+
+    - `Custom` -- A customer-created evaluator.
+
+    - `CustomCode` -- A customer-created code-based evaluator.
+
+    - `CustomDerived` -- A customer-created evaluator derived from an
+      existing base evaluator.
+    """
+
+    provider: Provider | None = None
+    """
+    The source of the evaluator's logic: Amazon Web Services, a third-party
+    library, or you.
+    """
+
     locked_for_modification: bool | None = None
     """
     Whether the evaluator is locked for modification due to being referenced
@@ -25054,6 +25188,17 @@ class GetEvaluatorOutput:
             _SCHEMA_GET_EVALUATOR_OUTPUT.members["evaluatorConfig"],
             self.evaluator_config,
         )
+        if self.evaluator_type is not None:
+            serializer.write_string(
+                _SCHEMA_GET_EVALUATOR_OUTPUT.members["evaluatorType"],
+                self.evaluator_type,
+            )
+
+        if self.provider is not None:
+            serializer.write_string(
+                _SCHEMA_GET_EVALUATOR_OUTPUT.members["provider"], self.provider
+            )
+
         serializer.write_string(
             _SCHEMA_GET_EVALUATOR_OUTPUT.members["level"], self.level
         )
@@ -25113,31 +25258,43 @@ class GetEvaluatorOutput:
                     )
 
                 case 5:
+                    kwargs["evaluator_type"] = EvaluatorType(
+                        de.read_string(
+                            _SCHEMA_GET_EVALUATOR_OUTPUT.members["evaluatorType"]
+                        )
+                    )
+
+                case 6:
+                    kwargs["provider"] = Provider(
+                        de.read_string(_SCHEMA_GET_EVALUATOR_OUTPUT.members["provider"])
+                    )
+
+                case 7:
                     kwargs["level"] = EvaluatorLevel(
                         de.read_string(_SCHEMA_GET_EVALUATOR_OUTPUT.members["level"])
                     )
 
-                case 6:
+                case 8:
                     kwargs["status"] = EvaluatorStatus(
                         de.read_string(_SCHEMA_GET_EVALUATOR_OUTPUT.members["status"])
                     )
 
-                case 7:
+                case 9:
                     kwargs["created_at"] = de.read_timestamp(
                         _SCHEMA_GET_EVALUATOR_OUTPUT.members["createdAt"]
                     )
 
-                case 8:
+                case 10:
                     kwargs["updated_at"] = de.read_timestamp(
                         _SCHEMA_GET_EVALUATOR_OUTPUT.members["updatedAt"]
                     )
 
-                case 9:
+                case 11:
                     kwargs["locked_for_modification"] = de.read_boolean(
                         _SCHEMA_GET_EVALUATOR_OUTPUT.members["lockedForModification"]
                     )
 
-                case 10:
+                case 12:
                     kwargs["kms_key_arn"] = de.read_string(
                         _SCHEMA_GET_EVALUATOR_OUTPUT.members["kmsKeyArn"]
                     )
@@ -25255,12 +25412,6 @@ class ListEvaluatorsInput:
         return kwargs
 
 
-class EvaluatorType(UnknownEnumMixin, StrEnum):
-    BUILTIN = "Builtin"
-    CUSTOM = "Custom"
-    CODE = "CustomCode"
-
-
 @dataclass(kw_only=True)
 class EvaluatorSummary:
     """
@@ -25294,6 +25445,12 @@ class EvaluatorSummary:
 
     description: str | None = field(repr=False, default=None)
     """The description of the evaluator."""
+
+    provider: Provider | None = None
+    """
+    The source of the evaluator's logic: Amazon Web Services, a third-party
+    library, or you.
+    """
 
     level: EvaluatorLevel | None = None
     """
@@ -25335,6 +25492,11 @@ class EvaluatorSummary:
         serializer.write_string(
             _SCHEMA_EVALUATOR_SUMMARY.members["evaluatorType"], self.evaluator_type
         )
+        if self.provider is not None:
+            serializer.write_string(
+                _SCHEMA_EVALUATOR_SUMMARY.members["provider"], self.provider
+            )
+
         if self.level is not None:
             serializer.write_string(
                 _SCHEMA_EVALUATOR_SUMMARY.members["level"], self.level
@@ -25398,31 +25560,36 @@ class EvaluatorSummary:
                     )
 
                 case 5:
+                    kwargs["provider"] = Provider(
+                        de.read_string(_SCHEMA_EVALUATOR_SUMMARY.members["provider"])
+                    )
+
+                case 6:
                     kwargs["level"] = EvaluatorLevel(
                         de.read_string(_SCHEMA_EVALUATOR_SUMMARY.members["level"])
                     )
 
-                case 6:
+                case 7:
                     kwargs["status"] = EvaluatorStatus(
                         de.read_string(_SCHEMA_EVALUATOR_SUMMARY.members["status"])
                     )
 
-                case 7:
+                case 8:
                     kwargs["created_at"] = de.read_timestamp(
                         _SCHEMA_EVALUATOR_SUMMARY.members["createdAt"]
                     )
 
-                case 8:
+                case 9:
                     kwargs["updated_at"] = de.read_timestamp(
                         _SCHEMA_EVALUATOR_SUMMARY.members["updatedAt"]
                     )
 
-                case 9:
+                case 10:
                     kwargs["locked_for_modification"] = de.read_boolean(
                         _SCHEMA_EVALUATOR_SUMMARY.members["lockedForModification"]
                     )
 
-                case 10:
+                case 11:
                     kwargs["kms_key_arn"] = de.read_string(
                         _SCHEMA_EVALUATOR_SUMMARY.members["kmsKeyArn"]
                     )
@@ -25843,7 +26010,7 @@ def _deserialize_dimension_keys(
 
 
 class Period(UnknownEnumMixin, StrEnum):
-    """Time period for rate limiting"""
+    """The time period for rate limiting."""
 
     SECOND = "second"
     MINUTE = "minute"
@@ -25851,7 +26018,10 @@ class Period(UnknownEnumMixin, StrEnum):
 
 @dataclass(kw_only=True)
 class RateConfig:
-    """Rate configuration for a metric (requests or tokens)"""
+    """
+    Contains the rate configuration for a rate limit metric, specifying the
+    allowed rate and time period.
+    """
 
     rate: float
     """
@@ -25862,7 +26032,13 @@ class RateConfig:
     """
 
     period: Period
-    """Time period for rate limiting"""
+    """
+    The time period for the rate limit. Valid values:
+
+    - `second`---Measures the rate limit over a one-second window.
+
+    - `minute`---Measures the rate limit over a one-minute window.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_RATE_CONFIG, self)
@@ -25954,28 +26130,35 @@ def _deserialize_dimensions(
 @dataclass(kw_only=True)
 class LimitEntry:
     """
-    A single rule entry within a limit, mapping dimension values to rate
-    configurations
+    A single rule entry within a rate limit that maps dimension values to
+    rate configurations. Each entry defines the rate limits for a specific
+    combination of dimension values.
     """
 
     dimensions: dict[str, str]
     """
-    Map of dimension name to dimension value, matching the parent limit's
-    dimensionKeys. Keys must exactly match the dimensionKeys. Values may be
-    \"*\" as a wildcard. \"*\" may only appear at trailing positions
-    (based on dimensionKeys ordering).
+    A map of dimension names to dimension values for this rule entry. Keys
+    must match the parent rate limit's dimension keys. Values may use `*`
+    as a wildcard, but only in trailing positions based on the dimension
+    keys ordering.
     """
 
     requests: list[RateConfig] | None = None
-    """Request rate limits (RPS or RPM). Limited to 1 entry for now."""
+    """
+    The request rate limit configuration. Specifies the maximum number of
+    requests allowed per time period.
+    """
 
     tokens: list[RateConfig] | None = None
-    """Token rate limits (TPM). Limited to 1 entry for now. --- P1"""
+    """
+    The token rate limit configuration. Specifies the maximum number of
+    tokens allowed per time period.
+    """
 
     connections: list[RateConfig] | None = None
     """
-    Connection rate limits (per second only). Limited to 1 entry for now.
-    --- P2
+    The connection rate limit configuration. Specifies the maximum number of
+    concurrent connections allowed.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -26067,24 +26250,34 @@ def _deserialize_limit_entries(
 @dataclass(kw_only=True)
 class BatchPutLimitEntry:
     """
-    A limit definition within a BatchPut request (rateLimitId used for
-    upsert matching)
+    A rate limit definition within a batch put request. If you provide a
+    `rateLimitId`, the service uses it for upsert matching against existing
+    rate limits.
     """
 
     dimension_keys: list[str]
-    """Ordered list of dimension key names defining the scope of a limit"""
+    """
+    The ordered list of dimension key names that define the scope of this
+    rate limit.
+    """
 
     entries: list[LimitEntry]
-    """List of rule entries within a limit"""
+    """
+    The list of rule entries that map dimension values to rate
+    configurations.
+    """
 
     rate_limit_id: str | None = None
     """
-    Optional --- if provided, used for upsert matching against existing
-    limits.
+    The unique identifier of the rate limit. If provided, the service uses
+    it for upsert matching against existing rate limits.
     """
 
     description: str | None = None
-    """Optional human-readable description for this limit."""
+    """
+    An optional human-readable description for this rate limit. If not
+    provided, the rate limit is created without a description.
+    """
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_BATCH_PUT_LIMIT_ENTRY, self)
@@ -26194,8 +26387,9 @@ class BatchPutGatewayRateLimitsInput:
 
     rate_limits: list[BatchPutLimitEntry] | None = None
     """
-    Complete set of rate limits for this gateway. Replaces all existing
-    limits atomically.
+    The complete set of rate limits for this gateway. This operation
+    replaces all existing rate limits in a single request. If the operation
+    fails, no rate limits are changed.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -26265,7 +26459,7 @@ class BatchPutGatewayRateLimitsInput:
 
 
 class GatewayRateLimitStatus(UnknownEnumMixin, StrEnum):
-    """Status of a gateway limit"""
+    """The status of a gateway limit."""
 
     CREATING = "CREATING"
     ACTIVE = "ACTIVE"
@@ -26275,25 +26469,31 @@ class GatewayRateLimitStatus(UnknownEnumMixin, StrEnum):
 
 @dataclass(kw_only=True)
 class GatewayRateLimitDetail:
-    """Shared fields for GatewayRateLimit responses"""
+    """
+    Contains detailed information about a gateway rate limit, including its
+    configuration and current status.
+    """
 
     rate_limit_id: str
-    """
-    Limit identifier. Optional on Create (system-generates if not provided
-    by customer). Always present in responses.
-    """
+    """The unique identifier of the rate limit."""
 
     gateway_identifier: str
     """The unique identifier of the gateway."""
 
     dimension_keys: list[str]
-    """Ordered list of dimension key names defining the scope of a limit"""
+    """
+    The ordered list of dimension key names that define the scope of this
+    rate limit.
+    """
 
     entries: list[LimitEntry]
-    """List of rule entries within a limit"""
+    """
+    The list of rule entries that map dimension values to rate
+    configurations.
+    """
 
     status: GatewayRateLimitStatus
-    """Status of a gateway limit"""
+    """The current status of the rate limit."""
 
     created_at: datetime
     """The timestamp when the rate limit was created."""
@@ -26302,7 +26502,7 @@ class GatewayRateLimitDetail:
     """The timestamp when the rate limit was last updated."""
 
     description: str | None = None
-    """Optional human-readable description for this limit."""
+    """The human-readable description of the rate limit."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GATEWAY_RATE_LIMIT_DETAIL, self)
@@ -26548,21 +26748,25 @@ class CreateGatewayRateLimitInput:
 
     rate_limit_id: str | None = None
     """
-    Optional customer-defined limit ID. If not provided, system generates
-    one.
+    An optional customer-defined identifier for the rate limit. If not
+    provided, the system generates one.
     """
 
     description: str | None = None
-    """Optional human-readable description for this limit."""
+    """
+    An optional human-readable description for this rate limit. If not
+    provided, the rate limit is created without a description.
+    """
 
     dimension_keys: list[str] | None = None
     """
-    Ordered list of dimension names defining the scope of this limit. Unique
-    per gateway --- no two limits can share the same dimensionKeys.
+    The ordered list of dimension key names that define the scope of this
+    rate limit. Must be unique per gateway---no two rate limits can share
+    the same dimension keys.
     """
 
     entries: list[LimitEntry] | None = None
-    """Rule entries mapping dimension values to rate configurations."""
+    """The rule entries that map dimension values to rate configurations."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_GATEWAY_RATE_LIMIT_INPUT, self)
@@ -26662,25 +26866,28 @@ class CreateGatewayRateLimitInput:
 
 @dataclass(kw_only=True)
 class CreateGatewayRateLimitOutput:
-    """Shared fields for GatewayRateLimit responses"""
+    """Shared fields for `GatewayRateLimit` responses."""
 
     rate_limit_id: str
-    """
-    Limit identifier. Optional on Create (system-generates if not provided
-    by customer). Always present in responses.
-    """
+    """The unique identifier of the created rate limit."""
 
     gateway_identifier: str
     """The unique identifier of the gateway."""
 
     dimension_keys: list[str]
-    """Ordered list of dimension key names defining the scope of a limit"""
+    """
+    The ordered list of dimension key names that define the scope of this
+    rate limit.
+    """
 
     entries: list[LimitEntry]
-    """List of rule entries within a limit"""
+    """
+    The list of rule entries that map dimension values to rate
+    configurations.
+    """
 
     status: GatewayRateLimitStatus
-    """Status of a gateway limit"""
+    """The current status of the rate limit."""
 
     created_at: datetime
     """The timestamp when the rate limit was created."""
@@ -26689,7 +26896,7 @@ class CreateGatewayRateLimitOutput:
     """The timestamp when the rate limit was last updated."""
 
     description: str | None = None
-    """Optional human-readable description for this limit."""
+    """The human-readable description of the rate limit."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_GATEWAY_RATE_LIMIT_OUTPUT, self)
@@ -26917,13 +27124,10 @@ class DeleteGatewayRateLimitOutput:
     """Dataclass for DeleteGatewayRateLimitOutput structure."""
 
     rate_limit_id: str
-    """
-    Limit identifier. Optional on Create (system-generates if not provided
-    by customer). Always present in responses.
-    """
+    """The unique identifier of the deleted rate limit."""
 
     status: GatewayRateLimitStatus
-    """Status of a gateway limit"""
+    """The current status of the rate limit deletion."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DELETE_GATEWAY_RATE_LIMIT_OUTPUT, self)
@@ -27071,25 +27275,28 @@ class GetGatewayRateLimitInput:
 
 @dataclass(kw_only=True)
 class GetGatewayRateLimitOutput:
-    """Shared fields for GatewayRateLimit responses"""
+    """Shared fields for `GatewayRateLimit` responses."""
 
     rate_limit_id: str
-    """
-    Limit identifier. Optional on Create (system-generates if not provided
-    by customer). Always present in responses.
-    """
+    """The unique identifier of the rate limit."""
 
     gateway_identifier: str
     """The unique identifier of the gateway."""
 
     dimension_keys: list[str]
-    """Ordered list of dimension key names defining the scope of a limit"""
+    """
+    The ordered list of dimension key names that define the scope of this
+    rate limit.
+    """
 
     entries: list[LimitEntry]
-    """List of rule entries within a limit"""
+    """
+    The list of rule entries that map dimension values to rate
+    configurations.
+    """
 
     status: GatewayRateLimitStatus
-    """Status of a gateway limit"""
+    """The current status of the rate limit."""
 
     created_at: datetime
     """The timestamp when the rate limit was created."""
@@ -27098,7 +27305,7 @@ class GetGatewayRateLimitOutput:
     """The timestamp when the rate limit was last updated."""
 
     description: str | None = None
-    """Optional human-readable description for this limit."""
+    """The human-readable description of the rate limit."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_GATEWAY_RATE_LIMIT_OUTPUT, self)
@@ -27438,12 +27645,12 @@ class UpdateGatewayRateLimitInput:
     """The unique identifier of the rate limit to update."""
 
     description: str | None = None
-    """Optional human-readable description for this limit."""
+    """The updated human-readable description for this rate limit."""
 
     entries: list[LimitEntry] | None = None
     """
-    Updated rule entries. key and dimensionKeys are immutable and cannot be
-    changed.
+    The updated rule entries. The dimension keys are immutable after
+    creation and cannot be changed.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -27518,25 +27725,28 @@ class UpdateGatewayRateLimitInput:
 
 @dataclass(kw_only=True)
 class UpdateGatewayRateLimitOutput:
-    """Shared fields for GatewayRateLimit responses"""
+    """Shared fields for `GatewayRateLimit` responses."""
 
     rate_limit_id: str
-    """
-    Limit identifier. Optional on Create (system-generates if not provided
-    by customer). Always present in responses.
-    """
+    """The unique identifier of the rate limit."""
 
     gateway_identifier: str
     """The unique identifier of the gateway."""
 
     dimension_keys: list[str]
-    """Ordered list of dimension key names defining the scope of a limit"""
+    """
+    The ordered list of dimension key names that define the scope of this
+    rate limit.
+    """
 
     entries: list[LimitEntry]
-    """List of rule entries within a limit"""
+    """
+    The list of rule entries that map dimension values to rate
+    configurations.
+    """
 
     status: GatewayRateLimitStatus
-    """Status of a gateway limit"""
+    """The current status of the rate limit."""
 
     created_at: datetime
     """The timestamp when the rate limit was created."""
@@ -27545,7 +27755,7 @@ class UpdateGatewayRateLimitOutput:
     """The timestamp when the rate limit was last updated."""
 
     description: str | None = None
-    """Optional human-readable description for this limit."""
+    """The human-readable description of the rate limit."""
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_GATEWAY_RATE_LIMIT_OUTPUT, self)
@@ -33953,6 +34163,74 @@ class PassthroughProtocolType(UnknownEnumMixin, StrEnum):
     CUSTOM = "CUSTOM"
 
 
+class StaticQueryParameterConflictResolution(UnknownEnumMixin, StrEnum):
+    """
+    The precedence used when a client-supplied query parameter has the same
+    name as a configured static query parameter:
+
+    - `CLIENT_OVERRIDE` - The client-supplied value overrides the configured
+      static value for that parameter name. This is the default.
+
+    - `STATIC_OVERRIDE` - The configured static value is retained,
+      overriding the client-supplied value for that parameter name.
+    """
+
+    CLIENT_OVERRIDE = "CLIENT_OVERRIDE"
+    STATIC_OVERRIDE = "STATIC_OVERRIDE"
+
+
+def _serialize_static_query_parameters(
+    serializer: ShapeSerializer, schema: Schema, value: dict[str, str]
+) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_string(value_schema, v))
+
+
+def _deserialize_static_query_parameters(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> dict[str, str]:
+    result: dict[str, str] = {}
+    value_schema = schema.members["value"]
+
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = d.read_string(value_schema)
+
+    deserializer.read_map(schema, _read_value)
+    return result
+
+
+def _serialize_composite_identifier_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+
+def _deserialize_composite_identifier_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
 @dataclass(kw_only=True)
 class StickinessConfiguration:
     """
@@ -33974,6 +34252,13 @@ class StickinessConfiguration:
     86400.
     """
 
+    composite_identifier: list[str] | None = None
+    """
+    Additional headers to include in session affinity routing. When set,
+    requests are only considered part of the same session if both the
+    `identifier` and all composite identifier values match.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_STICKINESS_CONFIGURATION, self)
 
@@ -33984,6 +34269,13 @@ class StickinessConfiguration:
         if self.timeout is not None:
             serializer.write_integer(
                 _SCHEMA_STICKINESS_CONFIGURATION.members["timeout"], self.timeout
+            )
+
+        if self.composite_identifier is not None:
+            _serialize_composite_identifier_list(
+                serializer,
+                _SCHEMA_STICKINESS_CONFIGURATION.members["compositeIdentifier"],
+                self.composite_identifier,
             )
 
     @classmethod
@@ -34004,6 +34296,16 @@ class StickinessConfiguration:
                 case 1:
                     kwargs["timeout"] = de.read_integer(
                         _SCHEMA_STICKINESS_CONFIGURATION.members["timeout"]
+                    )
+
+                case 2:
+                    kwargs["composite_identifier"] = (
+                        _deserialize_composite_identifier_list(
+                            de,
+                            _SCHEMA_STICKINESS_CONFIGURATION.members[
+                                "compositeIdentifier"
+                            ],
+                        )
                     )
 
                 case _:
@@ -34056,6 +34358,29 @@ class PassthroughTargetConfiguration:
     target.
     """
 
+    static_query_parameters: dict[str, str] | None = None
+    """
+    A map of static query parameters that the gateway always appends to the
+    outbound URL when forwarding requests to the target. The total outbound
+    URL length, which includes the endpoint and the percent-encoded query
+    parameters, is enforced by the service.
+    """
+
+    static_query_parameter_conflict_resolution: (
+        StaticQueryParameterConflictResolution | None
+    ) = None
+    """
+    Controls precedence when a client request supplies a query parameter
+    whose name matches a configured static query parameter. If not set,
+    defaults to `CLIENT_OVERRIDE`:
+
+    - `CLIENT_OVERRIDE` - The client-supplied value overrides the configured
+      static value for that parameter name.
+
+    - `STATIC_OVERRIDE` - The configured static value is retained,
+      overriding the client-supplied value for that parameter name.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PASSTHROUGH_TARGET_CONFIGURATION, self)
 
@@ -34078,6 +34403,23 @@ class PassthroughTargetConfiguration:
                     "stickinessConfiguration"
                 ],
                 self.stickiness_configuration,
+            )
+
+        if self.static_query_parameters is not None:
+            _serialize_static_query_parameters(
+                serializer,
+                _SCHEMA_PASSTHROUGH_TARGET_CONFIGURATION.members[
+                    "staticQueryParameters"
+                ],
+                self.static_query_parameters,
+            )
+
+        if self.static_query_parameter_conflict_resolution is not None:
+            serializer.write_string(
+                _SCHEMA_PASSTHROUGH_TARGET_CONFIGURATION.members[
+                    "staticQueryParameterConflictResolution"
+                ],
+                self.static_query_parameter_conflict_resolution,
             )
 
     @classmethod
@@ -34110,6 +34452,27 @@ class PassthroughTargetConfiguration:
                 case 3:
                     kwargs["stickiness_configuration"] = (
                         StickinessConfiguration.deserialize(de)
+                    )
+
+                case 4:
+                    kwargs["static_query_parameters"] = (
+                        _deserialize_static_query_parameters(
+                            de,
+                            _SCHEMA_PASSTHROUGH_TARGET_CONFIGURATION.members[
+                                "staticQueryParameters"
+                            ],
+                        )
+                    )
+
+                case 5:
+                    kwargs["static_query_parameter_conflict_resolution"] = (
+                        StaticQueryParameterConflictResolution(
+                            de.read_string(
+                                _SCHEMA_PASSTHROUGH_TARGET_CONFIGURATION.members[
+                                    "staticQueryParameterConflictResolution"
+                                ]
+                            )
+                        )
                     )
 
                 case _:
@@ -46747,6 +47110,171 @@ def _deserialize_memory_strategy_input_list(
     return result
 
 
+def _serialize_namespace_allowed_values_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+
+def _deserialize_namespace_allowed_values_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class NamespaceKeyValidation:
+    """
+    The validation rules for namespace variable values. When you specify
+    multiple rules, the service enforces a logical `AND` across all provided
+    key-value pairs.
+    """
+
+    allowed_values: list[str] | None = None
+    """The allowed values for this namespace variable key."""
+
+    regex_pattern: str | None = None
+    """A regex pattern that the namespace variable key-value must match."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_NAMESPACE_KEY_VALIDATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.allowed_values is not None:
+            _serialize_namespace_allowed_values_list(
+                serializer,
+                _SCHEMA_NAMESPACE_KEY_VALIDATION.members["allowedValues"],
+                self.allowed_values,
+            )
+
+        if self.regex_pattern is not None:
+            serializer.write_string(
+                _SCHEMA_NAMESPACE_KEY_VALIDATION.members["regexPattern"],
+                self.regex_pattern,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["allowed_values"] = (
+                        _deserialize_namespace_allowed_values_list(
+                            de,
+                            _SCHEMA_NAMESPACE_KEY_VALIDATION.members["allowedValues"],
+                        )
+                    )
+
+                case 1:
+                    kwargs["regex_pattern"] = de.read_string(
+                        _SCHEMA_NAMESPACE_KEY_VALIDATION.members["regexPattern"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_NAMESPACE_KEY_VALIDATION, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class NamespaceKeyEntry:
+    """
+    A namespace variable key definition with optional
+    `NamespaceKeyValidation` rules.
+    """
+
+    key: str
+    """The namespace variable key name."""
+
+    validation: NamespaceKeyValidation | None = None
+    """
+    The validation rules that constrain values for this namespace variable
+    at runtime (`CreateEvent` API).
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_NAMESPACE_KEY_ENTRY, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_NAMESPACE_KEY_ENTRY.members["key"], self.key)
+        if self.validation is not None:
+            serializer.write_struct(
+                _SCHEMA_NAMESPACE_KEY_ENTRY.members["validation"], self.validation
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["key"] = de.read_string(
+                        _SCHEMA_NAMESPACE_KEY_ENTRY.members["key"]
+                    )
+
+                case 1:
+                    kwargs["validation"] = NamespaceKeyValidation.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_NAMESPACE_KEY_ENTRY, consumer=_consumer)
+        if "key" not in kwargs:
+            kwargs["key"] = ""
+        return kwargs
+
+
+def _serialize_namespace_keys_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[NamespaceKeyEntry]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_namespace_keys_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[NamespaceKeyEntry]:
+    result: list[NamespaceKeyEntry] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(NamespaceKeyEntry.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
 class ContentLevel(UnknownEnumMixin, StrEnum):
     METADATA_ONLY = "METADATA_ONLY"
     FULL_CONTENT = "FULL_CONTENT"
@@ -47083,6 +47611,13 @@ class CreateMemoryInput:
     be removed.
     """
 
+    namespace_keys: list[NamespaceKeyEntry] | None = None
+    """
+    The namespace variable key definitions with optional validation rules.
+    Use these `namespaceKeys` in `namespaceTemplates` to control namespace
+    hierarchy.
+    """
+
     stream_delivery_resources: StreamDeliveryResources | None = None
     """Configuration for streaming memory record data to external resources."""
 
@@ -47142,6 +47677,13 @@ class CreateMemoryInput:
                 serializer,
                 _SCHEMA_CREATE_MEMORY_INPUT.members["indexedKeys"],
                 self.indexed_keys,
+            )
+
+        if self.namespace_keys is not None:
+            _serialize_namespace_keys_list(
+                serializer,
+                _SCHEMA_CREATE_MEMORY_INPUT.members["namespaceKeys"],
+                self.namespace_keys,
             )
 
         if self.stream_delivery_resources is not None:
@@ -47208,11 +47750,16 @@ class CreateMemoryInput:
                     )
 
                 case 8:
+                    kwargs["namespace_keys"] = _deserialize_namespace_keys_list(
+                        de, _SCHEMA_CREATE_MEMORY_INPUT.members["namespaceKeys"]
+                    )
+
+                case 9:
                     kwargs["stream_delivery_resources"] = (
                         StreamDeliveryResources.deserialize(de)
                     )
 
-                case 9:
+                case 10:
                     kwargs["tags"] = _deserialize_tags_map(
                         de, _SCHEMA_CREATE_MEMORY_INPUT.members["tags"]
                     )
@@ -49342,6 +49889,13 @@ class Memory:
     in metadata filters.
     """
 
+    namespace_keys: list[NamespaceKeyEntry] | None = None
+    """
+    The namespace variable key definitions for this memory. Namespace keys
+    define custom variables used in `namespaceTemplates` with optional
+    validation rules.
+    """
+
     stream_delivery_resources: StreamDeliveryResources | None = None
     """Configuration for streaming memory record data to external resources."""
 
@@ -49394,6 +49948,11 @@ class Memory:
         if self.indexed_keys is not None:
             _serialize_indexed_keys_list(
                 serializer, _SCHEMA_MEMORY.members["indexedKeys"], self.indexed_keys
+            )
+
+        if self.namespace_keys is not None:
+            _serialize_namespace_keys_list(
+                serializer, _SCHEMA_MEMORY.members["namespaceKeys"], self.namespace_keys
             )
 
         if self.stream_delivery_resources is not None:
@@ -49478,11 +50037,16 @@ class Memory:
                     )
 
                 case 13:
+                    kwargs["namespace_keys"] = _deserialize_namespace_keys_list(
+                        de, _SCHEMA_MEMORY.members["namespaceKeys"]
+                    )
+
+                case 14:
                     kwargs["stream_delivery_resources"] = (
                         StreamDeliveryResources.deserialize(de)
                     )
 
-                case 14:
+                case 15:
                     kwargs["managed_by_resource_arn"] = de.read_string(
                         _SCHEMA_MEMORY.members["managedByResourceArn"]
                     )
@@ -51579,6 +52143,14 @@ class UpdateMemoryInput:
     removed.
     """
 
+    namespace_keys: list[NamespaceKeyEntry] | None = None
+    """
+    The namespace variable key definitions with validation rules for this
+    memory. This value fully replaces the existing set --- any key you omit
+    is removed. Any referenced `namespaceKey` omission will throw
+    ValidationException.
+    """
+
     stream_delivery_resources: StreamDeliveryResources | None = None
     """Configuration for streaming memory record data to external resources."""
 
@@ -51624,6 +52196,13 @@ class UpdateMemoryInput:
                 serializer,
                 _SCHEMA_UPDATE_MEMORY_INPUT.members["addIndexedKeys"],
                 self.add_indexed_keys,
+            )
+
+        if self.namespace_keys is not None:
+            _serialize_namespace_keys_list(
+                serializer,
+                _SCHEMA_UPDATE_MEMORY_INPUT.members["namespaceKeys"],
+                self.namespace_keys,
             )
 
         if self.stream_delivery_resources is not None:
@@ -51676,6 +52255,11 @@ class UpdateMemoryInput:
                     )
 
                 case 7:
+                    kwargs["namespace_keys"] = _deserialize_namespace_keys_list(
+                        de, _SCHEMA_UPDATE_MEMORY_INPUT.members["namespaceKeys"]
+                    )
+
+                case 8:
                     kwargs["stream_delivery_resources"] = (
                         StreamDeliveryResources.deserialize(de)
                     )
@@ -52493,12 +53077,7 @@ class SigningAlgorithm(UnknownEnumMixin, StrEnum):
 
 @dataclass(kw_only=True)
 class PrivateKeyJwtConfig:
-    """
-    Configuration for private_key_jwt client authentication (RFC 7523). On
-    Create: privateKeySource and signingAlgorithm are required (enforced
-    server-side). On Update: all fields are optional --- only provided
-    fields are updated.
-    """
+    """The private key configuration for private_key_jwt client authentication."""
 
     private_key_source: PrivateKeySource | None = None
     """The private key source for the JWT client assertion."""
@@ -52642,10 +53221,9 @@ class CustomOauth2ProviderConfigInput:
 
     private_key_jwt_config: PrivateKeyJwtConfig | None = None
     """
-    Configuration for private_key_jwt client authentication (RFC 7523). On
-    Create: privateKeySource and signingAlgorithm are required (enforced
-    server-side). On Update: all fields are optional --- only provided
-    fields are updated.
+    The private_key_jwt client authentication configuration for this
+    credential provider. When specified, the credential provider uses JWT
+    client assertions to authenticate with the token endpoint.
     """
 
     private_endpoint: PrivateEndpoint | None = None
@@ -54128,10 +54706,8 @@ class CustomOauth2ProviderConfigOutput:
 
     private_key_jwt_config: PrivateKeyJwtConfig | None = None
     """
-    Configuration for private_key_jwt client authentication (RFC 7523). On
-    Create: privateKeySource and signingAlgorithm are required (enforced
-    server-side). On Update: all fields are optional --- only provided
-    fields are updated.
+    The configuration for private_key_jwt client authentication used by this
+    OAuth2 credential provider.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -61240,6 +61816,14 @@ class CreatePaymentManagerInput:
     tags: dict[str, str] | None = None
     """A map of tag keys and values to assign to the payment manager."""
 
+    kms_key_arn: str | None = None
+    """
+    The Amazon Resource Name (ARN) of the customer managed KMS key to use
+    for encrypting sensitive payment manager data at rest. If you don't
+    specify a key, the data is encrypted with an Amazon Web Services owned
+    key.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_PAYMENT_MANAGER_INPUT, self)
 
@@ -61283,6 +61867,12 @@ class CreatePaymentManagerInput:
                 serializer,
                 _SCHEMA_CREATE_PAYMENT_MANAGER_INPUT.members["tags"],
                 self.tags,
+            )
+
+        if self.kms_key_arn is not None:
+            serializer.write_string(
+                _SCHEMA_CREATE_PAYMENT_MANAGER_INPUT.members["kmsKeyArn"],
+                self.kms_key_arn,
             )
 
     @classmethod
@@ -61332,6 +61922,11 @@ class CreatePaymentManagerInput:
                 case 6:
                     kwargs["tags"] = _deserialize_tags_map(
                         de, _SCHEMA_CREATE_PAYMENT_MANAGER_INPUT.members["tags"]
+                    )
+
+                case 7:
+                    kwargs["kms_key_arn"] = de.read_string(
+                        _SCHEMA_CREATE_PAYMENT_MANAGER_INPUT.members["kmsKeyArn"]
                     )
 
                 case _:
@@ -61397,6 +61992,12 @@ class CreatePaymentManagerOutput:
     tags: dict[str, str] | None = None
     """The tags associated with the created payment manager."""
 
+    kms_key_arn: str | None = None
+    """
+    The Amazon Resource Name (ARN) of the KMS key used to encrypt sensitive
+    payment manager data at rest, if configured.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_PAYMENT_MANAGER_OUTPUT, self)
 
@@ -61446,6 +62047,12 @@ class CreatePaymentManagerOutput:
                 serializer,
                 _SCHEMA_CREATE_PAYMENT_MANAGER_OUTPUT.members["tags"],
                 self.tags,
+            )
+
+        if self.kms_key_arn is not None:
+            serializer.write_string(
+                _SCHEMA_CREATE_PAYMENT_MANAGER_OUTPUT.members["kmsKeyArn"],
+                self.kms_key_arn,
             )
 
     @classmethod
@@ -61516,6 +62123,11 @@ class CreatePaymentManagerOutput:
                 case 9:
                     kwargs["tags"] = _deserialize_tags_map(
                         de, _SCHEMA_CREATE_PAYMENT_MANAGER_OUTPUT.members["tags"]
+                    )
+
+                case 10:
+                    kwargs["kms_key_arn"] = de.read_string(
+                        _SCHEMA_CREATE_PAYMENT_MANAGER_OUTPUT.members["kmsKeyArn"]
                     )
 
                 case _:
@@ -61837,6 +62449,12 @@ class GetPaymentManagerOutput:
     tags: dict[str, str] | None = None
     """The tags associated with the payment manager."""
 
+    kms_key_arn: str | None = None
+    """
+    The Amazon Resource Name (ARN) of the KMS key used to encrypt sensitive
+    payment manager data at rest, if configured.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_PAYMENT_MANAGER_OUTPUT, self)
 
@@ -61892,6 +62510,12 @@ class GetPaymentManagerOutput:
                 serializer,
                 _SCHEMA_GET_PAYMENT_MANAGER_OUTPUT.members["tags"],
                 self.tags,
+            )
+
+        if self.kms_key_arn is not None:
+            serializer.write_string(
+                _SCHEMA_GET_PAYMENT_MANAGER_OUTPUT.members["kmsKeyArn"],
+                self.kms_key_arn,
             )
 
     @classmethod
@@ -61966,6 +62590,11 @@ class GetPaymentManagerOutput:
                 case 11:
                     kwargs["tags"] = _deserialize_tags_map(
                         de, _SCHEMA_GET_PAYMENT_MANAGER_OUTPUT.members["tags"]
+                    )
+
+                case 12:
+                    kwargs["kms_key_arn"] = de.read_string(
+                        _SCHEMA_GET_PAYMENT_MANAGER_OUTPUT.members["kmsKeyArn"]
                     )
 
                 case _:
@@ -62135,6 +62764,12 @@ class PaymentManagerSummary:
     created_at: datetime | None = None
     """The timestamp when the payment manager was created."""
 
+    kms_key_arn: str | None = None
+    """
+    The Amazon Resource Name (ARN) of the KMS key used to encrypt sensitive
+    payment manager data at rest, if configured.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_PAYMENT_MANAGER_SUMMARY, self)
 
@@ -62174,6 +62809,10 @@ class PaymentManagerSummary:
             _SCHEMA_PAYMENT_MANAGER_SUMMARY.members["lastUpdatedAt"],
             self.last_updated_at,
         )
+        if self.kms_key_arn is not None:
+            serializer.write_string(
+                _SCHEMA_PAYMENT_MANAGER_SUMMARY.members["kmsKeyArn"], self.kms_key_arn
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -62232,6 +62871,11 @@ class PaymentManagerSummary:
                 case 8:
                     kwargs["last_updated_at"] = de.read_timestamp(
                         _SCHEMA_PAYMENT_MANAGER_SUMMARY.members["lastUpdatedAt"]
+                    )
+
+                case 9:
+                    kwargs["kms_key_arn"] = de.read_string(
+                        _SCHEMA_PAYMENT_MANAGER_SUMMARY.members["kmsKeyArn"]
                     )
 
                 case _:
@@ -62587,6 +63231,11 @@ def _deserialize_credentials_provider_configurations(
     return result
 
 
+class PaymentConnectorProvisionMode(UnknownEnumMixin, StrEnum):
+    MANUAL = "MANUAL"
+    QUICK_CREATE = "QUICK_CREATE"
+
+
 class PaymentConnectorType(UnknownEnumMixin, StrEnum):
     COINBASE_CDP = "CoinbaseCDP"
     STRIPE_PRIVY = "StripePrivy"
@@ -62621,6 +63270,18 @@ class CreatePaymentConnectorInput:
     The credential provider configurations for the payment connector. These
     configurations specify how the connector authenticates with the payment
     provider.
+    """
+
+    provision_mode: PaymentConnectorProvisionMode | None = None
+    """
+    The provision mode for creating the payment connector. If you don't
+    specify a value, the default is `MANUAL`.
+
+    - `MANUAL` - You provide the credential provider configurations
+      directly.
+
+    - `QUICK_CREATE` - The service orchestrates OAuth consent and provisions
+      the credential provider for you.
     """
 
     client_token: str | None = None
@@ -62666,6 +63327,12 @@ class CreatePaymentConnectorInput:
                     "credentialProviderConfigurations"
                 ],
                 self.credential_provider_configurations,
+            )
+
+        if self.provision_mode is not None:
+            serializer.write_string(
+                _SCHEMA_CREATE_PAYMENT_CONNECTOR_INPUT.members["provisionMode"],
+                self.provision_mode,
             )
 
         if self.client_token is not None:
@@ -62719,6 +63386,15 @@ class CreatePaymentConnectorInput:
                     )
 
                 case 5:
+                    kwargs["provision_mode"] = PaymentConnectorProvisionMode(
+                        de.read_string(
+                            _SCHEMA_CREATE_PAYMENT_CONNECTOR_INPUT.members[
+                                "provisionMode"
+                            ]
+                        )
+                    )
+
+                case 6:
                     kwargs["client_token"] = de.read_string(
                         _SCHEMA_CREATE_PAYMENT_CONNECTOR_INPUT.members["clientToken"]
                     )
@@ -62740,6 +63416,11 @@ class PaymentConnectorStatus(UnknownEnumMixin, StrEnum):
     CREATE_FAILED = "CREATE_FAILED"
     UPDATE_FAILED = "UPDATE_FAILED"
     DELETE_FAILED = "DELETE_FAILED"
+    AWS_MARKETPLACE_SUBSCRIPTION_REQUIRED = "AWS_MARKETPLACE_SUBSCRIPTION_REQUIRED"
+    PENDING_AUTHENTICATION = "PENDING_AUTHENTICATION"
+    PROVISIONING = "PROVISIONING"
+    AUTHENTICATION_EXPIRED = "AUTHENTICATION_EXPIRED"
+    AUTHENTICATION_FAILED = "AUTHENTICATION_FAILED"
 
 
 @dataclass(kw_only=True)
@@ -62774,6 +63455,13 @@ class CreatePaymentConnectorOutput:
     `UPDATE_FAILED`, and `DELETE_FAILED`.
     """
 
+    authorization_url: str | None = None
+    """
+    The URL that the user must open to complete OAuth consent. This field is
+    only present when the payment connector status is
+    `PENDING_AUTHENTICATION`.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_PAYMENT_CONNECTOR_OUTPUT, self)
 
@@ -62806,6 +63494,11 @@ class CreatePaymentConnectorOutput:
         serializer.write_string(
             _SCHEMA_CREATE_PAYMENT_CONNECTOR_OUTPUT.members["status"], self.status
         )
+        if self.authorization_url is not None:
+            serializer.write_string(
+                _SCHEMA_CREATE_PAYMENT_CONNECTOR_OUTPUT.members["authorizationUrl"],
+                self.authorization_url,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -62865,6 +63558,13 @@ class CreatePaymentConnectorOutput:
                         )
                     )
 
+                case 7:
+                    kwargs["authorization_url"] = de.read_string(
+                        _SCHEMA_CREATE_PAYMENT_CONNECTOR_OUTPUT.members[
+                            "authorizationUrl"
+                        ]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -62885,6 +63585,77 @@ class CreatePaymentConnectorOutput:
             kwargs["created_at"] = datetime.fromtimestamp(0, tz=timezone.utc)
         if "status" not in kwargs:
             kwargs["status"] = PaymentConnectorStatus._corrected("")
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class SubscriptionRequiredException(ServiceError):
+    """
+    The request failed because it requires an active Amazon Web Services
+    Marketplace subscription that is not present. Subscribe to the required
+    product in Amazon Web Services Marketplace and try again.
+    """
+
+    fault: Literal["client", "server"] | None = "client"
+
+    subscription_url: str | None = None
+    """URL to the Marketplace listing for subscription"""
+
+    product_name: str | None = None
+    """The product requiring subscription"""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["message"], self.message
+        )
+        if self.subscription_url is not None:
+            serializer.write_string(
+                _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["subscriptionUrl"],
+                self.subscription_url,
+            )
+
+        if self.product_name is not None:
+            serializer.write_string(
+                _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["productName"],
+                self.product_name,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["message"]
+                    )
+
+                case 1:
+                    kwargs["subscription_url"] = de.read_string(
+                        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members[
+                            "subscriptionUrl"
+                        ]
+                    )
+
+                case 2:
+                    kwargs["product_name"] = de.read_string(
+                        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["productName"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION, consumer=_consumer
+        )
         return kwargs
 
 
@@ -62912,6 +63683,9 @@ CREATE_PAYMENT_CONNECTOR = APIOperation(
                 "com.amazonaws.bedrockagentcorecontrol#ServiceQuotaExceededException"
             ): ServiceQuotaExceededException,
             ShapeID(
+                "com.amazonaws.bedrockagentcorecontrol#SubscriptionRequiredException"
+            ): SubscriptionRequiredException,
+            ShapeID(
                 "com.amazonaws.bedrockagentcorecontrol#ThrottlingException"
             ): ThrottlingException,
             ShapeID(
@@ -62926,6 +63700,7 @@ CREATE_PAYMENT_CONNECTOR = APIOperation(
         _SCHEMA_INTERNAL_SERVER_EXCEPTION,
         _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
         _SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION,
+        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION,
         _SCHEMA_THROTTLING_EXCEPTION,
         _SCHEMA_VALIDATION_EXCEPTION,
     ],
@@ -63203,6 +63978,13 @@ class GetPaymentConnectorOutput:
     description: str | None = None
     """The description of the payment connector."""
 
+    authorization_url: str | None = None
+    """
+    The URL that the user must open to complete OAuth consent. This field is
+    only present when the payment connector status is
+    `PENDING_AUTHENTICATION`.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_PAYMENT_CONNECTOR_OUTPUT, self)
 
@@ -63240,6 +64022,11 @@ class GetPaymentConnectorOutput:
         serializer.write_string(
             _SCHEMA_GET_PAYMENT_CONNECTOR_OUTPUT.members["status"], self.status
         )
+        if self.authorization_url is not None:
+            serializer.write_string(
+                _SCHEMA_GET_PAYMENT_CONNECTOR_OUTPUT.members["authorizationUrl"],
+                self.authorization_url,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -63300,6 +64087,11 @@ class GetPaymentConnectorOutput:
                         de.read_string(
                             _SCHEMA_GET_PAYMENT_CONNECTOR_OUTPUT.members["status"]
                         )
+                    )
+
+                case 8:
+                    kwargs["authorization_url"] = de.read_string(
+                        _SCHEMA_GET_PAYMENT_CONNECTOR_OUTPUT.members["authorizationUrl"]
                     )
 
                 case _:
@@ -63838,6 +64630,13 @@ class UpdatePaymentConnectorOutput:
     `UPDATE_FAILED`, and `DELETE_FAILED`.
     """
 
+    authorization_url: str | None = None
+    """
+    The URL that the user must open to complete OAuth consent. This field is
+    only present when the payment connector status is
+    `PENDING_AUTHENTICATION`.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_PAYMENT_CONNECTOR_OUTPUT, self)
 
@@ -63870,6 +64669,11 @@ class UpdatePaymentConnectorOutput:
         serializer.write_string(
             _SCHEMA_UPDATE_PAYMENT_CONNECTOR_OUTPUT.members["status"], self.status
         )
+        if self.authorization_url is not None:
+            serializer.write_string(
+                _SCHEMA_UPDATE_PAYMENT_CONNECTOR_OUTPUT.members["authorizationUrl"],
+                self.authorization_url,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -63929,6 +64733,13 @@ class UpdatePaymentConnectorOutput:
                         )
                     )
 
+                case 7:
+                    kwargs["authorization_url"] = de.read_string(
+                        _SCHEMA_UPDATE_PAYMENT_CONNECTOR_OUTPUT.members[
+                            "authorizationUrl"
+                        ]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -63976,6 +64787,9 @@ UPDATE_PAYMENT_CONNECTOR = APIOperation(
                 "com.amazonaws.bedrockagentcorecontrol#ServiceQuotaExceededException"
             ): ServiceQuotaExceededException,
             ShapeID(
+                "com.amazonaws.bedrockagentcorecontrol#SubscriptionRequiredException"
+            ): SubscriptionRequiredException,
+            ShapeID(
                 "com.amazonaws.bedrockagentcorecontrol#ThrottlingException"
             ): ThrottlingException,
             ShapeID(
@@ -63990,6 +64804,7 @@ UPDATE_PAYMENT_CONNECTOR = APIOperation(
         _SCHEMA_INTERNAL_SERVER_EXCEPTION,
         _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
         _SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION,
+        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION,
         _SCHEMA_THROTTLING_EXCEPTION,
         _SCHEMA_VALIDATION_EXCEPTION,
     ],
@@ -64026,6 +64841,12 @@ class UpdatePaymentManagerInput:
     request, the service ignores the request, but doesn't return an error.
     For more information, see [Ensuring
     idempotency](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+    """
+
+    kms_key_arn: str | None = None
+    """
+    The updated Amazon Resource Name (ARN) of the customer managed KMS key
+    used to encrypt sensitive payment manager data at rest.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -64065,6 +64886,12 @@ class UpdatePaymentManagerInput:
             serializer.write_string(
                 _SCHEMA_UPDATE_PAYMENT_MANAGER_INPUT.members["clientToken"],
                 self.client_token,
+            )
+
+        if self.kms_key_arn is not None:
+            serializer.write_string(
+                _SCHEMA_UPDATE_PAYMENT_MANAGER_INPUT.members["kmsKeyArn"],
+                self.kms_key_arn,
             )
 
     @classmethod
@@ -64111,6 +64938,11 @@ class UpdatePaymentManagerInput:
                         _SCHEMA_UPDATE_PAYMENT_MANAGER_INPUT.members["clientToken"]
                     )
 
+                case 6:
+                    kwargs["kms_key_arn"] = de.read_string(
+                        _SCHEMA_UPDATE_PAYMENT_MANAGER_INPUT.members["kmsKeyArn"]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -64155,6 +64987,12 @@ class UpdatePaymentManagerOutput:
     workload_identity_details: WorkloadIdentityDetails | None = None
     """The information about the workload identity."""
 
+    kms_key_arn: str | None = None
+    """
+    The Amazon Resource Name (ARN) of the KMS key used to encrypt sensitive
+    payment manager data at rest, if configured.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_PAYMENT_MANAGER_OUTPUT, self)
 
@@ -64192,6 +65030,11 @@ class UpdatePaymentManagerOutput:
         serializer.write_string(
             _SCHEMA_UPDATE_PAYMENT_MANAGER_OUTPUT.members["status"], self.status
         )
+        if self.kms_key_arn is not None:
+            serializer.write_string(
+                _SCHEMA_UPDATE_PAYMENT_MANAGER_OUTPUT.members["kmsKeyArn"],
+                self.kms_key_arn,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -64251,6 +65094,11 @@ class UpdatePaymentManagerOutput:
                         de.read_string(
                             _SCHEMA_UPDATE_PAYMENT_MANAGER_OUTPUT.members["status"]
                         )
+                    )
+
+                case 8:
+                    kwargs["kms_key_arn"] = de.read_string(
+                        _SCHEMA_UPDATE_PAYMENT_MANAGER_OUTPUT.members["kmsKeyArn"]
                     )
 
                 case _:

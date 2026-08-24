@@ -2052,7 +2052,15 @@ CAPACITY_PROVIDER_ARN = Schema(
 
 CAPACITY_PROVIDER_CONFIGURATION = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentcorecontrol#CapacityProviderConfiguration"),
-    members={"capacityProviderArn": {"target": CAPACITY_PROVIDER_ARN}},
+    members={
+        "capacityProviderArn": {
+            "target": CAPACITY_PROVIDER_ARN,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#clientOptional")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+            ],
+        }
+    },
 )
 
 DESCRIPTION = Schema(
@@ -2691,10 +2699,7 @@ GET_AGENT_RUNTIME_OUTPUT = Schema.collection(
             "target": ROLE_ARN,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
-        "networkConfiguration": {
-            "target": NETWORK_CONFIGURATION,
-            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
-        },
+        "networkConfiguration": {"target": NETWORK_CONFIGURATION},
         "status": {
             "target": AGENT_RUNTIME_STATUS,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
@@ -7203,6 +7208,15 @@ DATASET_SCHEMA_TYPE = Schema.collection(
                 )
             ],
         },
+        "THIRD_PARTY_EVALUATION_V1": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"),
+                    value="THIRD_PARTY_EVALUATION_V1",
+                )
+            ],
+        },
     },
 )
 
@@ -8213,10 +8227,19 @@ CODE_BASED_EVALUATOR_CONFIG = Schema.collection(
     members={"lambdaConfig": {"target": LAMBDA_EVALUATOR_CONFIG}},
 )
 
-EVALUATOR_INSTRUCTIONS = Schema(
-    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#EvaluatorInstructions"),
+EVALUATOR_ID = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#EvaluatorId"),
     shape_type=ShapeType.STRING,
-    traits=[Trait.new(id=ShapeID("smithy.api#sensitive"))],
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 111}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^(Builtin\\.[a-zA-Z0-9._-]+|ThirdParty\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$",
+        ),
+    ],
 )
 
 NON_EMPTY_STRING = Schema(
@@ -8356,6 +8379,26 @@ EVALUATOR_MODEL_CONFIG = Schema.collection(
     },
 )
 
+DERIVED_EVALUATOR_CONFIG = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#DerivedEvaluatorConfig"),
+    members={
+        "baseEvaluatorId": {
+            "target": EVALUATOR_ID,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "modelConfig": {
+            "target": EVALUATOR_MODEL_CONFIG,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+    },
+)
+
+EVALUATOR_INSTRUCTIONS = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#EvaluatorInstructions"),
+    shape_type=ShapeType.STRING,
+    traits=[Trait.new(id=ShapeID("smithy.api#sensitive"))],
+)
+
 CATEGORICAL_SCALE_DEFINITION = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentcorecontrol#CategoricalScaleDefinition"),
     members={
@@ -8451,6 +8494,7 @@ EVALUATOR_CONFIG = Schema.collection(
     members={
         "llmAsAJudge": {"target": LLM_AS_A_JUDGE_EVALUATOR_CONFIG},
         "codeBased": {"target": CODE_BASED_EVALUATOR_CONFIG},
+        "derived": {"target": DERIVED_EVALUATOR_CONFIG},
     },
 )
 
@@ -8529,17 +8573,6 @@ CUSTOM_EVALUATOR_ARN = Schema(
             id=ShapeID("aws.api#arnReference"),
             value=MappingProxyType({"type": "AWS::BedrockAgentCore::Evaluator"}),
         ),
-    ],
-)
-
-EVALUATOR_ID = Schema(
-    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#EvaluatorId"),
-    shape_type=ShapeType.STRING,
-    traits=[
-        Trait.new(
-            id=ShapeID("smithy.api#pattern"),
-            value="^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$",
-        )
     ],
 )
 
@@ -8646,7 +8679,7 @@ EVALUATOR_ARN = Schema(
     traits=[
         Trait.new(
             id=ShapeID("smithy.api#pattern"),
-            value="^arn:aws[a-zA-Z-]*:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:evaluator\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$|^arn:aws[a-zA-Z-]*:bedrock-agentcore:::evaluator/Builtin.[a-zA-Z0-9_-]+$",
+            value="^arn:aws[a-zA-Z-]*:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:evaluator\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$|^arn:aws[a-zA-Z-]*:bedrock-agentcore:::evaluator/(Builtin|ThirdParty)\\.[a-zA-Z0-9._-]+$",
         ),
         Trait.new(
             id=ShapeID("aws.api#arnReference"),
@@ -8742,10 +8775,70 @@ EVALUATOR_NAME = Schema(
     shape_type=ShapeType.STRING,
     traits=[
         Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 48}),
+        ),
+        Trait.new(
             id=ShapeID("smithy.api#pattern"),
-            value="^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9_]{0,47})$",
-        )
+            value="^(Builtin\\.[a-zA-Z0-9._-]+|ThirdParty\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9_]{0,47})$",
+        ),
     ],
+)
+
+EVALUATOR_TYPE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#EvaluatorType"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "BUILTIN": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="Builtin")],
+        },
+        "THIRD_PARTY": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="ThirdParty")
+            ],
+        },
+        "CUSTOM": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="Custom")],
+        },
+        "CODE": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="CustomCode")
+            ],
+        },
+        "CUSTOM_DERIVED": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="CustomDerived")
+            ],
+        },
+    },
+)
+
+PROVIDER = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#Provider"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "AWS": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="AWS")],
+        },
+        "DEEP_EVAL": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="DeepEval")],
+        },
+        "AUTO_EVAL": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="AutoEval")],
+        },
+        "CUSTOM": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="Custom")],
+        },
+    },
 )
 
 GET_EVALUATOR_OUTPUT = Schema.collection(
@@ -8775,6 +8868,8 @@ GET_EVALUATOR_OUTPUT = Schema.collection(
             "target": EVALUATOR_CONFIG,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "evaluatorType": {"target": EVALUATOR_TYPE},
+        "provider": {"target": PROVIDER},
         "level": {
             "target": EVALUATOR_LEVEL,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
@@ -8839,27 +8934,6 @@ LIST_EVALUATORS_INPUT = Schema.collection(
     },
 )
 
-EVALUATOR_TYPE = Schema.collection(
-    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#EvaluatorType"),
-    shape_type=ShapeType.ENUM,
-    members={
-        "BUILTIN": {
-            "target": UNIT,
-            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="Builtin")],
-        },
-        "CUSTOM": {
-            "target": UNIT,
-            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="Custom")],
-        },
-        "CODE": {
-            "target": UNIT,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="CustomCode")
-            ],
-        },
-    },
-)
-
 EVALUATOR_SUMMARY = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentcorecontrol#EvaluatorSummary"),
     members={
@@ -8880,6 +8954,7 @@ EVALUATOR_SUMMARY = Schema.collection(
             "target": EVALUATOR_TYPE,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "provider": {"target": PROVIDER},
         "level": {"target": EVALUATOR_LEVEL},
         "status": {
             "target": EVALUATOR_STATUS,
@@ -11963,6 +12038,81 @@ PASSTHROUGH_PROTOCOL_TYPE = Schema.collection(
     },
 )
 
+STATIC_QUERY_PARAMETER_CONFLICT_RESOLUTION = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentcorecontrol#StaticQueryParameterConflictResolution"
+    ),
+    shape_type=ShapeType.ENUM,
+    members={
+        "CLIENT_OVERRIDE": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="CLIENT_OVERRIDE")
+            ],
+        },
+        "STATIC_OVERRIDE": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="STATIC_OVERRIDE")
+            ],
+        },
+    },
+)
+
+STATIC_QUERY_PARAMETER_NAME = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#StaticQueryParameterName"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 128}),
+        ),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z0-9_.-]+$"),
+    ],
+)
+
+STATIC_QUERY_PARAMETER_VALUE = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#StaticQueryParameterValue"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[^\\x00-\\x1F\\x7F]*$"),
+        Trait.new(id=ShapeID("smithy.api#sensitive")),
+    ],
+)
+
+STATIC_QUERY_PARAMETERS = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#StaticQueryParameters"),
+    shape_type=ShapeType.MAP,
+    members={
+        "key": {"target": STATIC_QUERY_PARAMETER_NAME},
+        "value": {"target": STATIC_QUERY_PARAMETER_VALUE},
+    },
+)
+
+COMPOSITE_IDENTIFIER_ENTRY = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#CompositeIdentifierEntry"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 256}),
+        )
+    ],
+)
+
+COMPOSITE_IDENTIFIER_LIST = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#CompositeIdentifierList"),
+    shape_type=ShapeType.LIST,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#uniqueItems")),
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 5}),
+        ),
+    ],
+    members={"member": {"target": COMPOSITE_IDENTIFIER_ENTRY}},
+)
+
 STICKINESS_TIMEOUT = Schema(
     id=ShapeID("com.amazonaws.bedrockagentcorecontrol#StickinessTimeout"),
     shape_type=ShapeType.INTEGER,
@@ -11989,6 +12139,7 @@ STICKINESS_CONFIGURATION = Schema.collection(
             ],
         },
         "timeout": {"target": STICKINESS_TIMEOUT},
+        "compositeIdentifier": {"target": COMPOSITE_IDENTIFIER_LIST},
     },
 )
 
@@ -12005,6 +12156,10 @@ PASSTHROUGH_TARGET_CONFIGURATION = Schema.collection(
         },
         "schema": {"target": HTTP_API_SCHEMA_CONFIGURATION},
         "stickinessConfiguration": {"target": STICKINESS_CONFIGURATION},
+        "staticQueryParameters": {"target": STATIC_QUERY_PARAMETERS},
+        "staticQueryParameterConflictResolution": {
+            "target": STATIC_QUERY_PARAMETER_CONFLICT_RESOLUTION
+        },
     },
 )
 
@@ -15397,7 +15552,7 @@ NAMESPACE = Schema(
         ),
         Trait.new(
             id=ShapeID("smithy.api#pattern"),
-            value="^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$",
+            value="^[a-zA-Z0-9\\-_\\/]*(\\{[a-zA-Z][a-zA-Z0-9]*\\}[a-zA-Z0-9\\-_\\/]*)*$",
         ),
     ],
 )
@@ -15889,6 +16044,87 @@ MEMORY_STRATEGY_INPUT_LIST = Schema.collection(
     members={"member": {"target": MEMORY_STRATEGY_INPUT}},
 )
 
+NAMESPACE_VARIABLE_KEY = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#NamespaceVariableKey"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 32}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^(?!memoryStrategyId$|actorId$|sessionId$)[a-z][a-z0-9]*$",
+        ),
+    ],
+)
+
+NAMESPACE_ALLOWED_VALUE = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#NamespaceAllowedValue"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 64}),
+        ),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[a-z0-9][a-z0-9-_]*$"),
+    ],
+)
+
+NAMESPACE_ALLOWED_VALUES_LIST = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#NamespaceAllowedValuesList"),
+    shape_type=ShapeType.LIST,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 10}),
+        )
+    ],
+    members={"member": {"target": NAMESPACE_ALLOWED_VALUE}},
+)
+
+NAMESPACE_REGEX_PATTERN = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#NamespaceRegexPattern"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 64}),
+        )
+    ],
+)
+
+NAMESPACE_KEY_VALIDATION = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#NamespaceKeyValidation"),
+    members={
+        "allowedValues": {"target": NAMESPACE_ALLOWED_VALUES_LIST},
+        "regexPattern": {"target": NAMESPACE_REGEX_PATTERN},
+    },
+)
+
+NAMESPACE_KEY_ENTRY = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#NamespaceKeyEntry"),
+    members={
+        "key": {
+            "target": NAMESPACE_VARIABLE_KEY,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "validation": {"target": NAMESPACE_KEY_VALIDATION},
+    },
+)
+
+NAMESPACE_KEYS_LIST = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#NamespaceKeysList"),
+    shape_type=ShapeType.LIST,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 5}),
+        )
+    ],
+    members={"member": {"target": NAMESPACE_KEY_ENTRY}},
+)
+
 CONTENT_LEVEL = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentcorecontrol#ContentLevel"),
     shape_type=ShapeType.ENUM,
@@ -16021,6 +16257,7 @@ CREATE_MEMORY_INPUT = Schema.collection(
         },
         "memoryStrategies": {"target": MEMORY_STRATEGY_INPUT_LIST},
         "indexedKeys": {"target": INDEXED_KEYS_LIST},
+        "namespaceKeys": {"target": NAMESPACE_KEYS_LIST},
         "streamDeliveryResources": {"target": STREAM_DELIVERY_RESOURCES},
         "tags": {"target": TAGS_MAP},
     },
@@ -16555,6 +16792,7 @@ MEMORY = Schema.collection(
         },
         "strategies": {"target": MEMORY_STRATEGY_LIST},
         "indexedKeys": {"target": INDEXED_KEYS_LIST},
+        "namespaceKeys": {"target": NAMESPACE_KEYS_LIST},
         "streamDeliveryResources": {"target": STREAM_DELIVERY_RESOURCES},
         "managedByResourceArn": {"target": ARN},
     },
@@ -17078,6 +17316,7 @@ UPDATE_MEMORY_INPUT = Schema.collection(
         "memoryExecutionRoleArn": {"target": ARN},
         "memoryStrategies": {"target": MODIFY_MEMORY_STRATEGIES},
         "addIndexedKeys": {"target": INDEXED_KEYS_LIST},
+        "namespaceKeys": {"target": NAMESPACE_KEYS_LIST},
         "streamDeliveryResources": {"target": STREAM_DELIVERY_RESOURCES},
     },
 )
@@ -20026,7 +20265,7 @@ PAYMENTS_DESCRIPTION = Schema(
             id=ShapeID("smithy.api#length"),
             value=MappingProxyType({"min": 1, "max": 4096}),
         ),
-        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z0-9\\s]+$"),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[^\\p{C}]*$"),
     ],
 )
 
@@ -20073,6 +20312,7 @@ CREATE_PAYMENT_MANAGER_INPUT = Schema.collection(
             "traits": [Trait.new(id=ShapeID("smithy.api#idempotencyToken"))],
         },
         "tags": {"target": TAGS_MAP},
+        "kmsKeyArn": {"target": KMS_KEY_ARN},
     },
 )
 
@@ -20192,6 +20432,7 @@ CREATE_PAYMENT_MANAGER_OUTPUT = Schema.collection(
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
         "tags": {"target": TAGS_MAP},
+        "kmsKeyArn": {"target": KMS_KEY_ARN},
     },
 )
 
@@ -20338,6 +20579,7 @@ GET_PAYMENT_MANAGER_OUTPUT = Schema.collection(
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
         "tags": {"target": TAGS_MAP},
+        "kmsKeyArn": {"target": KMS_KEY_ARN},
     },
 )
 
@@ -20417,6 +20659,7 @@ PAYMENT_MANAGER_SUMMARY = Schema.collection(
             "target": DATE_TIMESTAMP,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "kmsKeyArn": {"target": KMS_KEY_ARN},
     },
 )
 
@@ -20521,7 +20764,7 @@ CREDENTIALS_PROVIDER_CONFIGURATIONS = Schema.collection(
     traits=[
         Trait.new(
             id=ShapeID("smithy.api#length"),
-            value=MappingProxyType({"min": 1, "max": 1}),
+            value=MappingProxyType({"min": 0, "max": 1}),
         )
     ],
     members={"member": {"target": CREDENTIALS_PROVIDER_CONFIGURATION}},
@@ -20539,6 +20782,23 @@ PAYMENT_CONNECTOR_NAME = Schema(
             id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z][a-zA-Z0-9_]{0,47}$"
         ),
     ],
+)
+
+PAYMENT_CONNECTOR_PROVISION_MODE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#PaymentConnectorProvisionMode"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "MANUAL": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="MANUAL")],
+        },
+        "QUICK_CREATE": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="QUICK_CREATE")
+            ],
+        },
+    },
 )
 
 PAYMENT_CONNECTOR_TYPE = Schema.collection(
@@ -20590,11 +20850,26 @@ CREATE_PAYMENT_CONNECTOR_INPUT = Schema.collection(
             "target": CREDENTIALS_PROVIDER_CONFIGURATIONS,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "provisionMode": {"target": PAYMENT_CONNECTOR_PROVISION_MODE},
         "clientToken": {
             "target": CLIENT_TOKEN,
             "traits": [Trait.new(id=ShapeID("smithy.api#idempotencyToken"))],
         },
     },
+)
+
+PAYMENT_CONNECTOR_AUTHORIZATION_URL = Schema(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentcorecontrol#PaymentConnectorAuthorizationUrl"
+    ),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 4096}),
+        ),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^https://[^\\p{C}]*$"),
+    ],
 )
 
 PAYMENT_CONNECTOR_ID = Schema(
@@ -20607,7 +20882,7 @@ PAYMENT_CONNECTOR_ID = Schema(
         ),
         Trait.new(
             id=ShapeID("smithy.api#pattern"),
-            value="^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$",
+            value="^([0-9a-z_][-]?){1,100}-[0-9a-z]{10}$",
         ),
     ],
 )
@@ -20648,6 +20923,45 @@ PAYMENT_CONNECTOR_STATUS = Schema.collection(
             "target": UNIT,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="DELETE_FAILED")
+            ],
+        },
+        "AWS_MARKETPLACE_SUBSCRIPTION_REQUIRED": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"),
+                    value="AWS_MARKETPLACE_SUBSCRIPTION_REQUIRED",
+                )
+            ],
+        },
+        "PENDING_AUTHENTICATION": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="PENDING_AUTHENTICATION"
+                )
+            ],
+        },
+        "PROVISIONING": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="PROVISIONING")
+            ],
+        },
+        "AUTHENTICATION_EXPIRED": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="AUTHENTICATION_EXPIRED"
+                )
+            ],
+        },
+        "AUTHENTICATION_FAILED": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="AUTHENTICATION_FAILED"
+                )
             ],
         },
     },
@@ -20691,6 +21005,23 @@ CREATE_PAYMENT_CONNECTOR_OUTPUT = Schema.collection(
             "target": PAYMENT_CONNECTOR_STATUS,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "authorizationUrl": {"target": PAYMENT_CONNECTOR_AUTHORIZATION_URL},
+    },
+)
+
+SUBSCRIPTION_REQUIRED_EXCEPTION = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentcorecontrol#SubscriptionRequiredException"),
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#error"), value="client"),
+        Trait.new(id=ShapeID("smithy.api#httpError"), value=403),
+    ],
+    members={
+        "message": {
+            "target": _STRING,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "subscriptionUrl": {"target": _STRING},
+        "productName": {"target": _STRING},
     },
 )
 
@@ -20848,6 +21179,7 @@ GET_PAYMENT_CONNECTOR_OUTPUT = Schema.collection(
             "target": PAYMENT_CONNECTOR_STATUS,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "authorizationUrl": {"target": PAYMENT_CONNECTOR_AUTHORIZATION_URL},
     },
 )
 
@@ -21054,6 +21386,7 @@ UPDATE_PAYMENT_CONNECTOR_OUTPUT = Schema.collection(
             "target": PAYMENT_CONNECTOR_STATUS,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "authorizationUrl": {"target": PAYMENT_CONNECTOR_AUTHORIZATION_URL},
     },
 )
 
@@ -21100,6 +21433,7 @@ UPDATE_PAYMENT_MANAGER_INPUT = Schema.collection(
             "target": CLIENT_TOKEN,
             "traits": [Trait.new(id=ShapeID("smithy.api#idempotencyToken"))],
         },
+        "kmsKeyArn": {"target": KMS_KEY_ARN},
     },
 )
 
@@ -21142,6 +21476,7 @@ UPDATE_PAYMENT_MANAGER_OUTPUT = Schema.collection(
             "target": PAYMENT_MANAGER_STATUS,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
+        "kmsKeyArn": {"target": KMS_KEY_ARN},
     },
 )
 

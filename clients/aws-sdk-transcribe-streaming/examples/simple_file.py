@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "aiofile~=3.9.0",
-#     "aws-sdk-transcribe-streaming",
+#     "aws-sdk-transcribe-streaming[awscrt]",
 # ]
 #
 # [tool.uv.sources]
@@ -32,10 +32,11 @@ from pathlib import Path
 import aiofile
 from smithy_aws_core.identity import EnvironmentCredentialsResolver
 from smithy_core.aio.interfaces.eventstream import EventPublisher, EventReceiver
+from smithy_http.aio.crt import AWSCRTHTTPClient
 
 from aws_sdk_transcribe_streaming.client import (
+    AsyncTranscribeStreamingClient,
     StartStreamTranscriptionInput,
-    TranscribeStreamingClient,
 )
 from aws_sdk_transcribe_streaming.config import AsyncTranscribeStreamingConfig
 from aws_sdk_transcribe_streaming.models import (
@@ -63,7 +64,9 @@ async def apply_realtime_delay(
     sample_rate: float,
     channel_nums: int,
 ) -> None:
-    """Applies a delay when reading an audio file stream to simulate a real-time delay."""
+    """Applies a delay when reading an audio file stream to simulate a real-time
+    delay.
+    """
     start_time = time.time()
     elapsed_audio_time = 0.0
     async for chunk in reader:
@@ -117,34 +120,34 @@ async def write_chunks(audio_stream: EventPublisher[AudioStream]):
 
 async def main():
     # Initialize the Transcribe Streaming client
-    client = TranscribeStreamingClient(
+    async with AsyncTranscribeStreamingClient(
         config=await AsyncTranscribeStreamingConfig.resolve(
             endpoint_uri=ENDPOINT_URI,
             region=AWS_REGION,
             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
+            transport=AWSCRTHTTPClient(),
         )
-    )
-
-    # Start a streaming transcription session
-    stream = await client.start_stream_transcription(
-        input=StartStreamTranscriptionInput(
-            language_code="en-US",
-            media_sample_rate_hertz=SAMPLE_RATE,
-            media_encoding="pcm",
+    ) as client:
+        # Start a streaming transcription session
+        stream = await client.start_stream_transcription(
+            input=StartStreamTranscriptionInput(
+                language_code="en-US",
+                media_sample_rate_hertz=SAMPLE_RATE,
+                media_encoding="pcm",
+            )
         )
-    )
 
-    # Get the output stream for receiving transcription results
-    _, output_stream = await stream.await_output()
+        # Get the output stream for receiving transcription results
+        _, output_stream = await stream.await_output()
 
-    # Set up the handler for processing transcription events
-    handler = TranscriptResultStreamHandler(output_stream)
+        # Set up the handler for processing transcription events
+        handler = TranscriptResultStreamHandler(output_stream)
 
-    print("Transcribing audio from file...")
-    print("===============================")
+        print("Transcribing audio from file...")
+        print("===============================")
 
-    # Run audio streaming and transcription handling concurrently
-    await asyncio.gather(write_chunks(stream.input_stream), handler.handle_events())
+        # Run audio streaming and transcription handling concurrently
+        await asyncio.gather(write_chunks(stream.input_stream), handler.handle_events())
 
 
 if __name__ == "__main__":

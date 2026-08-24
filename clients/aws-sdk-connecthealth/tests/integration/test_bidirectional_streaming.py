@@ -8,6 +8,7 @@ import time
 import uuid
 
 from smithy_core.aio.eventstream import DuplexEventStream
+from smithy_http.aio.crt import AWSCRTHTTPClient
 
 from aws_sdk_connecthealth.models import (
     ClinicalNoteGenerationSettings,
@@ -15,8 +16,8 @@ from aws_sdk_connecthealth.models import (
     EncounterContext,
     GetMedicalScribeListeningSessionInput,
     GetMedicalScribeListeningSessionOutput,
-    ManagedTemplate,
     ManagedNoteTemplate,
+    ManagedTemplate,
     MedicalScribeAudioEvent,
     MedicalScribeConfigurationEvent,
     MedicalScribeInputStream,
@@ -39,7 +40,6 @@ from aws_sdk_connecthealth.models import (
 )
 
 from . import AUDIO_FILE, REGION, create_connecthealth_client, streaming_endpoint_plugin
-
 
 SAMPLE_RATE = 16000
 BYTES_PER_SAMPLE = 2
@@ -70,7 +70,9 @@ async def _send_events(
                     ),
                 ),
                 encounter_context=EncounterContext(
-                    unstructured_context="Integration test encounter for SDK validation."
+                    unstructured_context=(
+                        "Integration test encounter for SDK validation."
+                    )
                 ),
             )
         )
@@ -157,59 +159,69 @@ async def test_start_medical_scribe_listening_session(connecthealth_resources) -
     """Test bidirectional streaming with audio input and transcript output."""
     domain_id, subscription_id, output_s3_uri = connecthealth_resources
 
-    client = await create_connecthealth_client(REGION)
-    endpoint_plugin = streaming_endpoint_plugin(REGION)
-    session_id = str(uuid.uuid4())
+    async with await create_connecthealth_client(
+        REGION, transport=AWSCRTHTTPClient()
+    ) as client:
+        endpoint_plugin = streaming_endpoint_plugin(REGION)
+        session_id = str(uuid.uuid4())
 
-    stream = await client.start_medical_scribe_listening_session(
-        input=StartMedicalScribeListeningSessionInput(
-            session_id=session_id,
-            domain_id=domain_id,
-            subscription_id=subscription_id,
-            language_code=MedicalScribeLanguageCode.EN_US,
-            media_sample_rate_hertz=SAMPLE_RATE,
-            media_encoding=MedicalScribeMediaEncoding.PCM,
-        ),
-        plugins=[endpoint_plugin],
-    )
+        stream = await client.start_medical_scribe_listening_session(
+            input=StartMedicalScribeListeningSessionInput(
+                session_id=session_id,
+                domain_id=domain_id,
+                subscription_id=subscription_id,
+                language_code=MedicalScribeLanguageCode.EN_US,
+                media_sample_rate_hertz=SAMPLE_RATE,
+                media_encoding=MedicalScribeMediaEncoding.PCM,
+            ),
+            plugins=[endpoint_plugin],
+        )
 
-    results = await asyncio.gather(
-        _send_events(stream, output_s3_uri),
-        _receive_events(stream, session_id, domain_id, subscription_id),
-    )
-    got_transcript = results[1]
-    assert got_transcript, (
-        "Expected to receive a transcript event with non-empty content"
-    )
+        results = await asyncio.gather(
+            _send_events(stream, output_s3_uri),
+            _receive_events(stream, session_id, domain_id, subscription_id),
+        )
+        got_transcript = results[1]
+        assert got_transcript, (
+            "Expected to receive a transcript event with non-empty content"
+        )
 
-    response = await client.get_medical_scribe_listening_session(
-        input=GetMedicalScribeListeningSessionInput(
-            session_id=session_id, domain_id=domain_id, subscription_id=subscription_id
-        ),
-        plugins=[endpoint_plugin],
-    )
-    assert isinstance(response, GetMedicalScribeListeningSessionOutput)
-    details = response.medical_scribe_listening_session_details
-    assert details is not None
-    assert details.session_id == session_id
-    assert details.stream_status == MedicalScribeStreamStatus.COMPLETED
-    assert details.language_code == MedicalScribeLanguageCode.EN_US
-    assert details.media_encoding == MedicalScribeMediaEncoding.PCM
-    assert details.media_sample_rate_hertz == SAMPLE_RATE
-    assert details.encounter_context_provided is True
-    assert isinstance(
-        details.post_stream_action_settings,
-        MedicalScribePostStreamActionSettingsResponse,
-    )
-    assert details.post_stream_action_settings.output_s3_uri == output_s3_uri
-    assert isinstance(
-        details.post_stream_action_settings.clinical_note_generation_settings,
-        ClinicalNoteGenerationSettingsResponse,
-    )
-    note_template = details.post_stream_action_settings.clinical_note_generation_settings.note_template_settings
-    assert isinstance(note_template, NoteTemplateSettingsResponseManagedTemplate)
-    assert note_template.value is not None
-    assert note_template.value.template_type == ManagedNoteTemplate.HISTORY_AND_PHYSICAL
-    assert details.post_stream_action_result is not None
-    assert details.stream_creation_time is not None
-    assert details.stream_end_time is not None
+        response = await client.get_medical_scribe_listening_session(
+            input=GetMedicalScribeListeningSessionInput(
+                session_id=session_id,
+                domain_id=domain_id,
+                subscription_id=subscription_id,
+            ),
+            plugins=[endpoint_plugin],
+        )
+        assert isinstance(response, GetMedicalScribeListeningSessionOutput)
+        details = response.medical_scribe_listening_session_details
+        assert details is not None
+        assert details.session_id == session_id
+        assert details.stream_status == MedicalScribeStreamStatus.COMPLETED
+        assert details.language_code == MedicalScribeLanguageCode.EN_US
+        assert details.media_encoding == MedicalScribeMediaEncoding.PCM
+        assert details.media_sample_rate_hertz == SAMPLE_RATE
+        assert details.encounter_context_provided is True
+        assert isinstance(
+            details.post_stream_action_settings,
+            MedicalScribePostStreamActionSettingsResponse,
+        )
+        assert details.post_stream_action_settings.output_s3_uri == output_s3_uri
+        assert isinstance(
+            details.post_stream_action_settings.clinical_note_generation_settings,
+            ClinicalNoteGenerationSettingsResponse,
+        )
+        clinical_note_settings = (
+            details.post_stream_action_settings.clinical_note_generation_settings
+        )
+        note_template = clinical_note_settings.note_template_settings
+        assert isinstance(note_template, NoteTemplateSettingsResponseManagedTemplate)
+        assert note_template.value is not None
+        assert (
+            note_template.value.template_type
+            == ManagedNoteTemplate.HISTORY_AND_PHYSICAL
+        )
+        assert details.post_stream_action_result is not None
+        assert details.stream_creation_time is not None
+        assert details.stream_end_time is not None

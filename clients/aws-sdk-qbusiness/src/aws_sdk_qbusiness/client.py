@@ -3,8 +3,7 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import Any, TYPE_CHECKING, cast
-import warnings
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
@@ -12,6 +11,7 @@ from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.eventstream import DuplexEventStream
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -335,6 +335,7 @@ class AsyncQBusinessClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -375,6 +376,25 @@ class AsyncQBusinessClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def associate_permission(
         self, input: AssociatePermissionInput, plugins: list[Plugin] | None = None
     ) -> AssociatePermissionOutput:
@@ -397,6 +417,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `AssociatePermissionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -463,6 +488,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `BatchDeleteDocumentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -538,6 +568,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `BatchPutDocumentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -602,6 +637,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CancelSubscriptionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -664,6 +704,11 @@ class AsyncQBusinessClient:
         Returns:
             A `DuplexEventStream` for bidirectional streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -731,6 +776,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ChatSyncOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -795,6 +845,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CheckDocumentAccessOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -861,6 +916,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateAnonymousWebExperienceUrlOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -943,6 +1003,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateApplicationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1010,6 +1075,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateChatResponseConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1080,6 +1150,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateDataAccessorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1146,6 +1221,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateDataSourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1218,6 +1298,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateIndexOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1280,6 +1365,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreatePluginOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1342,6 +1432,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateRetrieverOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1416,6 +1511,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateSubscriptionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1479,6 +1579,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateUserOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1541,6 +1646,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `CreateWebExperienceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1603,6 +1713,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteApplicationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1666,6 +1781,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteAttachmentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1731,6 +1851,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteChatControlsConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1796,6 +1921,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteChatResponseConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1858,6 +1988,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteConversationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1923,6 +2058,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteDataAccessorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1987,6 +2127,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteDataSourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2059,6 +2204,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteGroupOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2121,6 +2271,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteIndexOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2183,6 +2338,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeletePluginOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2245,6 +2405,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteRetrieverOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2307,6 +2472,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteUserOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2369,6 +2539,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DeleteWebExperienceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2434,6 +2609,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `DisassociatePermissionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2496,6 +2676,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetApplicationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2561,6 +2746,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetChatControlsConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2627,6 +2817,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetChatResponseConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2694,6 +2889,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetDataAccessorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2757,6 +2957,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetDataSourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2823,6 +3028,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetDocumentContentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2885,6 +3095,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetGroupOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2947,6 +3162,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetIndexOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3016,6 +3236,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetMediaOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3078,6 +3303,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetPluginOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3143,6 +3373,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetPolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3206,6 +3441,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetRetrieverOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3269,6 +3509,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetUserOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3331,6 +3576,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `GetWebExperienceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3399,6 +3649,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListApplicationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3463,6 +3718,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListAttachmentsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3530,6 +3790,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListChatResponseConfigurationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3592,6 +3857,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListConversationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3657,6 +3927,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListDataAccessorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3720,6 +3995,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListDataSourcesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3783,6 +4063,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListDataSourceSyncJobsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3845,6 +4130,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListDocumentsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3907,6 +4197,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListGroupsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3969,6 +4264,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListIndicesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4032,6 +4332,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListMessagesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4095,6 +4400,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListPluginActionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4157,6 +4467,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListPluginsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4220,6 +4535,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListPluginTypeActionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4282,6 +4602,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListPluginTypeMetadataOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4344,6 +4669,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListRetrieversOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4406,6 +4736,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListSubscriptionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4470,6 +4805,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListTagsForResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4532,6 +4872,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `ListWebExperiencesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4595,6 +4940,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `PutFeedbackOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4673,6 +5023,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `PutGroupOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4742,6 +5097,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `SearchRelevantContentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4806,6 +5166,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `StartDataSourceSyncJobOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4869,6 +5234,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `StopDataSourceSyncJobOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4933,6 +5303,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `TagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4995,6 +5370,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UntagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5068,6 +5448,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateApplicationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5133,6 +5518,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateChatControlsConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5200,6 +5590,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateChatResponseConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5266,6 +5661,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateDataAccessorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5328,6 +5728,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateDataSourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5390,6 +5795,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateIndexOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5452,6 +5862,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdatePluginOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5514,6 +5929,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateRetrieverOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5580,6 +6000,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateSubscriptionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5642,6 +6067,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateUserOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5704,6 +6134,11 @@ class AsyncQBusinessClient:
         Returns:
             An instance of `UpdateWebExperienceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5747,20 +6182,3 @@ class AsyncQBusinessClient:
         )
 
         return await pipeline(call)
-
-
-if TYPE_CHECKING:
-    # Deprecated alias for backwards compatibility, to be removed.
-    QBusinessClient = AsyncQBusinessClient
-
-
-def __getattr__(name: str) -> Any:
-    if name == "QBusinessClient":
-        warnings.warn(
-            "QBusinessClient is deprecated, use AsyncQBusinessClient instead. "
-            "This alias will be removed in a future version.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return AsyncQBusinessClient
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

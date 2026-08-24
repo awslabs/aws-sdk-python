@@ -40,6 +40,7 @@ logger = logging.getLogger("generate_doc_stubs")
 
 ENUM_BASE_CLASSES = ("StrEnum", "IntEnum")
 ERROR_BASE_CLASSES = ("ServiceError", "ModeledError")
+CLIENT_METHOD_NAMES = ("close",)
 
 
 class StreamType(Enum):
@@ -91,6 +92,14 @@ class OperationInfo:
 
 
 @dataclass
+class ClientMethodInfo:
+    """Information about a non-operation client method."""
+
+    name: str
+    module_path: str
+
+
+@dataclass
 class ModelsInfo:
     """Information about all modeled types."""
 
@@ -109,6 +118,7 @@ class ClientInfo:
     package_name: str  # e.g., "aws_sdk_bedrock_runtime"
     config: TypeInfo
     plugin: TypeInfo
+    client_methods: list[ClientMethodInfo]
     operations: list[OperationInfo]
     models: ModelsInfo
 
@@ -202,11 +212,13 @@ class DocStubGenerator:
         config = TypeInfo(name=config_class.name, module_path=config_class.path)
         plugin = TypeInfo(name=plugin_alias.name, module_path=plugin_alias.path)
 
+        client_methods = self._extract_client_methods(client_class)
         operations = self._extract_operations(client_class)
         models = self._extract_models(models_module, operations)
 
         logger.info(
-            f"Analyzed {client_class.name}: {len(operations)} operations, "
+            f"Analyzed {client_class.name}: {len(client_methods)} client methods, "
+            f"{len(operations)} operations, "
             f"{len(models.structures)} structures, {len(models.errors)} errors, "
             f"{len(models.unions)} unions, {len(models.enums)} enums"
         )
@@ -217,6 +229,7 @@ class DocStubGenerator:
             package_name=package_name,
             config=config,
             plugin=plugin,
+            client_methods=client_methods,
             operations=operations,
             models=models,
         )
@@ -236,10 +249,23 @@ class DocStubGenerator:
         """Extract operation information from client class."""
         operations = []
         for op in client_class.functions.values():
-            if op.is_private or op.is_init_method:
+            if (
+                op.is_private
+                or op.is_init_method
+                or op.is_special
+                or op.name in CLIENT_METHOD_NAMES
+            ):
                 continue
             operations.append(self._analyze_operation(op))
         return operations
+
+    def _extract_client_methods(self, client_class: Class) -> list[ClientMethodInfo]:
+        """Extract public client methods that are not service operations."""
+        return [
+            ClientMethodInfo(name=method.name, module_path=method.path)
+            for method in client_class.functions.values()
+            if not method.is_private and method.name in CLIENT_METHOD_NAMES
+        ]
 
     def _analyze_operation(self, operation: Function) -> OperationInfo:
         """Analyze an operation method to extract information."""
@@ -271,7 +297,8 @@ class DocStubGenerator:
                 event_output_type = stream_args[idx].canonical_name
 
             output_info = TypeInfo(
-                name=stream_args[-1].canonical_name, module_path=stream_args[-1].canonical_path
+                name=stream_args[-1].canonical_name,
+                module_path=stream_args[-1].canonical_path,
             )
         else:
             output_info = TypeInfo(name=output_type, module_path=returns.canonical_path)
@@ -433,6 +460,9 @@ class DocStubGenerator:
             ),
             "",
         ]
+
+        for method in sorted(client_info.client_methods, key=lambda x: x.name):
+            lines.extend([*self._mkdocs_directive(method.module_path, heading_level=4), ""])
 
         # Operations section
         if client_info.operations:
@@ -639,7 +669,11 @@ def main() -> int:
         description="Generate API documentation stubs for AWS SDK Python client."
     )
     parser.add_argument(
-        "-c", "--client-dir", type=Path, required=True, help="Path to the client source package"
+        "-c",
+        "--client-dir",
+        type=Path,
+        required=True,
+        help="Path to the client source package",
     )
     parser.add_argument(
         "-o",

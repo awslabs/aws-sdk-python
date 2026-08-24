@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.11.0
+
+### API Changes
+* Adds support for specifying an inference profile ID or ARN, or an application inference profile ARN as the target model in CreateAdvancedPromptOptimizationJob.
+
+### Enhancements
+* Re-generated with smithy-python 0.5.0
+
+### Dependencies
+* Bump `smithy-aws-core` from `~=0.10.0` to `~=0.11.0`.
+* Bump `smithy-http` from `~=0.4.0` to `~=0.5.0`.
+
 ## v0.10.0
 
 ### Dependencies

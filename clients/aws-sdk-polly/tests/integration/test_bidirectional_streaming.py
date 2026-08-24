@@ -6,6 +6,7 @@
 import asyncio
 
 from smithy_core.aio.eventstream import DuplexEventStream
+from smithy_http.aio.crt import AWSCRTHTTPClient
 
 from aws_sdk_polly.models import (
     CloseStreamEvent,
@@ -96,19 +97,20 @@ async def _receive_audio(
 
 async def test_start_speech_synthesis_stream() -> None:
     """Test bidirectional streaming with text input and audio output."""
-    client = await create_polly_client(REGION)
-
-    stream = await client.start_speech_synthesis_stream(
-        input=StartSpeechSynthesisStreamInput(
-            engine=ENGINE,
-            output_format=OUTPUT_FORMAT,
-            sample_rate=SAMPLE_RATE,
-            voice_id=VOICE_ID,
+    async with await create_polly_client(
+        REGION, transport=AWSCRTHTTPClient()
+    ) as client:
+        stream = await client.start_speech_synthesis_stream(
+            input=StartSpeechSynthesisStreamInput(
+                engine=ENGINE,
+                output_format=OUTPUT_FORMAT,
+                sample_rate=SAMPLE_RATE,
+                voice_id=VOICE_ID,
+            )
         )
-    )
 
-    results = await asyncio.gather(_send_text(stream), _receive_audio(stream))
-    audio_bytes, request_characters = results[1]
+        results = await asyncio.gather(_send_text(stream), _receive_audio(stream))
+        audio_bytes, request_characters = results[1]
 
-    assert audio_bytes > 0, "Expected to receive synthesized audio"
-    assert request_characters == len(TEST_TEXT)
+        assert audio_bytes > 0, "Expected to receive synthesized audio"
+        assert request_characters == len(TEST_TEXT)

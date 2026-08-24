@@ -1,0 +1,28 @@
+{
+  "changes": [
+    {
+      "type": "api-change",
+      "description": "Increase spans count from 1k to 20k"
+    },
+    {
+      "type": "api-change",
+      "description": "AgentCore Memory now supports Flexible Namespaces and Non-Conversational Payloads in CreateEvent API"
+    },
+    {
+      "type": "api-change",
+      "description": "Add support for the Machine Payments Protocol (MPP) and x402 upto scheme payments protocol in Amazon Bedrock AgentCore Payments. Customers can now pay for MPP-gated resources and also pay services which requires upto scheme in x402"
+    },
+    {
+      "type": "enhancement",
+      "description": "Re-generated with smithy-python 0.5.0"
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `smithy-aws-core` from `~=0.10.0` to `~=0.11.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `smithy-http` from `~=0.4.0` to `~=0.5.0`."
+    }
+  ]
+}

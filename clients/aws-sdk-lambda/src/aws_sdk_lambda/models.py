@@ -122,6 +122,9 @@ from ._private.schemas import (
     DELETE_PROVISIONED_CONCURRENCY_CONFIG as _SCHEMA_DELETE_PROVISIONED_CONCURRENCY_CONFIG,
     DELETE_PROVISIONED_CONCURRENCY_CONFIG_INPUT as _SCHEMA_DELETE_PROVISIONED_CONCURRENCY_CONFIG_INPUT,
     DELETE_PROVISIONED_CONCURRENCY_CONFIG_OUTPUT as _SCHEMA_DELETE_PROVISIONED_CONCURRENCY_CONFIG_OUTPUT,
+    DELETE_RESOURCE_POLICY as _SCHEMA_DELETE_RESOURCE_POLICY,
+    DELETE_RESOURCE_POLICY_INPUT as _SCHEMA_DELETE_RESOURCE_POLICY_INPUT,
+    DELETE_RESOURCE_POLICY_OUTPUT as _SCHEMA_DELETE_RESOURCE_POLICY_OUTPUT,
     DESTINATION_CONFIG as _SCHEMA_DESTINATION_CONFIG,
     DOCUMENT_DB_EVENT_SOURCE_CONFIG as _SCHEMA_DOCUMENT_DB_EVENT_SOURCE_CONFIG,
     DURABLE_CONFIG as _SCHEMA_DURABLE_CONFIG,
@@ -230,6 +233,9 @@ from ._private.schemas import (
     GET_PROVISIONED_CONCURRENCY_CONFIG as _SCHEMA_GET_PROVISIONED_CONCURRENCY_CONFIG,
     GET_PROVISIONED_CONCURRENCY_CONFIG_INPUT as _SCHEMA_GET_PROVISIONED_CONCURRENCY_CONFIG_INPUT,
     GET_PROVISIONED_CONCURRENCY_CONFIG_OUTPUT as _SCHEMA_GET_PROVISIONED_CONCURRENCY_CONFIG_OUTPUT,
+    GET_RESOURCE_POLICY as _SCHEMA_GET_RESOURCE_POLICY,
+    GET_RESOURCE_POLICY_INPUT as _SCHEMA_GET_RESOURCE_POLICY_INPUT,
+    GET_RESOURCE_POLICY_OUTPUT as _SCHEMA_GET_RESOURCE_POLICY_OUTPUT,
     GET_RUNTIME_MANAGEMENT_CONFIG as _SCHEMA_GET_RUNTIME_MANAGEMENT_CONFIG,
     GET_RUNTIME_MANAGEMENT_CONFIG_INPUT as _SCHEMA_GET_RUNTIME_MANAGEMENT_CONFIG_INPUT,
     GET_RUNTIME_MANAGEMENT_CONFIG_OUTPUT as _SCHEMA_GET_RUNTIME_MANAGEMENT_CONFIG_OUTPUT,
@@ -353,6 +359,9 @@ from ._private.schemas import (
     PUT_PROVISIONED_CONCURRENCY_CONFIG as _SCHEMA_PUT_PROVISIONED_CONCURRENCY_CONFIG,
     PUT_PROVISIONED_CONCURRENCY_CONFIG_INPUT as _SCHEMA_PUT_PROVISIONED_CONCURRENCY_CONFIG_INPUT,
     PUT_PROVISIONED_CONCURRENCY_CONFIG_OUTPUT as _SCHEMA_PUT_PROVISIONED_CONCURRENCY_CONFIG_OUTPUT,
+    PUT_RESOURCE_POLICY as _SCHEMA_PUT_RESOURCE_POLICY,
+    PUT_RESOURCE_POLICY_INPUT as _SCHEMA_PUT_RESOURCE_POLICY_INPUT,
+    PUT_RESOURCE_POLICY_OUTPUT as _SCHEMA_PUT_RESOURCE_POLICY_OUTPUT,
     PUT_RUNTIME_MANAGEMENT_CONFIG as _SCHEMA_PUT_RUNTIME_MANAGEMENT_CONFIG,
     PUT_RUNTIME_MANAGEMENT_CONFIG_INPUT as _SCHEMA_PUT_RUNTIME_MANAGEMENT_CONFIG_INPUT,
     PUT_RUNTIME_MANAGEMENT_CONFIG_OUTPUT as _SCHEMA_PUT_RUNTIME_MANAGEMENT_CONFIG_OUTPUT,
@@ -1604,11 +1613,8 @@ class AddPermissionOutput:
 @dataclass(kw_only=True)
 class PublicPolicyException(ServiceError):
     """
-    The resource-based policy you tried to add to the Lambda function would
-    grant public access to it, and your account's `BlockPublicAccess`
-    setting prevents public access. For more information about blocking
-    public access to Lambda functions, see [Block public access to Lambda
-    resources](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html#access-control-block-public-access).
+    The resource-based policy you tried to add to the Lambda resource would
+    grant public access to it, which isn't allowed.
     """
 
     fault: Literal["client", "server"] | None = "client"
@@ -5945,6 +5951,138 @@ DELETE_FUNCTION_EVENT_INVOKE_CONFIG = APIOperation(
     effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
     error_schemas=[
         _SCHEMA_INVALID_PARAMETER_VALUE_EXCEPTION,
+        _SCHEMA_RESOURCE_CONFLICT_EXCEPTION,
+        _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
+        _SCHEMA_SERVICE_EXCEPTION,
+        _SCHEMA_TOO_MANY_REQUESTS_EXCEPTION,
+    ],
+)
+
+
+@dataclass(kw_only=True)
+class DeleteResourcePolicyInput:
+    """Dataclass for DeleteResourcePolicyInput structure."""
+
+    resource_arn: str | None = None
+    """
+    The Amazon Resource Name (ARN) of the Lambda resource you want to delete
+    the policy from. You can use a qualified or an unqualified ARN. The
+    value must be a complete ARN, and the operation does not accept wildcard
+    characters.
+    """
+
+    revision_id: str | None = None
+    """
+    The revision ID that the existing policy must match for the deletion to
+    proceed. If the revision ID doesn't match, the operation fails with a
+    `PreconditionFailedException` error. To retrieve the current revision
+    ID, use the GetResourcePolicy operation.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DELETE_RESOURCE_POLICY_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.resource_arn is not None:
+            serializer.write_string(
+                _SCHEMA_DELETE_RESOURCE_POLICY_INPUT.members["ResourceArn"],
+                self.resource_arn,
+            )
+
+        if self.revision_id is not None:
+            serializer.write_string(
+                _SCHEMA_DELETE_RESOURCE_POLICY_INPUT.members["RevisionId"],
+                self.revision_id,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["resource_arn"] = de.read_string(
+                        _SCHEMA_DELETE_RESOURCE_POLICY_INPUT.members["ResourceArn"]
+                    )
+
+                case 1:
+                    kwargs["revision_id"] = de.read_string(
+                        _SCHEMA_DELETE_RESOURCE_POLICY_INPUT.members["RevisionId"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_DELETE_RESOURCE_POLICY_INPUT, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class DeleteResourcePolicyOutput:
+    """Dataclass for DeleteResourcePolicyOutput structure."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DELETE_RESOURCE_POLICY_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_DELETE_RESOURCE_POLICY_OUTPUT, consumer=_consumer
+        )
+        return kwargs
+
+
+DELETE_RESOURCE_POLICY = APIOperation(
+    input=DeleteResourcePolicyInput,
+    output=DeleteResourcePolicyOutput,
+    schema=_SCHEMA_DELETE_RESOURCE_POLICY,
+    input_schema=_SCHEMA_DELETE_RESOURCE_POLICY_INPUT,
+    output_schema=_SCHEMA_DELETE_RESOURCE_POLICY_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.lambda#InvalidParameterValueException"
+            ): InvalidParameterValueException,
+            ShapeID(
+                "com.amazonaws.lambda#PreconditionFailedException"
+            ): PreconditionFailedException,
+            ShapeID(
+                "com.amazonaws.lambda#ResourceConflictException"
+            ): ResourceConflictException,
+            ShapeID(
+                "com.amazonaws.lambda#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID("com.amazonaws.lambda#ServiceException"): ServiceException,
+            ShapeID(
+                "com.amazonaws.lambda#TooManyRequestsException"
+            ): TooManyRequestsException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    error_schemas=[
+        _SCHEMA_INVALID_PARAMETER_VALUE_EXCEPTION,
+        _SCHEMA_PRECONDITION_FAILED_EXCEPTION,
         _SCHEMA_RESOURCE_CONFLICT_EXCEPTION,
         _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
         _SCHEMA_SERVICE_EXCEPTION,
@@ -11081,9 +11219,10 @@ class ProvisionedPollerConfig:
     maximum_pollers: int | None = None
     """
     The maximum number of event pollers this event source can scale up to.
-    For Amazon SQS events source mappings, default is 200, and minimum value
-    allowed is 2. For Amazon MSK and self-managed Apache Kafka event source
-    mappings, default is 200, and minimum value allowed is 1.
+    For Amazon SQS event source mappings, the accepted range is between 2
+    and 10,000, with a default of 200. For Amazon MSK and self-managed
+    Apache Kafka event source mappings, the accepted range is between 1 and
+    2,000, with a default of 200.
     """
 
     poller_group_name: str | None = None
@@ -34893,6 +35032,136 @@ GET_FUNCTION_EVENT_INVOKE_CONFIG = APIOperation(
 
 
 @dataclass(kw_only=True)
+class GetResourcePolicyInput:
+    """Dataclass for GetResourcePolicyInput structure."""
+
+    resource_arn: str | None = None
+    """
+    The Amazon Resource Name (ARN) of the Lambda resource you want to
+    retrieve the policy for. You can use a qualified or an unqualified ARN.
+    The value must be a complete ARN, and the operation does not accept
+    wildcard characters.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_RESOURCE_POLICY_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.resource_arn is not None:
+            serializer.write_string(
+                _SCHEMA_GET_RESOURCE_POLICY_INPUT.members["ResourceArn"],
+                self.resource_arn,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["resource_arn"] = de.read_string(
+                        _SCHEMA_GET_RESOURCE_POLICY_INPUT.members["ResourceArn"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_RESOURCE_POLICY_INPUT, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class GetResourcePolicyOutput:
+    """Dataclass for GetResourcePolicyOutput structure."""
+
+    policy: str | None = None
+    """The resource-based policy attached to the Lambda resource you specified."""
+
+    revision_id: str | None = None
+    """
+    The revision ID of the policy. Pass this value as the `RevisionId` in a
+    PutResourcePolicy or DeleteResourcePolicy request. Doing so ensures the
+    operation acts on the expected version of the policy.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_RESOURCE_POLICY_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.policy is not None:
+            serializer.write_string(
+                _SCHEMA_GET_RESOURCE_POLICY_OUTPUT.members["Policy"], self.policy
+            )
+
+        if self.revision_id is not None:
+            serializer.write_string(
+                _SCHEMA_GET_RESOURCE_POLICY_OUTPUT.members["RevisionId"],
+                self.revision_id,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["policy"] = de.read_string(
+                        _SCHEMA_GET_RESOURCE_POLICY_OUTPUT.members["Policy"]
+                    )
+
+                case 1:
+                    kwargs["revision_id"] = de.read_string(
+                        _SCHEMA_GET_RESOURCE_POLICY_OUTPUT.members["RevisionId"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_RESOURCE_POLICY_OUTPUT, consumer=_consumer)
+        return kwargs
+
+
+GET_RESOURCE_POLICY = APIOperation(
+    input=GetResourcePolicyInput,
+    output=GetResourcePolicyOutput,
+    schema=_SCHEMA_GET_RESOURCE_POLICY,
+    input_schema=_SCHEMA_GET_RESOURCE_POLICY_INPUT,
+    output_schema=_SCHEMA_GET_RESOURCE_POLICY_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.lambda#InvalidParameterValueException"
+            ): InvalidParameterValueException,
+            ShapeID(
+                "com.amazonaws.lambda#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID("com.amazonaws.lambda#ServiceException"): ServiceException,
+            ShapeID(
+                "com.amazonaws.lambda#TooManyRequestsException"
+            ): TooManyRequestsException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    error_schemas=[
+        _SCHEMA_INVALID_PARAMETER_VALUE_EXCEPTION,
+        _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
+        _SCHEMA_SERVICE_EXCEPTION,
+        _SCHEMA_TOO_MANY_REQUESTS_EXCEPTION,
+    ],
+)
+
+
+@dataclass(kw_only=True)
 class ListLayersInput:
     """Dataclass for ListLayersInput structure."""
 
@@ -38722,6 +38991,187 @@ PUT_FUNCTION_EVENT_INVOKE_CONFIG = APIOperation(
     effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
     error_schemas=[
         _SCHEMA_INVALID_PARAMETER_VALUE_EXCEPTION,
+        _SCHEMA_RESOURCE_CONFLICT_EXCEPTION,
+        _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
+        _SCHEMA_SERVICE_EXCEPTION,
+        _SCHEMA_TOO_MANY_REQUESTS_EXCEPTION,
+    ],
+)
+
+
+@dataclass(kw_only=True)
+class PutResourcePolicyInput:
+    """Dataclass for PutResourcePolicyInput structure."""
+
+    resource_arn: str | None = None
+    """
+    The Amazon Resource Name (ARN) of the Lambda resource you want to add
+    the policy to. You can use a qualified or an unqualified ARN. The value
+    must be a complete ARN, and the operation does not accept wildcard
+    characters.
+    """
+
+    policy: str | None = None
+    """
+    The policy document you want to add to your Lambda resource. This is
+    formatted as a JSON string.
+
+    For more information, see [Working with resource-based policies in
+    Lambda](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html)
+    in the *Lambda Developer Guide*.
+    """
+
+    revision_id: str | None = None
+    """
+    The revision ID that the existing policy must match for the replacement
+    to proceed. If the revision ID doesn't match, the operation fails with
+    a `PreconditionFailedException` error. To retrieve the current revision
+    ID, use the GetResourcePolicy operation.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_PUT_RESOURCE_POLICY_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.resource_arn is not None:
+            serializer.write_string(
+                _SCHEMA_PUT_RESOURCE_POLICY_INPUT.members["ResourceArn"],
+                self.resource_arn,
+            )
+
+        if self.policy is not None:
+            serializer.write_string(
+                _SCHEMA_PUT_RESOURCE_POLICY_INPUT.members["Policy"], self.policy
+            )
+
+        if self.revision_id is not None:
+            serializer.write_string(
+                _SCHEMA_PUT_RESOURCE_POLICY_INPUT.members["RevisionId"],
+                self.revision_id,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["resource_arn"] = de.read_string(
+                        _SCHEMA_PUT_RESOURCE_POLICY_INPUT.members["ResourceArn"]
+                    )
+
+                case 1:
+                    kwargs["policy"] = de.read_string(
+                        _SCHEMA_PUT_RESOURCE_POLICY_INPUT.members["Policy"]
+                    )
+
+                case 2:
+                    kwargs["revision_id"] = de.read_string(
+                        _SCHEMA_PUT_RESOURCE_POLICY_INPUT.members["RevisionId"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_PUT_RESOURCE_POLICY_INPUT, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class PutResourcePolicyOutput:
+    """Dataclass for PutResourcePolicyOutput structure."""
+
+    policy: str | None = None
+    """The resource-based policy that Lambda adds to the resource."""
+
+    revision_id: str | None = None
+    """The revision ID of the policy that Lambda adds to your Lambda resource."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_PUT_RESOURCE_POLICY_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.policy is not None:
+            serializer.write_string(
+                _SCHEMA_PUT_RESOURCE_POLICY_OUTPUT.members["Policy"], self.policy
+            )
+
+        if self.revision_id is not None:
+            serializer.write_string(
+                _SCHEMA_PUT_RESOURCE_POLICY_OUTPUT.members["RevisionId"],
+                self.revision_id,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["policy"] = de.read_string(
+                        _SCHEMA_PUT_RESOURCE_POLICY_OUTPUT.members["Policy"]
+                    )
+
+                case 1:
+                    kwargs["revision_id"] = de.read_string(
+                        _SCHEMA_PUT_RESOURCE_POLICY_OUTPUT.members["RevisionId"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_PUT_RESOURCE_POLICY_OUTPUT, consumer=_consumer)
+        return kwargs
+
+
+PUT_RESOURCE_POLICY = APIOperation(
+    input=PutResourcePolicyInput,
+    output=PutResourcePolicyOutput,
+    schema=_SCHEMA_PUT_RESOURCE_POLICY,
+    input_schema=_SCHEMA_PUT_RESOURCE_POLICY_INPUT,
+    output_schema=_SCHEMA_PUT_RESOURCE_POLICY_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.lambda#InvalidParameterValueException"
+            ): InvalidParameterValueException,
+            ShapeID(
+                "com.amazonaws.lambda#PolicyLengthExceededException"
+            ): PolicyLengthExceededException,
+            ShapeID(
+                "com.amazonaws.lambda#PreconditionFailedException"
+            ): PreconditionFailedException,
+            ShapeID(
+                "com.amazonaws.lambda#PublicPolicyException"
+            ): PublicPolicyException,
+            ShapeID(
+                "com.amazonaws.lambda#ResourceConflictException"
+            ): ResourceConflictException,
+            ShapeID(
+                "com.amazonaws.lambda#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID("com.amazonaws.lambda#ServiceException"): ServiceException,
+            ShapeID(
+                "com.amazonaws.lambda#TooManyRequestsException"
+            ): TooManyRequestsException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    error_schemas=[
+        _SCHEMA_INVALID_PARAMETER_VALUE_EXCEPTION,
+        _SCHEMA_POLICY_LENGTH_EXCEEDED_EXCEPTION,
+        _SCHEMA_PRECONDITION_FAILED_EXCEPTION,
+        _SCHEMA_PUBLIC_POLICY_EXCEPTION,
         _SCHEMA_RESOURCE_CONFLICT_EXCEPTION,
         _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
         _SCHEMA_SERVICE_EXCEPTION,
