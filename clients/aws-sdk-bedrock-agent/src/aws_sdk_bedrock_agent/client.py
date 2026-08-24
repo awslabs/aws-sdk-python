@@ -3,13 +3,14 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import cast
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
 from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -276,6 +277,7 @@ class AsyncBedrockAgentClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -316,6 +318,25 @@ class AsyncBedrockAgentClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def associate_agent_collaborator(
         self,
         input: AssociateAgentCollaboratorInput,
@@ -336,6 +357,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `AssociateAgentCollaboratorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -402,6 +428,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `AssociateAgentKnowledgeBaseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -497,6 +528,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreateAgentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -577,6 +613,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreateAgentActionGroupOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -639,6 +680,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreateAgentAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -707,6 +753,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreateDataSourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -776,6 +827,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreateFlowOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -841,6 +897,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreateFlowAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -906,6 +967,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreateFlowVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1014,6 +1080,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreateKnowledgeBaseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1083,6 +1154,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreatePromptOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1149,6 +1225,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `CreatePromptVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1211,6 +1292,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteAgentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1273,6 +1359,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteAgentActionGroupOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1335,6 +1426,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteAgentAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1397,6 +1493,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteAgentVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1459,6 +1560,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteDataSourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1521,6 +1627,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteFlowOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1583,6 +1694,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteFlowAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1645,6 +1761,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteFlowVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1711,6 +1832,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteKnowledgeBaseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1779,6 +1905,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteKnowledgeBaseDocumentsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1847,6 +1978,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeletePromptOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1911,6 +2047,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DeleteResourcePolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1975,6 +2116,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DisassociateAgentCollaboratorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2039,6 +2185,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `DisassociateAgentKnowledgeBaseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2101,6 +2252,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetAgentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2163,6 +2319,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetAgentActionGroupOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2225,6 +2386,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetAgentAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2287,6 +2453,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetAgentCollaboratorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2349,6 +2520,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetAgentKnowledgeBaseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2411,6 +2587,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetAgentVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2473,6 +2654,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetDataSourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2538,6 +2724,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetFlowOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2603,6 +2794,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetFlowAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2668,6 +2864,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetFlowVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2732,6 +2933,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetIngestionJobOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2794,6 +3000,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetKnowledgeBaseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2860,6 +3071,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetKnowledgeBaseDocumentsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2929,6 +3145,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetPromptOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2991,6 +3212,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `GetResourcePolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3061,6 +3287,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `IngestKnowledgeBaseDocumentsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3123,6 +3354,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListAgentActionGroupsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3185,6 +3421,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListAgentAliasesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3247,6 +3488,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListAgentCollaboratorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3310,6 +3556,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListAgentKnowledgeBasesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3373,6 +3624,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListAgentsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3435,6 +3691,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListAgentVersionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3498,6 +3759,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListDataSourcesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3560,6 +3826,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListFlowAliasesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3625,6 +3896,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListFlowsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3690,6 +3966,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListFlowVersionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3753,6 +4034,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListIngestionJobsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3821,6 +4107,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListKnowledgeBaseDocumentsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3884,6 +4175,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListKnowledgeBasesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3952,6 +4248,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListPromptsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4014,6 +4315,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ListTagsForResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4077,6 +4383,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `PrepareAgentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4142,6 +4453,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `PrepareFlowOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4207,6 +4523,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `PutResourcePolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4270,6 +4591,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `StartIngestionJobOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4334,6 +4660,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `StopIngestionJobOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4398,6 +4729,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `TagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4460,6 +4796,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UntagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4522,6 +4863,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateAgentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4584,6 +4930,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateAgentActionGroupOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4646,6 +4997,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateAgentAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4708,6 +5064,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateAgentCollaboratorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4771,6 +5132,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateAgentKnowledgeBaseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4837,6 +5203,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateDataSourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4904,6 +5275,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateFlowOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4970,6 +5346,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateFlowAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5048,6 +5429,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdateKnowledgeBaseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5116,6 +5502,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `UpdatePromptOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5178,6 +5569,11 @@ class AsyncBedrockAgentClient:
         Returns:
             An instance of `ValidateFlowDefinitionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)

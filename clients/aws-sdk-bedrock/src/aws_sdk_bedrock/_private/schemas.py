@@ -650,16 +650,16 @@ INFERENCE_CONFIGURATION = Schema.collection(
     },
 )
 
-BEDROCK_MODEL_ID = Schema(
-    id=ShapeID("com.amazonaws.bedrock#BedrockModelId"),
+ADVANCED_PROMPT_OPTIMIZATION_MODEL_IDENTIFIER = Schema(
+    id=ShapeID("com.amazonaws.bedrock#AdvancedPromptOptimizationModelIdentifier"),
     shape_type=ShapeType.STRING,
     traits=[
         Trait.new(
-            id=ShapeID("smithy.api#length"), value=MappingProxyType({"max": 140})
+            id=ShapeID("smithy.api#length"), value=MappingProxyType({"max": 2048})
         ),
         Trait.new(
             id=ShapeID("smithy.api#pattern"),
-            value="^[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2}(/[a-z0-9]{12}|)$",
+            value="^(([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2}(/[a-z0-9]{12}|))|(arn:aws(|-us-gov|-cn|-iso|-iso-b|-iso-f):bedrock:[a-z0-9-]{1,20}:[0-9]{12}:application-inference-profile/[a-zA-Z0-9-:.]+)|(arn:aws(|-us-gov|-cn|-iso|-iso-b|-iso-f):bedrock:[a-z0-9-]{1,20}:([0-9]{12})?:inference-profile/[a-zA-Z0-9-:.]+)|(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}::foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63})))$",
         ),
     ],
 )
@@ -668,7 +668,7 @@ MODEL_CONFIGURATION = Schema.collection(
     id=ShapeID("com.amazonaws.bedrock#ModelConfiguration"),
     members={
         "modelId": {
-            "target": BEDROCK_MODEL_ID,
+            "target": ADVANCED_PROMPT_OPTIMIZATION_MODEL_IDENTIFIER,
             "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
         },
         "inferenceConfig": {"target": INFERENCE_CONFIGURATION},
@@ -14202,6 +14202,20 @@ MODEL_MODALITY_LIST = Schema.collection(
     id=ShapeID("com.amazonaws.bedrock#ModelModalityList"),
     shape_type=ShapeType.LIST,
     members={"member": {"target": MODEL_MODALITY}},
+)
+
+BEDROCK_MODEL_ID = Schema(
+    id=ShapeID("com.amazonaws.bedrock#BedrockModelId"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"), value=MappingProxyType({"max": 140})
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2}(/[a-z0-9]{12}|)$",
+        ),
+    ],
 )
 
 FOUNDATION_MODEL_LIFECYCLE_STATUS = Schema.collection(

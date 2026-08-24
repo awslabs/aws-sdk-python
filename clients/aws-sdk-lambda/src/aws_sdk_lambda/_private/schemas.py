@@ -3863,6 +3863,114 @@ DELETE_FUNCTION_EVENT_INVOKE_CONFIG = Schema(
     ],
 )
 
+POLICY_RESOURCE_ARN = Schema(
+    id=ShapeID("com.amazonaws.lambda#PolicyResourceArn"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 0, "max": 256}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^arn:(aws[a-zA-Z-]*)?:lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:function:[a-zA-Z0-9-_]+(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_])+)?$",
+        ),
+    ],
+)
+
+REVISION_ID = Schema(
+    id=ShapeID("com.amazonaws.lambda#RevisionId"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 36, "max": 36}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        ),
+    ],
+)
+
+DELETE_RESOURCE_POLICY_INPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.lambda#DeleteResourcePolicyInput"),
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.lambda#DeleteResourcePolicyRequest",
+        ),
+        Trait.new(id=ShapeID("smithy.api#input")),
+    ],
+    members={
+        "ResourceArn": {
+            "target": POLICY_RESOURCE_ARN,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+            ],
+        },
+        "RevisionId": {
+            "target": REVISION_ID,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="RevisionId"),
+            ],
+        },
+    },
+)
+
+DELETE_RESOURCE_POLICY_OUTPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.lambda#DeleteResourcePolicyOutput"),
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"), value="smithy.api#Unit"
+        ),
+        Trait.new(id=ShapeID("smithy.api#output")),
+    ],
+)
+
+DELETE_RESOURCE_POLICY = Schema(
+    id=ShapeID("com.amazonaws.lambda#DeleteResourcePolicy"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("aws.iam#conditionKeys"), value=("lambda:Principal",)),
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("aws.iam#iamAction"),
+            value=MappingProxyType(
+                {
+                    "documentation": "Grants permission to detach a policy from an AWS Lambda resource",
+                    "relativeDocumentation": "API_DeleteResourcePolicy.html",
+                    "requiredActions": ("lambda:RemovePermission",),
+                    "resources": MappingProxyType(
+                        {
+                            "required": MappingProxyType(
+                                {"function": MappingProxyType({})}
+                            )
+                        }
+                    ),
+                }
+            ),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#http"),
+            value=MappingProxyType(
+                {
+                    "method": "DELETE",
+                    "uri": "/2026-07-09/resource-policy/{ResourceArn}",
+                    "code": 204,
+                }
+            ),
+        ),
+    ],
+)
+
 CHECKPOINT_TOKEN = Schema(
     id=ShapeID("com.amazonaws.lambda#CheckpointToken"),
     shape_type=ShapeType.STRING,
@@ -5018,7 +5126,7 @@ DURABLE_CONFIG = Schema.collection(
         "KMSKeyArn": {
             "target": KMS_KEY_ARN,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:public",))
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:dar-cmkms",))
             ],
         },
         "RetentionPeriodInDays": {
@@ -9647,7 +9755,7 @@ EPHEMERAL_STORAGE_SIZE = Schema(
         Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:public",)),
         Trait.new(
             id=ShapeID("smithy.api#range"),
-            value=MappingProxyType({"min": 512, "max": 10240}),
+            value=MappingProxyType({"min": 512, "max": 32768}),
         ),
     ],
 )
@@ -10308,21 +10416,27 @@ RUNTIME = Schema.collection(
         "java8al2023": {
             "target": UNIT,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:public",)),
+                Trait.new(
+                    id=ShapeID("smithy.api#tags"), value=("feature:java-al2023",)
+                ),
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="java8.al2023"),
             ],
         },
         "java11al2023": {
             "target": UNIT,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:public",)),
+                Trait.new(
+                    id=ShapeID("smithy.api#tags"), value=("feature:java-al2023",)
+                ),
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="java11.al2023"),
             ],
         },
         "java17al2023": {
             "target": UNIT,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:public",)),
+                Trait.new(
+                    id=ShapeID("smithy.api#tags"), value=("feature:java-al2023",)
+                ),
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="java17.al2023"),
             ],
         },
@@ -20181,6 +20295,103 @@ GET_FUNCTION_EVENT_INVOKE_CONFIG = Schema(
     ],
 )
 
+GET_RESOURCE_POLICY_INPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.lambda#GetResourcePolicyInput"),
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.lambda#GetResourcePolicyRequest",
+        ),
+        Trait.new(id=ShapeID("smithy.api#input")),
+    ],
+    members={
+        "ResourceArn": {
+            "target": POLICY_RESOURCE_ARN,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+            ],
+        }
+    },
+)
+
+RESOURCE_POLICY = Schema(
+    id=ShapeID("com.amazonaws.lambda#ResourcePolicy"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 20480}),
+        ),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[\\s\\S]+$"),
+    ],
+)
+
+GET_RESOURCE_POLICY_OUTPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.lambda#GetResourcePolicyOutput"),
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.lambda#GetResourcePolicyResponse",
+        ),
+        Trait.new(id=ShapeID("smithy.api#output")),
+    ],
+    members={
+        "Policy": {
+            "target": RESOURCE_POLICY,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",))
+            ],
+        },
+        "RevisionId": {
+            "target": REVISION_ID,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",))
+            ],
+        },
+    },
+)
+
+GET_RESOURCE_POLICY = Schema(
+    id=ShapeID("com.amazonaws.lambda#GetResourcePolicy"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("aws.iam#iamAction"),
+            value=MappingProxyType(
+                {
+                    "documentation": "Grants permission to view a policy for an AWS Lambda resource",
+                    "relativeDocumentation": "API_GetResourcePolicy.html",
+                    "requiredActions": ("lambda:GetPolicy",),
+                    "resources": MappingProxyType(
+                        {
+                            "required": MappingProxyType(
+                                {"function": MappingProxyType({})}
+                            )
+                        }
+                    ),
+                }
+            ),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#http"),
+            value=MappingProxyType(
+                {
+                    "method": "GET",
+                    "uri": "/2026-07-09/resource-policy/{ResourceArn}",
+                    "code": 200,
+                }
+            ),
+        ),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+    ],
+)
+
 MAX_LAYER_LIST_ITEMS = Schema(
     id=ShapeID("com.amazonaws.lambda#MaxLayerListItems"),
     shape_type=ShapeType.INTEGER,
@@ -22207,24 +22418,6 @@ GET_PROVISIONED_CONCURRENCY_CONFIG = Schema(
             value=(
                 MappingProxyType(
                     {
-                        "documentation": "The following example returns details for the provisioned concurrency configuration for the BLUE alias of the specified function.",
-                        "input": MappingProxyType(
-                            {"FunctionName": "my-function", "Qualifier": "BLUE"}
-                        ),
-                        "output": MappingProxyType(
-                            {
-                                "AllocatedProvisionedConcurrentExecutions": 100,
-                                "AvailableProvisionedConcurrentExecutions": 100,
-                                "LastModified": "2019-12-31T20:28:49+0000",
-                                "RequestedProvisionedConcurrentExecutions": 100,
-                                "Status": "READY",
-                            }
-                        ),
-                        "title": "To get a provisioned concurrency configuration",
-                    }
-                ),
-                MappingProxyType(
-                    {
                         "documentation": "The following example displays details for the provisioned concurrency configuration for the BLUE alias of the specified function.",
                         "input": MappingProxyType(
                             {"FunctionName": "my-function", "Qualifier": "BLUE"}
@@ -22239,6 +22432,24 @@ GET_PROVISIONED_CONCURRENCY_CONFIG = Schema(
                             }
                         ),
                         "title": "To view a provisioned concurrency configuration",
+                    }
+                ),
+                MappingProxyType(
+                    {
+                        "documentation": "The following example returns details for the provisioned concurrency configuration for the BLUE alias of the specified function.",
+                        "input": MappingProxyType(
+                            {"FunctionName": "my-function", "Qualifier": "BLUE"}
+                        ),
+                        "output": MappingProxyType(
+                            {
+                                "AllocatedProvisionedConcurrentExecutions": 100,
+                                "AvailableProvisionedConcurrentExecutions": 100,
+                                "LastModified": "2019-12-31T20:28:49+0000",
+                                "RequestedProvisionedConcurrentExecutions": 100,
+                                "Status": "READY",
+                            }
+                        ),
+                        "title": "To get a provisioned concurrency configuration",
                     }
                 ),
             ),
@@ -22577,6 +22788,107 @@ PUT_FUNCTION_EVENT_INVOKE_CONFIG = Schema(
                 {
                     "method": "PUT",
                     "uri": "/2019-09-25/functions/{FunctionName}/event-invoke-config",
+                    "code": 200,
+                }
+            ),
+        ),
+    ],
+)
+
+PUT_RESOURCE_POLICY_INPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.lambda#PutResourcePolicyInput"),
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.lambda#PutResourcePolicyRequest",
+        ),
+        Trait.new(id=ShapeID("smithy.api#input")),
+    ],
+    members={
+        "ResourceArn": {
+            "target": POLICY_RESOURCE_ARN,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+            ],
+        },
+        "Policy": {
+            "target": RESOURCE_POLICY,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+                Trait.new(id=ShapeID("smithy.api#required")),
+            ],
+        },
+        "RevisionId": {
+            "target": REVISION_ID,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",))
+            ],
+        },
+    },
+)
+
+PUT_RESOURCE_POLICY_OUTPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.lambda#PutResourcePolicyOutput"),
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.lambda#PutResourcePolicyResponse",
+        ),
+        Trait.new(id=ShapeID("smithy.api#output")),
+    ],
+    members={
+        "Policy": {
+            "target": RESOURCE_POLICY,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",))
+            ],
+        },
+        "RevisionId": {
+            "target": REVISION_ID,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",))
+            ],
+        },
+    },
+)
+
+PUT_RESOURCE_POLICY = Schema(
+    id=ShapeID("com.amazonaws.lambda#PutResourcePolicy"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("aws.iam#conditionKeys"), value=("lambda:Principal",)),
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=("feature:rbp",)),
+        Trait.new(
+            id=ShapeID("aws.iam#iamAction"),
+            value=MappingProxyType(
+                {
+                    "documentation": "Grants permission to attach a policy to an AWS Lambda resource",
+                    "relativeDocumentation": "API_PutResourcePolicy.html",
+                    "requiredActions": (
+                        "lambda:AddPermission",
+                        "lambda:RemovePermission",
+                    ),
+                    "resources": MappingProxyType(
+                        {
+                            "required": MappingProxyType(
+                                {"function": MappingProxyType({})}
+                            )
+                        }
+                    ),
+                }
+            ),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#http"),
+            value=MappingProxyType(
+                {
+                    "method": "PUT",
+                    "uri": "/2026-07-09/resource-policy/{ResourceArn}",
                     "code": 200,
                 }
             ),

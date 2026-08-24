@@ -3,7 +3,7 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import cast
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
@@ -11,6 +11,7 @@ from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.eventstream import OutputEventStream
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -57,6 +58,7 @@ from .models import (
     DELETE_FUNCTION_URL_CONFIG,
     DELETE_LAYER_VERSION,
     DELETE_PROVISIONED_CONCURRENCY_CONFIG,
+    DELETE_RESOURCE_POLICY,
     DeleteAliasInput,
     DeleteAliasOutput,
     DeleteCapacityProviderInput,
@@ -79,6 +81,8 @@ from .models import (
     DeleteLayerVersionOutput,
     DeleteProvisionedConcurrencyConfigInput,
     DeleteProvisionedConcurrencyConfigOutput,
+    DeleteResourcePolicyInput,
+    DeleteResourcePolicyOutput,
     GET_ACCOUNT_SETTINGS,
     GET_ALIAS,
     GET_CAPACITY_PROVIDER,
@@ -100,6 +104,7 @@ from .models import (
     GET_LAYER_VERSION_POLICY,
     GET_POLICY,
     GET_PROVISIONED_CONCURRENCY_CONFIG,
+    GET_RESOURCE_POLICY,
     GET_RUNTIME_MANAGEMENT_CONFIG,
     GetAccountSettingsInput,
     GetAccountSettingsOutput,
@@ -143,6 +148,8 @@ from .models import (
     GetPolicyOutput,
     GetProvisionedConcurrencyConfigInput,
     GetProvisionedConcurrencyConfigOutput,
+    GetResourcePolicyInput,
+    GetResourcePolicyOutput,
     GetRuntimeManagementConfigInput,
     GetRuntimeManagementConfigOutput,
     INVOKE,
@@ -208,6 +215,7 @@ from .models import (
     PUT_FUNCTION_RECURSION_CONFIG,
     PUT_FUNCTION_SCALING_CONFIG,
     PUT_PROVISIONED_CONCURRENCY_CONFIG,
+    PUT_RESOURCE_POLICY,
     PUT_RUNTIME_MANAGEMENT_CONFIG,
     PublishLayerVersionInput,
     PublishLayerVersionOutput,
@@ -225,6 +233,8 @@ from .models import (
     PutFunctionScalingConfigOutput,
     PutProvisionedConcurrencyConfigInput,
     PutProvisionedConcurrencyConfigOutput,
+    PutResourcePolicyInput,
+    PutResourcePolicyOutput,
     PutRuntimeManagementConfigInput,
     PutRuntimeManagementConfigOutput,
     REMOVE_LAYER_VERSION_PERMISSION,
@@ -383,6 +393,7 @@ class AsyncLambdaClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -423,6 +434,25 @@ class AsyncLambdaClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def add_layer_version_permission(
         self, input: AddLayerVersionPermissionInput, plugins: list[Plugin] | None = None
     ) -> AddLayerVersionPermissionOutput:
@@ -448,6 +478,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `AddLayerVersionPermissionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -532,6 +567,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `AddPermissionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -606,6 +646,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `CheckpointDurableExecutionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -675,6 +720,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `CreateAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -738,6 +788,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `CreateCapacityProviderOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -804,6 +859,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `CreateCodeSigningConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -940,6 +1000,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `CreateEventSourceMappingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1068,6 +1133,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `CreateFunctionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1132,6 +1202,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `CreateFunctionUrlConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1195,6 +1270,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1258,6 +1338,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteCapacityProviderOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1321,6 +1406,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteCodeSigningConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1389,6 +1479,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteEventSourceMappingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1463,6 +1558,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteFunctionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1527,6 +1627,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteFunctionCodeSigningConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1589,6 +1694,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteFunctionConcurrencyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1657,6 +1767,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteFunctionEventInvokeConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1721,6 +1836,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteFunctionUrlConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1787,6 +1907,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteLayerVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1851,6 +1976,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `DeleteProvisionedConcurrencyConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1895,6 +2025,75 @@ class AsyncLambdaClient:
 
         return await pipeline(call)
 
+    async def delete_resource_policy(
+        self, input: DeleteResourcePolicyInput, plugins: list[Plugin] | None = None
+    ) -> DeleteResourcePolicyOutput:
+        """
+        Deletes a [resource-based
+        policy](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html)
+        from a Lambda resource.
+
+        Args:
+            input:
+                An instance of `DeleteResourcePolicyInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
+
+        Returns:
+            An instance of `DeleteResourcePolicyOutput`.
+        """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
+        operation_plugins: list[Plugin] = []
+        if plugins:
+            operation_plugins.extend(plugins)
+        await self._ensure_setup()
+        assert self._config is not None
+        if operation_plugins:
+            # Keep operation-plugin mutations scoped to this call.
+            config = deepcopy(self._config)
+            for plugin in operation_plugins:
+                plugin(config)
+        else:
+            config = self._config
+        if (
+            config.protocol is None
+            or config.transport is None
+            or config.endpoint_resolver is None
+            or config.auth_scheme_resolver is None
+            or config.auth_schemes is None
+        ):
+            raise ExpectationNotMetError(
+                "protocol, transport, endpoint_resolver, auth_scheme_resolver,"
+                " and auth_schemes MUST be set on the config to make calls."
+            )
+
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy,
+            retry_mode=config.retry_mode,
+            max_attempts=config.max_attempts,
+        )
+
+        pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
+        call = ClientCall(
+            input=input,
+            operation=DELETE_RESOURCE_POLICY,
+            context=TypedProperties({"config": config}),
+            interceptor=InterceptorChain(config.interceptors),
+            auth_scheme_resolver=config.auth_scheme_resolver,
+            supported_auth_schemes=config.auth_schemes,
+            endpoint_resolver=config.endpoint_resolver,
+            retry_strategy=retry_strategy,
+        )
+
+        return await pipeline(call)
+
     async def get_account_settings(
         self, input: GetAccountSettingsInput, plugins: list[Plugin] | None = None
     ) -> GetAccountSettingsOutput:
@@ -1915,6 +2114,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetAccountSettingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1978,6 +2182,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2041,6 +2250,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetCapacityProviderOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2103,6 +2317,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetCodeSigningConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2169,6 +2388,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetDurableExecutionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2242,6 +2466,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetDurableExecutionHistoryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2313,6 +2542,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetDurableExecutionStateOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2376,6 +2610,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetEventSourceMappingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2441,6 +2680,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetFunctionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2505,6 +2749,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetFunctionCodeSigningConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2569,6 +2818,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetFunctionConcurrencyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2636,6 +2890,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetFunctionConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2704,6 +2963,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetFunctionEventInvokeConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2770,6 +3034,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetFunctionRecursionConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2833,6 +3102,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetFunctionScalingConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2895,6 +3169,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetFunctionUrlConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2959,6 +3238,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetLayerVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3023,6 +3307,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetLayerVersionByArnOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3087,6 +3376,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetLayerVersionPolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3151,6 +3445,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetPolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3216,6 +3515,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetProvisionedConcurrencyConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3260,6 +3564,75 @@ class AsyncLambdaClient:
 
         return await pipeline(call)
 
+    async def get_resource_policy(
+        self, input: GetResourcePolicyInput, plugins: list[Plugin] | None = None
+    ) -> GetResourcePolicyOutput:
+        """
+        Retrieves the [resource-based
+        policy](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html)
+        attached to a Lambda resource.
+
+        Args:
+            input:
+                An instance of `GetResourcePolicyInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
+
+        Returns:
+            An instance of `GetResourcePolicyOutput`.
+        """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
+        operation_plugins: list[Plugin] = []
+        if plugins:
+            operation_plugins.extend(plugins)
+        await self._ensure_setup()
+        assert self._config is not None
+        if operation_plugins:
+            # Keep operation-plugin mutations scoped to this call.
+            config = deepcopy(self._config)
+            for plugin in operation_plugins:
+                plugin(config)
+        else:
+            config = self._config
+        if (
+            config.protocol is None
+            or config.transport is None
+            or config.endpoint_resolver is None
+            or config.auth_scheme_resolver is None
+            or config.auth_schemes is None
+        ):
+            raise ExpectationNotMetError(
+                "protocol, transport, endpoint_resolver, auth_scheme_resolver,"
+                " and auth_schemes MUST be set on the config to make calls."
+            )
+
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy,
+            retry_mode=config.retry_mode,
+            max_attempts=config.max_attempts,
+        )
+
+        pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
+        call = ClientCall(
+            input=input,
+            operation=GET_RESOURCE_POLICY,
+            context=TypedProperties({"config": config}),
+            interceptor=InterceptorChain(config.interceptors),
+            auth_scheme_resolver=config.auth_scheme_resolver,
+            supported_auth_schemes=config.auth_schemes,
+            endpoint_resolver=config.endpoint_resolver,
+            retry_strategy=retry_strategy,
+        )
+
+        return await pipeline(call)
+
     async def get_runtime_management_config(
         self,
         input: GetRuntimeManagementConfigInput,
@@ -3286,6 +3659,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `GetRuntimeManagementConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3402,6 +3780,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `InvokeOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3475,6 +3858,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `InvokeAsyncOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3548,6 +3936,11 @@ class AsyncLambdaClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3616,6 +4009,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListAliasesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3678,6 +4076,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListCapacityProvidersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3743,6 +4146,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListCodeSigningConfigsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3811,6 +4219,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListDurableExecutionsByFunctionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3874,6 +4287,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListEventSourceMappingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3942,6 +4360,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListFunctionEventInvokeConfigsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4015,6 +4438,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListFunctionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4081,6 +4509,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListFunctionsByCodeSigningConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4143,6 +4576,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListFunctionUrlConfigsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4208,6 +4646,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListFunctionVersionsByCapacityProviderOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4278,6 +4721,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListLayersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4346,6 +4794,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListLayerVersionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4411,6 +4864,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListProvisionedConcurrencyConfigsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4476,6 +4934,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListTagsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4541,6 +5004,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `ListVersionsByFunctionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4609,6 +5077,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PublishLayerVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4683,6 +5156,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PublishVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4749,6 +5227,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PutFunctionCodeSigningConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4825,6 +5308,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PutFunctionConcurrencyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4914,6 +5402,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PutFunctionEventInvokeConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4992,6 +5485,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PutFunctionRecursionConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5057,6 +5555,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PutFunctionScalingConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5122,6 +5625,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PutProvisionedConcurrencyConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5166,6 +5674,87 @@ class AsyncLambdaClient:
 
         return await pipeline(call)
 
+    async def put_resource_policy(
+        self, input: PutResourcePolicyInput, plugins: list[Plugin] | None = None
+    ) -> PutResourcePolicyOutput:
+        """
+        Adds a [resource-based
+        policy](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html)
+        to a Lambda resource. Resource-based policies grant access to other
+        [Amazon Web Services
+        accounts](https://docs.aws.amazon.com/lambda/latest/dg/permissions-function-cross-account.html),
+        [organizations](https://docs.aws.amazon.com/lambda/latest/dg/permissions-function-organization.html),
+        or
+        [services](https://docs.aws.amazon.com/lambda/latest/dg/permissions-function-services.html).
+        Resource-based policies apply to a single Lambda resource (for example,
+        a function, function version, or function alias).
+
+        Warning:
+            This operation replaces any existing policy on the Lambda resource. If
+            you previously added permissions using the AddPermission operation, the
+            new policy overwrites those permissions.
+
+        Args:
+            input:
+                An instance of `PutResourcePolicyInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
+
+        Returns:
+            An instance of `PutResourcePolicyOutput`.
+        """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
+        operation_plugins: list[Plugin] = []
+        if plugins:
+            operation_plugins.extend(plugins)
+        await self._ensure_setup()
+        assert self._config is not None
+        if operation_plugins:
+            # Keep operation-plugin mutations scoped to this call.
+            config = deepcopy(self._config)
+            for plugin in operation_plugins:
+                plugin(config)
+        else:
+            config = self._config
+        if (
+            config.protocol is None
+            or config.transport is None
+            or config.endpoint_resolver is None
+            or config.auth_scheme_resolver is None
+            or config.auth_schemes is None
+        ):
+            raise ExpectationNotMetError(
+                "protocol, transport, endpoint_resolver, auth_scheme_resolver,"
+                " and auth_schemes MUST be set on the config to make calls."
+            )
+
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy,
+            retry_mode=config.retry_mode,
+            max_attempts=config.max_attempts,
+        )
+
+        pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
+        call = ClientCall(
+            input=input,
+            operation=PUT_RESOURCE_POLICY,
+            context=TypedProperties({"config": config}),
+            interceptor=InterceptorChain(config.interceptors),
+            auth_scheme_resolver=config.auth_scheme_resolver,
+            supported_auth_schemes=config.auth_schemes,
+            endpoint_resolver=config.endpoint_resolver,
+            retry_strategy=retry_strategy,
+        )
+
+        return await pipeline(call)
+
     async def put_runtime_management_config(
         self,
         input: PutRuntimeManagementConfigInput,
@@ -5188,6 +5777,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `PutRuntimeManagementConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5255,6 +5849,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `RemoveLayerVersionPermissionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5319,6 +5918,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `RemovePermissionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5385,6 +5989,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `SendDurableExecutionCallbackFailureOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5451,6 +6060,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `SendDurableExecutionCallbackHeartbeatOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5517,6 +6131,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `SendDurableExecutionCallbackSuccessOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5582,6 +6201,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `StopDurableExecutionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5645,6 +6269,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `TagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5709,6 +6338,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UntagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5772,6 +6406,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UpdateAliasOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5834,6 +6473,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UpdateCapacityProviderOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5898,6 +6542,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UpdateCodeSigningConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6034,6 +6683,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UpdateEventSourceMappingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6121,6 +6775,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UpdateFunctionCodeOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6203,6 +6862,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UpdateFunctionConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6271,6 +6935,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UpdateFunctionEventInvokeConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6333,6 +7002,11 @@ class AsyncLambdaClient:
         Returns:
             An instance of `UpdateFunctionUrlConfigOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)

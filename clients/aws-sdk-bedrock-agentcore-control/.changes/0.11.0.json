@@ -1,0 +1,32 @@
+{
+  "changes": [
+    {
+      "type": "api-change",
+      "description": "Adds implementations of third-party evaluators, both managed-as-a-service and as templates within custom evaluators."
+    },
+    {
+      "type": "api-change",
+      "description": "Update Dataset schema to THIRDPARTYEVALUATIONV1"
+    },
+    {
+      "type": "api-change",
+      "description": "AgentCore Memory now supports Flexible Namespaces"
+    },
+    {
+      "type": "api-change",
+      "description": "Adds AgentCore Payments support for CMK, Marketplace Subscriptions and QuickCreate"
+    },
+    {
+      "type": "enhancement",
+      "description": "Re-generated with smithy-python 0.5.0"
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `smithy-aws-core` from `~=0.10.0` to `~=0.11.0`."
+    },
+    {
+      "type": "dependency",
+      "description": "Bump `smithy-http` from `~=0.4.0` to `~=0.5.0`."
+    }
+  ]
+}

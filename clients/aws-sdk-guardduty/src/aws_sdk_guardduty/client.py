@@ -3,13 +3,14 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import cast
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
 from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -347,6 +348,7 @@ class AsyncGuardDutyClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -387,6 +389,25 @@ class AsyncGuardDutyClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def accept_administrator_invitation(
         self,
         input: AcceptAdministratorInvitationInput,
@@ -408,6 +429,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `AcceptAdministratorInvitationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -471,6 +497,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `AcceptInvitationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -538,6 +569,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ArchiveFindingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -624,6 +660,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateDetectorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -689,6 +730,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateFilterOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -781,6 +827,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateInvestigationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -848,6 +899,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateIPSetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -918,6 +974,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateMalwareProtectionPlanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1011,6 +1072,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateMembersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1077,6 +1143,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreatePublishingDestinationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1141,6 +1212,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateSampleFindingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1207,6 +1283,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateThreatEntitySetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1271,6 +1352,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateThreatIntelSetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1340,6 +1426,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `CreateTrustedEntitySetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1403,6 +1494,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeclineInvitationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1466,6 +1562,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteDetectorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1528,6 +1629,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteFilterOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1591,6 +1697,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteInvitationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1654,6 +1765,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteIPSetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1720,6 +1836,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteMalwareProtectionPlanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1787,6 +1908,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteMembersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1851,6 +1977,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeletePublishingDestinationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1914,6 +2045,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteThreatEntitySetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1976,6 +2112,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteThreatIntelSetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2039,6 +2180,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DeleteTrustedEntitySetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2108,6 +2254,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DescribeMalwareScansOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2178,6 +2329,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DescribeOrganizationConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2243,6 +2399,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DescribePublishingDestinationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2309,6 +2470,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DisableOrganizationAdminAccountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2390,6 +2556,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DisassociateFromAdministratorAccountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2467,6 +2638,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DisassociateFromMasterAccountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2562,6 +2738,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `DisassociateMembersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2628,6 +2809,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `EnableOrganizationAdminAccountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2704,6 +2890,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetAdministratorAccountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2770,6 +2961,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetCoverageStatisticsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2837,6 +3033,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetDetectorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2899,6 +3100,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetFilterOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2961,6 +3167,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetFindingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3032,6 +3243,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetFindingsStatisticsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3104,6 +3320,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetInvestigationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3167,6 +3388,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetInvitationsCountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3229,6 +3455,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetIPSetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3292,6 +3523,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetMalwareProtectionPlanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3362,6 +3598,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetMalwareScanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3429,6 +3670,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetMalwareScanSettingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3492,6 +3738,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetMasterAccountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3560,6 +3811,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetMemberDetectorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3623,6 +3879,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetMembersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3690,6 +3951,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetOrganizationStatisticsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3753,6 +4019,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetRemainingFreeTrialDaysOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3816,6 +4087,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetThreatEntitySetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3878,6 +4154,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetThreatIntelSetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3941,6 +4222,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetTrustedEntitySetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4009,6 +4295,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `GetUsageStatisticsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4114,6 +4405,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `InviteMembersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4181,6 +4477,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListCoverageOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4244,6 +4545,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListDetectorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4306,6 +4612,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListFiltersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4373,6 +4684,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListFindingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4446,6 +4762,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListInvestigationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4509,6 +4830,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListInvitationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4573,6 +4899,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListIPSetsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4638,6 +4969,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListMalwareProtectionPlansOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4702,6 +5038,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListMalwareScansOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4765,6 +5106,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListMembersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4830,6 +5176,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListOrganizationAdminAccountsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4895,6 +5246,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListPublishingDestinationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4960,6 +5316,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListTagsForResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5025,6 +5386,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListThreatEntitySetsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5089,6 +5455,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListThreatIntelSetsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5154,6 +5525,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `ListTrustedEntitySetsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5223,6 +5599,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `SendObjectMalwareScanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5300,6 +5681,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `StartMalwareScanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5366,6 +5752,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `StartMonitoringMembersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5434,6 +5825,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `StopMonitoringMembersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5496,6 +5892,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `TagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5558,6 +5959,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UnarchiveFindingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5620,6 +6026,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UntagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5694,6 +6105,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateDetectorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5756,6 +6172,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateFilterOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5818,6 +6239,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateFindingsFeedbackOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5880,6 +6306,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateIPSetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5944,6 +6375,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateMalwareProtectionPlanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6011,6 +6447,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateMalwareScanSettingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6085,6 +6526,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateMemberDetectorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6163,6 +6609,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateOrganizationConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6228,6 +6679,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdatePublishingDestinationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6291,6 +6747,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateThreatEntitySetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6353,6 +6814,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateThreatIntelSetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6416,6 +6882,11 @@ class AsyncGuardDutyClient:
         Returns:
             An instance of `UpdateTrustedEntitySetOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)

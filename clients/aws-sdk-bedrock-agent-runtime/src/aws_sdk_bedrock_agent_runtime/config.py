@@ -18,7 +18,7 @@ from smithy_core.aio.interfaces.auth import AuthScheme
 from smithy_core.aio.interfaces.identity import IdentityResolver
 from smithy_core.interceptors import Interceptor
 from smithy_core.shapes import ShapeID
-from smithy_http.aio.crt import AWSCRTHTTPClient
+from smithy_http.aio.aiohttp import AIOHTTPClient
 
 from ._private.schemas import (
     AMAZON_BEDROCK_AGENT_RUN_TIME_SERVICE as _SCHEMA_AMAZON_BEDROCK_AGENT_RUN_TIME_SERVICE,
@@ -27,6 +27,8 @@ from .auth import HTTPAuthSchemeResolver
 from .models import (
     AgenticRetrieveStreamInput,
     AgenticRetrieveStreamOutput,
+    CheckIngestedDocumentAclInput,
+    CheckIngestedDocumentAclOutput,
     CreateInvocationInput,
     CreateInvocationOutput,
     CreateSessionInput,
@@ -47,6 +49,8 @@ from .models import (
     GetExecutionFlowSnapshotOutput,
     GetFlowExecutionInput,
     GetFlowExecutionOutput,
+    GetIngestedDocumentAclInput,
+    GetIngestedDocumentAclOutput,
     GetInvocationStepInput,
     GetInvocationStepOutput,
     GetSessionInput,
@@ -96,6 +100,9 @@ from .models import (
 
 _ServiceInterceptor = Union[
     Interceptor[AgenticRetrieveStreamInput, AgenticRetrieveStreamOutput, Any, Any],
+    Interceptor[
+        CheckIngestedDocumentAclInput, CheckIngestedDocumentAclOutput, Any, Any
+    ],
     Interceptor[CreateInvocationInput, CreateInvocationOutput, Any, Any],
     Interceptor[CreateSessionInput, CreateSessionOutput, Any, Any],
     Interceptor[DeleteAgentMemoryInput, DeleteAgentMemoryOutput, Any, Any],
@@ -108,6 +115,7 @@ _ServiceInterceptor = Union[
         GetExecutionFlowSnapshotInput, GetExecutionFlowSnapshotOutput, Any, Any
     ],
     Interceptor[GetFlowExecutionInput, GetFlowExecutionOutput, Any, Any],
+    Interceptor[GetIngestedDocumentAclInput, GetIngestedDocumentAclOutput, Any, Any],
     Interceptor[GetInvocationStepInput, GetInvocationStepOutput, Any, Any],
     Interceptor[GetSessionInput, GetSessionOutput, Any, Any],
     Interceptor[InvokeAgentInput, InvokeAgentOutput, Any, Any],
@@ -229,7 +237,7 @@ class AsyncBedrockAgentRuntimeConfig(AsyncAwsConfig):
             }
         ),
         "auth_scheme_resolver": FieldSpec(default_factory=HTTPAuthSchemeResolver),
-        "transport": FieldSpec(default_factory=lambda: AWSCRTHTTPClient()),
+        "transport": FieldSpec(default_factory=lambda: AIOHTTPClient()),
     }
 
     def set_auth_scheme(self, scheme: AuthScheme[Any, Any, Any, Any]) -> None:

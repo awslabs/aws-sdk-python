@@ -145,6 +145,7 @@ from ._private.schemas import (
     EXECUTION_SUMMARY_CLUSTER as _SCHEMA_EXECUTION_SUMMARY_CLUSTER,
     EXECUTION_SUMMARY_CLUSTERING_RESULT_CONTENT as _SCHEMA_EXECUTION_SUMMARY_CLUSTERING_RESULT_CONTENT,
     EXTERNAL_PROXY as _SCHEMA_EXTERNAL_PROXY,
+    EXTRACTION_CONFIG as _SCHEMA_EXTRACTION_CONFIG,
     EXTRACTION_JOB as _SCHEMA_EXTRACTION_JOB,
     EXTRACTION_JOB_FILTER_INPUT as _SCHEMA_EXTRACTION_JOB_FILTER_INPUT,
     EXTRACTION_JOB_MESSAGES as _SCHEMA_EXTRACTION_JOB_MESSAGES,
@@ -327,6 +328,7 @@ from ._private.schemas import (
     LIVE_VIEW_STREAM as _SCHEMA_LIVE_VIEW_STREAM,
     MCP_DESCRIPTOR as _SCHEMA_MCP_DESCRIPTOR,
     MEMORY_CONTENT as _SCHEMA_MEMORY_CONTENT,
+    MEMORY_JSON_DATA as _SCHEMA_MEMORY_JSON_DATA,
     MEMORY_METADATA_FILTER_EXPRESSION as _SCHEMA_MEMORY_METADATA_FILTER_EXPRESSION,
     MEMORY_RECORD as _SCHEMA_MEMORY_RECORD,
     MEMORY_RECORD_CREATE_INPUT as _SCHEMA_MEMORY_RECORD_CREATE_INPUT,
@@ -347,6 +349,8 @@ from ._private.schemas import (
     MOUSE_MOVE_RESULT as _SCHEMA_MOUSE_MOVE_RESULT,
     MOUSE_SCROLL_ARGUMENTS as _SCHEMA_MOUSE_SCROLL_ARGUMENTS,
     MOUSE_SCROLL_RESULT as _SCHEMA_MOUSE_SCROLL_RESULT,
+    MPP_PAYMENT_INPUT as _SCHEMA_MPP_PAYMENT_INPUT,
+    MPP_PAYMENT_OUTPUT as _SCHEMA_MPP_PAYMENT_OUTPUT,
     ONLINE_EVALUATION_CONFIG_SOURCE as _SCHEMA_ONLINE_EVALUATION_CONFIG_SOURCE,
     ONLINE_EVALUATION_TRACE_CONFIG as _SCHEMA_ONLINE_EVALUATION_TRACE_CONFIG,
     OUTPUT_CONFIG as _SCHEMA_OUTPUT_CONFIG,
@@ -441,6 +445,7 @@ from ._private.schemas import (
     STREAM_UPDATE as _SCHEMA_STREAM_UPDATE,
     STRIPE_PRIVY_TOKEN_REQUEST_INPUT as _SCHEMA_STRIPE_PRIVY_TOKEN_REQUEST_INPUT,
     STRIPE_PRIVY_TOKEN_RESPONSE_OUTPUT as _SCHEMA_STRIPE_PRIVY_TOKEN_RESPONSE_OUTPUT,
+    SUBSCRIPTION_REQUIRED_EXCEPTION as _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION,
     SYSTEM_PROMPT_CONFIG as _SCHEMA_SYSTEM_PROMPT_CONFIG,
     SYSTEM_PROMPT_CONFIGURATION_BUNDLE as _SCHEMA_SYSTEM_PROMPT_CONFIGURATION_BUNDLE,
     SYSTEM_PROMPT_RECOMMENDATION_CONFIG as _SCHEMA_SYSTEM_PROMPT_RECOMMENDATION_CONFIG,
@@ -30254,6 +30259,12 @@ class MemoryRecordDeleteInput:
     memory_record_id: str
     """The unique ID of the memory record to be deleted."""
 
+    namespace: str | None = None
+    """
+    The namespace of the memory record being deleted. This value is used for
+    IAM condition key authorization.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MEMORY_RECORD_DELETE_INPUT, self)
 
@@ -30262,6 +30273,10 @@ class MemoryRecordDeleteInput:
             _SCHEMA_MEMORY_RECORD_DELETE_INPUT.members["memoryRecordId"],
             self.memory_record_id,
         )
+        if self.namespace is not None:
+            serializer.write_string(
+                _SCHEMA_MEMORY_RECORD_DELETE_INPUT.members["namespace"], self.namespace
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -30276,6 +30291,11 @@ class MemoryRecordDeleteInput:
                 case 0:
                     kwargs["memory_record_id"] = de.read_string(
                         _SCHEMA_MEMORY_RECORD_DELETE_INPUT.members["memoryRecordId"]
+                    )
+
+                case 1:
+                    kwargs["namespace"] = de.read_string(
+                        _SCHEMA_MEMORY_RECORD_DELETE_INPUT.members["namespace"]
                     )
 
                 case _:
@@ -30502,6 +30522,12 @@ class MemoryRecordUpdateInput:
     record.
     """
 
+    source_namespaces: list[str] | None = None
+    """
+    The namespaces of the source memory record being updated. This value is
+    used for IAM condition key authorization.
+    """
+
     memory_strategy_id: str | None = None
     """
     The updated ID of the memory strategy that defines how this memory
@@ -30532,6 +30558,13 @@ class MemoryRecordUpdateInput:
                 serializer,
                 _SCHEMA_MEMORY_RECORD_UPDATE_INPUT.members["namespaces"],
                 self.namespaces,
+            )
+
+        if self.source_namespaces is not None:
+            _serialize_namespaces_list(
+                serializer,
+                _SCHEMA_MEMORY_RECORD_UPDATE_INPUT.members["sourceNamespaces"],
+                self.source_namespaces,
             )
 
         if self.memory_strategy_id is not None:
@@ -30576,11 +30609,17 @@ class MemoryRecordUpdateInput:
                     )
 
                 case 4:
+                    kwargs["source_namespaces"] = _deserialize_namespaces_list(
+                        de,
+                        _SCHEMA_MEMORY_RECORD_UPDATE_INPUT.members["sourceNamespaces"],
+                    )
+
+                case 5:
                     kwargs["memory_strategy_id"] = de.read_string(
                         _SCHEMA_MEMORY_RECORD_UPDATE_INPUT.members["memoryStrategyId"]
                     )
 
-                case 5:
+                case 6:
                     kwargs["metadata"] = _deserialize_memory_record_metadata_map(
                         de, _SCHEMA_MEMORY_RECORD_UPDATE_INPUT.members["metadata"]
                     )
@@ -30844,6 +30883,82 @@ class Branch:
         return kwargs
 
 
+def _serialize_namespace_variables_map(
+    serializer: ShapeSerializer, schema: Schema, value: dict[str, str]
+) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_string(value_schema, v))
+
+
+def _deserialize_namespace_variables_map(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> dict[str, str]:
+    result: dict[str, str] = {}
+    value_schema = schema.members["value"]
+
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = d.read_string(value_schema)
+
+    deserializer.read_map(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class ExtractionConfig:
+    """
+    The configuration for extraction behavior. Use this structure to specify
+    namespace variable keys and their values for namespace substitution
+    during long-term memory extraction.
+    """
+
+    namespace_variables: dict[str, str] | None = None
+    """
+    A map of `namespaceKeys` to their values. The service substitutes these
+    values into `namespaceTemplates` during long-term memory extraction to
+    control namespace hierarchy.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_EXTRACTION_CONFIG, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.namespace_variables is not None:
+            _serialize_namespace_variables_map(
+                serializer,
+                _SCHEMA_EXTRACTION_CONFIG.members["namespaceVariables"],
+                self.namespace_variables,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["namespace_variables"] = (
+                        _deserialize_namespace_variables_map(
+                            de, _SCHEMA_EXTRACTION_CONFIG.members["namespaceVariables"]
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_EXTRACTION_CONFIG, consumer=_consumer)
+        return kwargs
+
+
 class ExtractionMode(UnknownEnumMixin, StrEnum):
     SKIP = "SKIP"
 
@@ -31086,6 +31201,52 @@ class Conversational:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class MemoryJsonData:
+    """
+    Contains non-conversational, JSON-formatted content for an event
+    payload. JSON payloads are extracted into long-term memory.
+    """
+
+    content: Document = field(repr=False)
+    """
+    The JSON content of the payload. Accepts any JSON value, including
+    objects, arrays, strings, numbers, booleans, and null. The maximum size
+    is 100 KB.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_MEMORY_JSON_DATA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_document(
+            _SCHEMA_MEMORY_JSON_DATA.members["content"], self.content
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["content"] = de.read_document(
+                        _SCHEMA_MEMORY_JSON_DATA.members["content"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_MEMORY_JSON_DATA, consumer=_consumer)
+        if "content" not in kwargs:
+            kwargs["content"] = Document(None)
+        return kwargs
+
+
 @dataclass
 class PayloadTypeConversational:
     """The conversational content of the payload."""
@@ -31125,6 +31286,27 @@ class PayloadTypeBlob:
 
 
 @dataclass
+class PayloadTypeJson:
+    """
+    The JSON content of the payload. Use this type to store
+    non-conversational, JSON-formatted data, such as behavioral events,
+    activity logs, or system events.
+    """
+
+    value: MemoryJsonData
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_PAYLOAD_TYPE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_PAYLOAD_TYPE.members["json"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=MemoryJsonData.deserialize(deserializer))
+
+
+@dataclass
 class PayloadTypeUnknown:
     """
     Represents an unknown variant.
@@ -31148,7 +31330,9 @@ class PayloadTypeUnknown:
         raise NotImplementedError()
 
 
-PayloadType = Union[PayloadTypeConversational | PayloadTypeBlob | PayloadTypeUnknown]
+PayloadType = Union[
+    PayloadTypeConversational | PayloadTypeBlob | PayloadTypeJson | PayloadTypeUnknown
+]
 """Contains the payload content for an event."""
 
 
@@ -31173,6 +31357,9 @@ class _PayloadTypeDeserializer:
 
             case 1:
                 self._set_result(PayloadTypeBlob.deserialize(de))
+
+            case 2:
+                self._set_result(PayloadTypeJson.deserialize(de))
 
             case _:
                 self._set_result(PayloadTypeUnknown(tag=schema.expect_member_name()))
@@ -31240,8 +31427,8 @@ class CreateEventInput:
 
     payload: list[PayloadType] | None = None
     """
-    The content payload of the event. This can include conversational data
-    or binary content.
+    The content payload of the event. This can include conversational data,
+    JSON data, or binary content.
     """
 
     branch: Branch | None = None
@@ -31266,6 +31453,13 @@ class CreateEventInput:
     the event is stored in short-term memory but is excluded from long-term
     memory extraction. If not specified, the event is processed for
     extraction as usual.
+    """
+
+    extraction_config: ExtractionConfig | None = None
+    """
+    The extraction configuration for long-term memory records. Use this
+    parameter to specify namespace variable keys and their values for
+    namespace substitution during extraction.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -31319,6 +31513,12 @@ class CreateEventInput:
             serializer.write_string(
                 _SCHEMA_CREATE_EVENT_INPUT.members["extractionMode"],
                 self.extraction_mode,
+            )
+
+        if self.extraction_config is not None:
+            serializer.write_struct(
+                _SCHEMA_CREATE_EVENT_INPUT.members["extractionConfig"],
+                self.extraction_config,
             )
 
     @classmethod
@@ -31375,6 +31575,9 @@ class CreateEventInput:
                             _SCHEMA_CREATE_EVENT_INPUT.members["extractionMode"]
                         )
                     )
+
+                case 9:
+                    kwargs["extraction_config"] = ExtractionConfig.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -31811,6 +32014,12 @@ class DeleteMemoryRecordInput:
     memory_record_id: str | None = None
     """The identifier of the memory record to delete."""
 
+    namespace: str | None = None
+    """
+    The namespace of the memory record to delete. This value is used for IAM
+    condition key authorization.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DELETE_MEMORY_RECORD_INPUT, self)
 
@@ -31824,6 +32033,11 @@ class DeleteMemoryRecordInput:
             serializer.write_string(
                 _SCHEMA_DELETE_MEMORY_RECORD_INPUT.members["memoryRecordId"],
                 self.memory_record_id,
+            )
+
+        if self.namespace is not None:
+            serializer.write_string(
+                _SCHEMA_DELETE_MEMORY_RECORD_INPUT.members["namespace"], self.namespace
             )
 
     @classmethod
@@ -31844,6 +32058,11 @@ class DeleteMemoryRecordInput:
                 case 1:
                     kwargs["memory_record_id"] = de.read_string(
                         _SCHEMA_DELETE_MEMORY_RECORD_INPUT.members["memoryRecordId"]
+                    )
+
+                case 2:
+                    kwargs["namespace"] = de.read_string(
+                        _SCHEMA_DELETE_MEMORY_RECORD_INPUT.members["namespace"]
                     )
 
                 case _:
@@ -32108,6 +32327,12 @@ class GetMemoryRecordInput:
     memory_record_id: str | None = None
     """The identifier of the memory record to retrieve."""
 
+    namespace: str | None = None
+    """
+    The namespace of the memory record to retrieve. This value is used for
+    IAM condition key authorization.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_MEMORY_RECORD_INPUT, self)
 
@@ -32121,6 +32346,11 @@ class GetMemoryRecordInput:
             serializer.write_string(
                 _SCHEMA_GET_MEMORY_RECORD_INPUT.members["memoryRecordId"],
                 self.memory_record_id,
+            )
+
+        if self.namespace is not None:
+            serializer.write_string(
+                _SCHEMA_GET_MEMORY_RECORD_INPUT.members["namespace"], self.namespace
             )
 
     @classmethod
@@ -32141,6 +32371,11 @@ class GetMemoryRecordInput:
                 case 1:
                     kwargs["memory_record_id"] = de.read_string(
                         _SCHEMA_GET_MEMORY_RECORD_INPUT.members["memoryRecordId"]
+                    )
+
+                case 2:
+                    kwargs["namespace"] = de.read_string(
+                        _SCHEMA_GET_MEMORY_RECORD_INPUT.members["namespace"]
                     )
 
                 case _:
@@ -36175,6 +36410,7 @@ class PaymentInstrumentStatus(UnknownEnumMixin, StrEnum):
     ACTIVE = "ACTIVE"
     FAILED = "FAILED"
     DELETED = "DELETED"
+    BLOCKED = "BLOCKED"
 
 
 @dataclass(kw_only=True)
@@ -36383,6 +36619,78 @@ class CreatePaymentInstrumentOutput:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class SubscriptionRequiredException(ServiceError):
+    """
+    Returned when you attempt a wallet operation against a Coinbase
+    Marketplace connector whose account does not hold an active Marketplace
+    subscription and is not within the legacy exception period. Subscribe to
+    the Marketplace listing before you retry the operation.
+    """
+
+    fault: Literal["client", "server"] | None = "client"
+
+    subscription_url: str | None = None
+    """The URL to the Marketplace listing where you can subscribe."""
+
+    product_name: str | None = None
+    """The name of the product that requires a Marketplace subscription."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["message"], self.message
+        )
+        if self.subscription_url is not None:
+            serializer.write_string(
+                _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["subscriptionUrl"],
+                self.subscription_url,
+            )
+
+        if self.product_name is not None:
+            serializer.write_string(
+                _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["productName"],
+                self.product_name,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["message"] = de.read_string(
+                        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["message"]
+                    )
+
+                case 1:
+                    kwargs["subscription_url"] = de.read_string(
+                        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members[
+                            "subscriptionUrl"
+                        ]
+                    )
+
+                case 2:
+                    kwargs["product_name"] = de.read_string(
+                        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION.members["productName"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION, consumer=_consumer
+        )
+        return kwargs
+
+
 CREATE_PAYMENT_INSTRUMENT = APIOperation(
     input=CreatePaymentInstrumentInput,
     output=CreatePaymentInstrumentOutput,
@@ -36401,8 +36709,14 @@ CREATE_PAYMENT_INSTRUMENT = APIOperation(
                 "com.amazonaws.bedrockagentcore#InternalServerException"
             ): InternalServerException,
             ShapeID(
+                "com.amazonaws.bedrockagentcore#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
                 "com.amazonaws.bedrockagentcore#ServiceQuotaExceededException"
             ): ServiceQuotaExceededException,
+            ShapeID(
+                "com.amazonaws.bedrockagentcore#SubscriptionRequiredException"
+            ): SubscriptionRequiredException,
             ShapeID(
                 "com.amazonaws.bedrockagentcore#ThrottlingException"
             ): ThrottlingException,
@@ -36416,7 +36730,9 @@ CREATE_PAYMENT_INSTRUMENT = APIOperation(
         _SCHEMA_ACCESS_DENIED_EXCEPTION,
         _SCHEMA_CONFLICT_EXCEPTION,
         _SCHEMA_INTERNAL_SERVER_EXCEPTION,
+        _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
         _SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION,
+        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION,
         _SCHEMA_THROTTLING_EXCEPTION,
         _SCHEMA_VALIDATION_EXCEPTION,
     ],
@@ -37978,6 +38294,9 @@ CREATE_PAYMENT_SESSION = APIOperation(
                 "com.amazonaws.bedrockagentcore#ServiceQuotaExceededException"
             ): ServiceQuotaExceededException,
             ShapeID(
+                "com.amazonaws.bedrockagentcore#SubscriptionRequiredException"
+            ): SubscriptionRequiredException,
+            ShapeID(
                 "com.amazonaws.bedrockagentcore#ThrottlingException"
             ): ThrottlingException,
             ShapeID(
@@ -37991,6 +38310,7 @@ CREATE_PAYMENT_SESSION = APIOperation(
         _SCHEMA_CONFLICT_EXCEPTION,
         _SCHEMA_INTERNAL_SERVER_EXCEPTION,
         _SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION,
+        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION,
         _SCHEMA_THROTTLING_EXCEPTION,
         _SCHEMA_VALIDATION_EXCEPTION,
     ],
@@ -38638,6 +38958,21 @@ class CryptoX402PaymentInput:
     payload: Document = field(repr=False)
     """The X402 payment payload."""
 
+    permit2_allowance_limit: str | None = None
+    """
+    The maximum on-chain Permit2 allowance to grant before signing the
+    payment authorization, in the asset's smallest denomination. This field
+    is valid only for the `upto` (metered) scheme; supplying it for the
+    `exact` scheme returns a validation error.
+
+    When set, the service approves an ERC-20 allowance for this amount
+    before processing the payment. The approval sets, rather than adds to,
+    the wallet's allowance. Set this field only when the wallet needs
+    approving, for example on its first `upto` payment, to avoid a redundant
+    on-chain transaction. Omit the field to skip allowance handling. This is
+    the default, and the only behavior for the `exact` scheme.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CRYPTO_X402_PAYMENT_INPUT, self)
 
@@ -38648,6 +38983,11 @@ class CryptoX402PaymentInput:
         serializer.write_document(
             _SCHEMA_CRYPTO_X402_PAYMENT_INPUT.members["payload"], self.payload
         )
+        if self.permit2_allowance_limit is not None:
+            serializer.write_string(
+                _SCHEMA_CRYPTO_X402_PAYMENT_INPUT.members["permit2AllowanceLimit"],
+                self.permit2_allowance_limit,
+            )
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -38669,6 +39009,13 @@ class CryptoX402PaymentInput:
                         _SCHEMA_CRYPTO_X402_PAYMENT_INPUT.members["payload"]
                     )
 
+                case 2:
+                    kwargs["permit2_allowance_limit"] = de.read_string(
+                        _SCHEMA_CRYPTO_X402_PAYMENT_INPUT.members[
+                            "permit2AllowanceLimit"
+                        ]
+                    )
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -38677,6 +39024,123 @@ class CryptoX402PaymentInput:
             kwargs["version"] = ""
         if "payload" not in kwargs:
             kwargs["payload"] = Document(None)
+        return kwargs
+
+
+def _serialize_www_authenticate_header_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+
+def _deserialize_www_authenticate_header_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class MppPaymentInput:
+    """
+    Contains the payment challenge from a 402 Payment Required response.
+    Forward the raw `WWW-Authenticate: Payment` header value verbatim. In
+    response, you receive a payment credential that satisfies the challenge.
+    Provide exactly one challenge per request.
+    """
+
+    version: str
+    """The MPP protocol version, for example \"1\" or \"2\"."""
+
+    www_authenticate_headers: list[str]
+    """
+    The raw `WWW-Authenticate: Payment` header value from the 402 response,
+    passed verbatim. Provide exactly one entry. The service uses this value
+    to generate the payment credential.
+    """
+
+    buyer_pays_gas_fees: bool | None = None
+    """
+    Authorizes the service to sign a payment whose blockchain network (gas)
+    fees are charged to your wallet, on top of the payment amount.
+
+    The challenge indicates who sponsors the network fees. When the
+    challenge does not sponsor them, the service signs the payment only if
+    this field is `true`. Otherwise it returns a validation error, so you
+    can decide whether to pay the fees or obtain a challenge that sponsors
+    them.
+
+    Optional. When omitted or `false`, you decline to pay network fees. This
+    field has no effect on challenges that already sponsor the fees.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_MPP_PAYMENT_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_MPP_PAYMENT_INPUT.members["version"], self.version
+        )
+        _serialize_www_authenticate_header_list(
+            serializer,
+            _SCHEMA_MPP_PAYMENT_INPUT.members["wwwAuthenticateHeaders"],
+            self.www_authenticate_headers,
+        )
+        if self.buyer_pays_gas_fees is not None:
+            serializer.write_boolean(
+                _SCHEMA_MPP_PAYMENT_INPUT.members["buyerPaysGasFees"],
+                self.buyer_pays_gas_fees,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["version"] = de.read_string(
+                        _SCHEMA_MPP_PAYMENT_INPUT.members["version"]
+                    )
+
+                case 1:
+                    kwargs["www_authenticate_headers"] = (
+                        _deserialize_www_authenticate_header_list(
+                            de,
+                            _SCHEMA_MPP_PAYMENT_INPUT.members["wwwAuthenticateHeaders"],
+                        )
+                    )
+
+                case 2:
+                    kwargs["buyer_pays_gas_fees"] = de.read_boolean(
+                        _SCHEMA_MPP_PAYMENT_INPUT.members["buyerPaysGasFees"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_MPP_PAYMENT_INPUT, consumer=_consumer)
+        if "version" not in kwargs:
+            kwargs["version"] = ""
+        if "www_authenticate_headers" not in kwargs:
+            kwargs["www_authenticate_headers"] = []
         return kwargs
 
 
@@ -38695,6 +39159,28 @@ class PaymentInputCryptoX402:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=CryptoX402PaymentInput.deserialize(deserializer))
+
+
+@dataclass
+class PaymentInputMpp:
+    """
+    Contains the payment challenge from a 402 Payment Required response.
+    Forward the raw `WWW-Authenticate: Payment` header value verbatim. In
+    response, you receive a payment credential that satisfies the challenge.
+    Provide exactly one challenge per request.
+    """
+
+    value: MppPaymentInput
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_PAYMENT_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_PAYMENT_INPUT.members["mpp"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=MppPaymentInput.deserialize(deserializer))
 
 
 @dataclass
@@ -38721,7 +39207,7 @@ class PaymentInputUnknown:
         raise NotImplementedError()
 
 
-PaymentInput = Union[PaymentInputCryptoX402 | PaymentInputUnknown]
+PaymentInput = Union[PaymentInputCryptoX402 | PaymentInputMpp | PaymentInputUnknown]
 """The payment input details, which vary by payment type."""
 
 
@@ -38744,6 +39230,9 @@ class _PaymentInputDeserializer:
             case 0:
                 self._set_result(PaymentInputCryptoX402.deserialize(de))
 
+            case 1:
+                self._set_result(PaymentInputMpp.deserialize(de))
+
             case _:
                 self._set_result(PaymentInputUnknown(tag=schema.expect_member_name()))
 
@@ -38759,6 +39248,7 @@ class PaymentType(UnknownEnumMixin, StrEnum):
     """Payment type enum."""
 
     CRYPTO_X402 = "CRYPTO_X402"
+    MPP = "MPP"
 
 
 @dataclass(kw_only=True)
@@ -38951,6 +39441,81 @@ class CryptoX402PaymentOutput:
         return kwargs
 
 
+@dataclass(kw_only=True)
+class MppPaymentOutput:
+    """Contains the payment credential, ready to retry the request."""
+
+    version: str
+    """The MPP protocol version, for example \"1\" or \"2\"."""
+
+    selected_payment_id: str
+    """
+    The id of the challenge that was paid, echoed from the input challenge
+    so you can correlate the result without decoding the credential.
+    """
+
+    payment_credential: str = field(repr=False)
+    """
+    Ready-to-send value for the `Authorization` header, in the form
+    \"Payment <base64url-token>\". Attach this header and retry the
+    original request. To inspect the full credential, base64url-decode the
+    token.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_MPP_PAYMENT_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_MPP_PAYMENT_OUTPUT.members["version"], self.version
+        )
+        serializer.write_string(
+            _SCHEMA_MPP_PAYMENT_OUTPUT.members["selectedPaymentId"],
+            self.selected_payment_id,
+        )
+        serializer.write_string(
+            _SCHEMA_MPP_PAYMENT_OUTPUT.members["paymentCredential"],
+            self.payment_credential,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["version"] = de.read_string(
+                        _SCHEMA_MPP_PAYMENT_OUTPUT.members["version"]
+                    )
+
+                case 1:
+                    kwargs["selected_payment_id"] = de.read_string(
+                        _SCHEMA_MPP_PAYMENT_OUTPUT.members["selectedPaymentId"]
+                    )
+
+                case 2:
+                    kwargs["payment_credential"] = de.read_string(
+                        _SCHEMA_MPP_PAYMENT_OUTPUT.members["paymentCredential"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_MPP_PAYMENT_OUTPUT, consumer=_consumer)
+        if "version" not in kwargs:
+            kwargs["version"] = ""
+        if "selected_payment_id" not in kwargs:
+            kwargs["selected_payment_id"] = ""
+        if "payment_credential" not in kwargs:
+            kwargs["payment_credential"] = ""
+        return kwargs
+
+
 @dataclass
 class PaymentOutputCryptoX402:
     """Output from a crypto X402 payment."""
@@ -38968,6 +39533,23 @@ class PaymentOutputCryptoX402:
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         return cls(value=CryptoX402PaymentOutput.deserialize(deserializer))
+
+
+@dataclass
+class PaymentOutputMpp:
+    """Contains the payment credential, ready to retry the request."""
+
+    value: MppPaymentOutput
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_PAYMENT_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_PAYMENT_OUTPUT.members["mpp"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=MppPaymentOutput.deserialize(deserializer))
 
 
 @dataclass
@@ -38994,7 +39576,7 @@ class PaymentOutputUnknown:
         raise NotImplementedError()
 
 
-PaymentOutput = Union[PaymentOutputCryptoX402 | PaymentOutputUnknown]
+PaymentOutput = Union[PaymentOutputCryptoX402 | PaymentOutputMpp | PaymentOutputUnknown]
 """The payment output details, which vary by payment type."""
 
 
@@ -39016,6 +39598,9 @@ class _PaymentOutputDeserializer:
         match schema.expect_member_index():
             case 0:
                 self._set_result(PaymentOutputCryptoX402.deserialize(de))
+
+            case 1:
+                self._set_result(PaymentOutputMpp.deserialize(de))
 
             case _:
                 self._set_result(PaymentOutputUnknown(tag=schema.expect_member_name()))
@@ -39201,8 +39786,14 @@ PROCESS_PAYMENT = APIOperation(
                 "com.amazonaws.bedrockagentcore#InternalServerException"
             ): InternalServerException,
             ShapeID(
+                "com.amazonaws.bedrockagentcore#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
                 "com.amazonaws.bedrockagentcore#ServiceQuotaExceededException"
             ): ServiceQuotaExceededException,
+            ShapeID(
+                "com.amazonaws.bedrockagentcore#SubscriptionRequiredException"
+            ): SubscriptionRequiredException,
             ShapeID(
                 "com.amazonaws.bedrockagentcore#ThrottlingException"
             ): ThrottlingException,
@@ -39216,7 +39807,9 @@ PROCESS_PAYMENT = APIOperation(
         _SCHEMA_ACCESS_DENIED_EXCEPTION,
         _SCHEMA_CONFLICT_EXCEPTION,
         _SCHEMA_INTERNAL_SERVER_EXCEPTION,
+        _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
         _SCHEMA_SERVICE_QUOTA_EXCEEDED_EXCEPTION,
+        _SCHEMA_SUBSCRIPTION_REQUIRED_EXCEPTION,
         _SCHEMA_THROTTLING_EXCEPTION,
         _SCHEMA_VALIDATION_EXCEPTION,
     ],

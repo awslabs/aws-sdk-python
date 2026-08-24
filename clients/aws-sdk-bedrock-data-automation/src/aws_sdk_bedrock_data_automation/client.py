@@ -3,13 +3,14 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import cast
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
 from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -129,6 +130,7 @@ class AsyncBedrockDataAutomationClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -169,6 +171,25 @@ class AsyncBedrockDataAutomationClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def copy_blueprint_stage(
         self, input: CopyBlueprintStageInput, plugins: list[Plugin] | None = None
     ) -> CopyBlueprintStageOutput:
@@ -187,6 +208,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `CopyBlueprintStageOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -249,6 +275,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `CreateBlueprintOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -312,6 +343,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `CreateBlueprintVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -376,6 +412,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `CreateDataAutomationLibraryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -440,6 +481,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `CreateDataAutomationProjectOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -502,6 +548,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `DeleteBlueprintOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -566,6 +617,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `DeleteDataAutomationLibraryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -630,6 +686,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `DeleteDataAutomationProjectOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -692,6 +753,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `GetBlueprintOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -756,6 +822,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `GetBlueprintOptimizationStatusOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -818,6 +889,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `GetDataAutomationLibraryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -882,6 +958,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `GetDataAutomationLibraryEntityOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -946,6 +1027,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `GetDataAutomationLibraryIngestionJobOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1008,6 +1094,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `GetDataAutomationProjectOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1072,6 +1163,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `InvokeBlueprintOptimizationAsyncOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1136,6 +1232,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `InvokeDataAutomationLibraryIngestionJobOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1198,6 +1299,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `ListBlueprintsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1262,6 +1368,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `ListDataAutomationLibrariesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1326,6 +1437,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `ListDataAutomationLibraryEntitiesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1390,6 +1506,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `ListDataAutomationLibraryIngestionJobsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1454,6 +1575,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `ListDataAutomationProjectsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1516,6 +1642,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `ListTagsForResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1578,6 +1709,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `TagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1640,6 +1776,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `UntagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1702,6 +1843,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `UpdateBlueprintOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1766,6 +1912,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `UpdateDataAutomationLibraryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1830,6 +1981,11 @@ class AsyncBedrockDataAutomationClient:
         Returns:
             An instance of `UpdateDataAutomationProjectOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)

@@ -11,6 +11,7 @@ from smithy_core.prelude import (
     INTEGER,
     LONG,
     STRING,
+    TIMESTAMP,
     UNIT,
 )
 from smithy_core.schemas import Schema
@@ -919,6 +920,50 @@ AGENT_COLLABORATOR_INVOCATION_OUTPUT = Schema.collection(
     },
 )
 
+AGENT_CORE_MEMORY_ACTOR_ID = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#AgentCoreMemoryActorId"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 255}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^[a-zA-Z0-9][a-zA-Z0-9\\-_/]*(?::[a-zA-Z0-9\\-_/]+)*[a-zA-Z0-9\\-_/]*$",
+        ),
+    ],
+)
+
+AGENT_CORE_MEMORY_ID = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#AgentCoreMemoryId"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 12, "max": 111}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^[a-zA-Z][a-zA-Z0-9\\-_]{0,99}-[a-zA-Z0-9]{10}$",
+        ),
+    ],
+)
+
+AGENT_CORE_MEMORY_SESSION_ID = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#AgentCoreMemorySessionId"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 100}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z0-9][a-zA-Z0-9\\-_]*$"
+        ),
+    ],
+)
+
 AGENTIC_RETRIEVE_SOURCE_RETRIEVER = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentruntime#AgenticRetrieveSourceRetriever"),
     members={
@@ -943,6 +988,25 @@ AGENTIC_RETRIEVE_MESSAGE_CONTENT = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentruntime#AgenticRetrieveMessageContent"),
     traits=[Trait.new(id=ShapeID("smithy.api#sensitive"))],
     members={"text": {"target": STRING}},
+)
+
+AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryRetrieveDetails"
+    ),
+    members={
+        "inputQuery": {
+            "target": AGENTIC_RETRIEVE_MESSAGE_CONTENT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "memoryId": {
+            "target": STRING,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "namespace": {"target": STRING},
+        "namespacePath": {"target": STRING},
+        "strategyId": {"target": STRING},
+    },
 )
 
 AGENTIC_RETRIEVE_SOURCE_RETRIEVER_LIST = Schema.collection(
@@ -972,6 +1036,7 @@ AGENTIC_RETRIEVE_ACTION = Schema.collection(
         "fullDocumentExpansion": {
             "target": AGENTIC_RETRIEVE_FULL_DOC_EXPANSION_DETAILS
         },
+        "memoryRetrieve": {"target": AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS},
     },
 )
 
@@ -1298,6 +1363,262 @@ AGENTIC_RETRIEVE_GUARDRAIL_WARNING = Schema.collection(
     },
 )
 
+AGENTIC_RETRIEVE_MEMORY_PERSISTENCE_MODE = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryPersistenceMode"
+    ),
+    shape_type=ShapeType.ENUM,
+    members={
+        "DEFAULT": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="DEFAULT")],
+        },
+        "NONE": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="NONE")],
+        },
+    },
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_KEY = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataKey"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 128}),
+        ),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z0-9\\s._:/=+@-]*$"),
+    ],
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LEFT = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataFilterLeft"
+    ),
+    shape_type=ShapeType.UNION,
+    members={"metadataKey": {"target": AGENTIC_RETRIEVE_MEMORY_METADATA_KEY}},
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_OPERATOR = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataFilterOperator"
+    ),
+    shape_type=ShapeType.ENUM,
+    members={
+        "EQUALS_TO": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="EQUALS_TO")
+            ],
+        },
+        "EXISTS": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="EXISTS")],
+        },
+        "NOT_EXISTS": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="NOT_EXISTS")
+            ],
+        },
+        "BEFORE": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="BEFORE")],
+        },
+        "AFTER": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="AFTER")],
+        },
+        "CONTAINS": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="CONTAINS")],
+        },
+        "GREATER_THAN": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="GREATER_THAN")
+            ],
+        },
+        "GREATER_THAN_OR_EQUALS": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="GREATER_THAN_OR_EQUALS"
+                )
+            ],
+        },
+        "LESS_THAN": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="LESS_THAN")
+            ],
+        },
+        "LESS_THAN_OR_EQUALS": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="LESS_THAN_OR_EQUALS"
+                )
+            ],
+        },
+    },
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_STRING_LIST_ITEM = Schema(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataStringListItem"
+    ),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 64}),
+        ),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z0-9\\s._:/=+@-]*$"),
+    ],
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_STRING_LIST = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataStringList"
+    ),
+    shape_type=ShapeType.LIST,
+    members={"member": {"target": AGENTIC_RETRIEVE_MEMORY_METADATA_STRING_LIST_ITEM}},
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_STRING_VALUE = Schema(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataStringValue"
+    ),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 256}),
+        ),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z0-9\\s._:/=+@-]*$"),
+    ],
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataValue"),
+    shape_type=ShapeType.UNION,
+    members={
+        "stringValue": {"target": AGENTIC_RETRIEVE_MEMORY_METADATA_STRING_VALUE},
+        "numberValue": {"target": DOUBLE},
+        "stringListValue": {"target": AGENTIC_RETRIEVE_MEMORY_METADATA_STRING_LIST},
+        "dateTimeValue": {"target": TIMESTAMP},
+    },
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_RIGHT = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataFilterRight"
+    ),
+    shape_type=ShapeType.UNION,
+    members={"metadataValue": {"target": AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE}},
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataFilter"),
+    members={
+        "left": {
+            "target": AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LEFT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "operator": {
+            "target": AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_OPERATOR,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "right": {"target": AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_RIGHT},
+    },
+)
+
+AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LIST = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryMetadataFilterList"
+    ),
+    shape_type=ShapeType.LIST,
+    members={"member": {"target": AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER}},
+)
+
+MEMORY_NAMESPACE = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#MemoryNamespace"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 1024}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^[a-zA-Z0-9/*][a-zA-Z0-9\\-_/*]*(?::[a-zA-Z0-9\\-_/*]+)*[a-zA-Z0-9\\-_/*]*$",
+        ),
+    ],
+)
+
+MEMORY_STRATEGY_ID = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#MemoryStrategyId"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 100}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"), value="^[a-zA-Z0-9][a-zA-Z0-9\\-_]*$"
+        ),
+    ],
+)
+
+AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryRetrievalConfig"
+    ),
+    members={
+        "namespace": {"target": MEMORY_NAMESPACE},
+        "namespacePath": {"target": MEMORY_NAMESPACE},
+        "strategyId": {"target": MEMORY_STRATEGY_ID},
+        "metadataFilters": {"target": AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LIST},
+    },
+)
+
+AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG_LIST = Schema.collection(
+    id=ShapeID(
+        "com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryRetrievalConfigList"
+    ),
+    shape_type=ShapeType.LIST,
+    members={"member": {"target": AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG}},
+)
+
+AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#AgenticRetrieveMemorySessionBinding"),
+    members={
+        "actorId": {
+            "target": AGENT_CORE_MEMORY_ACTOR_ID,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "sessionId": {
+            "target": AGENT_CORE_MEMORY_SESSION_ID,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+    },
+)
+
+AGENTIC_RETRIEVE_MEMORY_CONFIGURATION = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#AgenticRetrieveMemoryConfiguration"),
+    members={
+        "memoryId": {
+            "target": AGENT_CORE_MEMORY_ID,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "sessionBinding": {"target": AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING},
+        "retrievalConfigs": {"target": AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG_LIST},
+        "persistenceMode": {"target": AGENTIC_RETRIEVE_MEMORY_PERSISTENCE_MODE},
+    },
+)
+
 CONVERSATION_ROLE = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentruntime#ConversationRole"),
     shape_type=ShapeType.ENUM,
@@ -1472,7 +1793,15 @@ AGENTIC_RETRIEVE_TYPE = Schema.collection(
                     id=ShapeID("smithy.api#enumValue"), value="BedrockKnowledgeBase"
                 )
             ],
-        }
+        },
+        "BEDROCK_AGENT_CORE_MEMORY": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="BedrockAgentCoreMemory"
+                )
+            ],
+        },
     },
 )
 
@@ -1540,6 +1869,14 @@ AGENTIC_RETRIEVE_STEP = Schema.collection(
             "traits": [
                 Trait.new(
                     id=ShapeID("smithy.api#enumValue"), value="FullDocumentExpansion"
+                )
+            ],
+        },
+        "SESSION_HISTORY_LOAD": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#enumValue"), value="SessionHistoryLoad"
                 )
             ],
         },
@@ -3225,6 +3562,112 @@ AGENT_TRACES = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentruntime#AgentTraces"),
     shape_type=ShapeType.LIST,
     members={"member": {"target": TRACE_PART}},
+)
+
+DATA_SOURCE_ID = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DataSourceId"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#length"), value=MappingProxyType({"max": 10})),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[0-9a-zA-Z]+$"),
+    ],
+)
+
+DOCUMENT_ID = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentId"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 1, "max": 1825}),
+        ),
+        Trait.new(id=ShapeID("smithy.api#pattern"), value="^\\P{C}*$"),
+    ],
+)
+
+KNOWLEDGE_BASE_IDENTIFIER = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#KnowledgeBaseIdentifier"),
+    shape_type=ShapeType.STRING,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#length"),
+            value=MappingProxyType({"min": 10, "max": 2048}),
+        ),
+        Trait.new(
+            id=ShapeID("smithy.api#pattern"),
+            value="^[0-9a-zA-Z]{10}$|^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:knowledge-base/[0-9a-zA-Z]{10}$",
+        ),
+    ],
+)
+
+CHECK_INGESTED_DOCUMENT_ACL_INPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#CheckIngestedDocumentAclInput"),
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.bedrockagentruntime#CheckIngestedDocumentAclRequest",
+        ),
+        Trait.new(id=ShapeID("smithy.api#input")),
+    ],
+    members={
+        "knowledgeBaseId": {
+            "target": KNOWLEDGE_BASE_IDENTIFIER,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+            ],
+        },
+        "dataSourceId": {
+            "target": DATA_SOURCE_ID,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+            ],
+        },
+        "documentId": {
+            "target": DOCUMENT_ID,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+        "userContext": {
+            "target": USER_CONTEXT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+    },
+)
+
+CHECK_INGESTED_DOCUMENT_ACL_OUTPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#CheckIngestedDocumentAclOutput"),
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.bedrockagentruntime#CheckIngestedDocumentAclResponse",
+        ),
+        Trait.new(id=ShapeID("smithy.api#output")),
+    ],
+    members={
+        "hasAccess": {
+            "target": BOOLEAN,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        }
+    },
+)
+
+CHECK_INGESTED_DOCUMENT_ACL = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#CheckIngestedDocumentAcl"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#http"),
+            value=MappingProxyType(
+                {
+                    "code": 200,
+                    "method": "POST",
+                    "uri": "/knowledgebases/{knowledgeBaseId}/datasources/{dataSourceId}/check-ingested-document-acl",
+                }
+            ),
+        ),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+    ],
 )
 
 FLOW_EXECUTION_IDENTIFIER = Schema(
@@ -5343,42 +5786,6 @@ GENERATE_QUERY = Schema(
     ],
 )
 
-DATA_SOURCE_ID = Schema(
-    id=ShapeID("com.amazonaws.bedrockagentruntime#DataSourceId"),
-    shape_type=ShapeType.STRING,
-    traits=[
-        Trait.new(id=ShapeID("smithy.api#length"), value=MappingProxyType({"max": 10})),
-        Trait.new(id=ShapeID("smithy.api#pattern"), value="^[0-9a-zA-Z]+$"),
-    ],
-)
-
-DOCUMENT_ID = Schema(
-    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentId"),
-    shape_type=ShapeType.STRING,
-    traits=[
-        Trait.new(
-            id=ShapeID("smithy.api#length"),
-            value=MappingProxyType({"min": 1, "max": 1825}),
-        ),
-        Trait.new(id=ShapeID("smithy.api#pattern"), value="^\\P{C}*$"),
-    ],
-)
-
-KNOWLEDGE_BASE_IDENTIFIER = Schema(
-    id=ShapeID("com.amazonaws.bedrockagentruntime#KnowledgeBaseIdentifier"),
-    shape_type=ShapeType.STRING,
-    traits=[
-        Trait.new(
-            id=ShapeID("smithy.api#length"),
-            value=MappingProxyType({"min": 10, "max": 2048}),
-        ),
-        Trait.new(
-            id=ShapeID("smithy.api#pattern"),
-            value="^[0-9a-zA-Z]{10}$|^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:knowledge-base/[0-9a-zA-Z]{10}$",
-        ),
-    ],
-)
-
 DOCUMENT_OUTPUT_FORMAT = Schema.collection(
     id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentOutputFormat"),
     shape_type=ShapeType.ENUM,
@@ -5471,6 +5878,216 @@ GET_DOCUMENT_CONTENT = Schema(
                     "code": 200,
                     "method": "POST",
                     "uri": "/knowledgebases/{knowledgeBaseId}/datasources/{dataSourceId}/documents/{documentId}/content",
+                }
+            ),
+        ),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+    ],
+)
+
+GET_INGESTED_DOCUMENT_ACL_INPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#GetIngestedDocumentAclInput"),
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.bedrockagentruntime#GetIngestedDocumentAclRequest",
+        ),
+        Trait.new(id=ShapeID("smithy.api#input")),
+    ],
+    members={
+        "knowledgeBaseId": {
+            "target": KNOWLEDGE_BASE_IDENTIFIER,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+            ],
+        },
+        "dataSourceId": {
+            "target": DATA_SOURCE_ID,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+            ],
+        },
+        "documentId": {
+            "target": DOCUMENT_ID,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+    },
+)
+
+DOCUMENT_ACL_MEMBER_RELATION = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclMemberRelation"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "AND": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="AND")],
+        },
+        "OR": {
+            "target": UNIT,
+            "traits": [Trait.new(id=ShapeID("smithy.api#enumValue"), value="OR")],
+        },
+    },
+)
+
+DOCUMENT_ACL_MEMBERSHIP_TYPE = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclMembershipType"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "KNOWLEDGE_BASE": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="KNOWLEDGE_BASE")
+            ],
+        },
+        "DATA_SOURCE": {
+            "target": UNIT,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="DATA_SOURCE")
+            ],
+        },
+    },
+)
+
+DOCUMENT_ACL_GROUP = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclGroup"),
+    members={
+        "id": {
+            "target": STRING,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(
+                    id=ShapeID("smithy.api#length"),
+                    value=MappingProxyType({"min": 1, "max": 1024}),
+                ),
+                Trait.new(id=ShapeID("smithy.api#pattern"), value="^\\P{C}*$"),
+            ],
+        },
+        "type": {
+            "target": DOCUMENT_ACL_MEMBERSHIP_TYPE,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+    },
+)
+
+DOCUMENT_ACL_GROUP_LIST = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclGroupList"),
+    shape_type=ShapeType.LIST,
+    members={"member": {"target": DOCUMENT_ACL_GROUP}},
+)
+
+DOCUMENT_ACL_USER = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclUser"),
+    members={
+        "id": {
+            "target": STRING,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(
+                    id=ShapeID("smithy.api#length"),
+                    value=MappingProxyType({"min": 1, "max": 1024}),
+                ),
+                Trait.new(id=ShapeID("smithy.api#pattern"), value="^\\P{C}*$"),
+            ],
+        },
+        "type": {
+            "target": DOCUMENT_ACL_MEMBERSHIP_TYPE,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        },
+    },
+)
+
+DOCUMENT_ACL_USER_LIST = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclUserList"),
+    shape_type=ShapeType.LIST,
+    members={"member": {"target": DOCUMENT_ACL_USER}},
+)
+
+DOCUMENT_ACL_CONDITION = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclCondition"),
+    members={
+        "conditionOperator": {"target": DOCUMENT_ACL_MEMBER_RELATION},
+        "users": {
+            "target": DOCUMENT_ACL_USER_LIST,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#length"),
+                    value=MappingProxyType({"max": 3000}),
+                )
+            ],
+        },
+        "groups": {
+            "target": DOCUMENT_ACL_GROUP_LIST,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#length"),
+                    value=MappingProxyType({"max": 3000}),
+                )
+            ],
+        },
+    },
+)
+
+DOCUMENT_ACL_CONDITION_LIST = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclConditionList"),
+    shape_type=ShapeType.LIST,
+    members={"member": {"target": DOCUMENT_ACL_CONDITION}},
+)
+
+DOCUMENT_ACL_MEMBERSHIP = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAclMembership"),
+    members={
+        "memberRelation": {"target": DOCUMENT_ACL_MEMBER_RELATION},
+        "conditions": {
+            "target": DOCUMENT_ACL_CONDITION_LIST,
+            "traits": [
+                Trait.new(
+                    id=ShapeID("smithy.api#length"),
+                    value=MappingProxyType({"max": 100}),
+                )
+            ],
+        },
+    },
+)
+
+DOCUMENT_ACL = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#DocumentAcl"),
+    traits=[Trait.new(id=ShapeID("smithy.api#sensitive"))],
+    members={
+        "allowList": {"target": DOCUMENT_ACL_MEMBERSHIP},
+        "denyList": {"target": DOCUMENT_ACL_MEMBERSHIP},
+    },
+)
+
+GET_INGESTED_DOCUMENT_ACL_OUTPUT = Schema.collection(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#GetIngestedDocumentAclOutput"),
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.synthetic#originalShapeId"),
+            value="com.amazonaws.bedrockagentruntime#GetIngestedDocumentAclResponse",
+        ),
+        Trait.new(id=ShapeID("smithy.api#output")),
+    ],
+    members={
+        "documentAcl": {
+            "target": DOCUMENT_ACL,
+            "traits": [Trait.new(id=ShapeID("smithy.api#required"))],
+        }
+    },
+)
+
+GET_INGESTED_DOCUMENT_ACL = Schema(
+    id=ShapeID("com.amazonaws.bedrockagentruntime#GetIngestedDocumentAcl"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(
+            id=ShapeID("smithy.api#http"),
+            value=MappingProxyType(
+                {
+                    "code": 200,
+                    "method": "POST",
+                    "uri": "/knowledgebases/{knowledgeBaseId}/datasources/{dataSourceId}/get-ingested-document-acl",
                 }
             ),
         ),
@@ -9159,6 +9776,7 @@ AGENTIC_RETRIEVE_STREAM_INPUT = Schema.collection(
         "policyConfiguration": {"target": AGENTIC_RETRIEVE_POLICY_CONFIGURATION},
         "nextToken": {"target": NEXT_TOKEN},
         "userContext": {"target": USER_CONTEXT},
+        "memoryConfiguration": {"target": AGENTIC_RETRIEVE_MEMORY_CONFIGURATION},
         "generateResponse": {
             "target": BOOLEAN,
             "traits": [Trait.new(id=ShapeID("smithy.api#default"), value=True)],

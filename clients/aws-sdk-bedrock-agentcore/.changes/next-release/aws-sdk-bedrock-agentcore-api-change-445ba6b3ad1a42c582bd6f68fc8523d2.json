@@ -1,4 +1,0 @@
-{
-  "type": "api-change",
-  "description": "AgentCore Memory now supports Flexible Namespaces and Non-Conversational Payloads in CreateEvent API"
-}

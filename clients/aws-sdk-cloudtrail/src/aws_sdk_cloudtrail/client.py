@@ -3,13 +3,14 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import cast
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
 from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -254,6 +255,7 @@ class AsyncCloudTrailClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -294,6 +296,25 @@ class AsyncCloudTrailClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def add_tags(
         self, input: AddTagsInput, plugins: list[Plugin] | None = None
     ) -> AddTagsOutput:
@@ -320,6 +341,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `AddTagsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -386,6 +412,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `CancelQueryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -450,6 +481,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `CreateChannelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -544,6 +580,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `CreateDashboardOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -606,6 +647,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `CreateEventDataStoreOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -669,6 +715,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `CreateTrailOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -731,6 +782,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DeleteChannelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -794,6 +850,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DeleteDashboardOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -868,6 +929,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DeleteEventDataStoreOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -931,6 +997,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DeleteResourcePolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1011,6 +1082,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DeleteTrailOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1076,6 +1152,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DeregisterOrganizationDelegatedAdminOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1146,6 +1227,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DescribeQueryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1209,6 +1295,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DescribeTrailsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1277,6 +1368,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `DisableFederationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1359,6 +1455,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `EnableFederationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1441,6 +1542,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GenerateQueryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1503,6 +1609,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetChannelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1565,6 +1676,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetDashboardOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1630,6 +1746,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetEventConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1693,6 +1814,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetEventDataStoreOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1782,6 +1908,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetEventSelectorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1844,6 +1975,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetImportOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1921,6 +2057,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetInsightSelectorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1984,6 +2125,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetQueryResultsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2047,6 +2193,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetResourcePolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2109,6 +2260,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetTrailOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2175,6 +2331,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `GetTrailStatusOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2237,6 +2398,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListChannelsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2300,6 +2466,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListDashboardsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2363,6 +2534,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListEventDataStoresOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2425,6 +2601,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListImportFailuresOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2488,6 +2669,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListImportsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2568,6 +2754,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListInsightsDataOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2662,6 +2853,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListInsightsMetricDataOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2733,6 +2929,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListPublicKeysOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2800,6 +3001,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListQueriesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2863,6 +3069,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListTagsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2925,6 +3136,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `ListTrailsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3032,6 +3248,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `LookupEventsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3097,6 +3318,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `PutEventConfigurationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3226,6 +3452,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `PutEventSelectorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3332,6 +3563,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `PutInsightSelectorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3398,6 +3634,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `PutResourcePolicyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3463,6 +3704,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `RegisterOrganizationDelegatedAdminOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3526,6 +3772,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `RemoveTagsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3592,6 +3843,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `RestoreEventDataStoreOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3656,6 +3912,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `SearchSampleQueriesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3727,6 +3988,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `StartDashboardRefreshOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3795,6 +4061,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `StartEventDataStoreIngestionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3880,6 +4151,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `StartImportOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3946,6 +4222,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `StartLoggingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4016,6 +4297,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `StartQueryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4083,6 +4369,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `StopEventDataStoreIngestionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4145,6 +4436,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `StopImportOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4214,6 +4510,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `StopLoggingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4276,6 +4577,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `UpdateChannelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4355,6 +4661,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `UpdateDashboardOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4435,6 +4746,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `UpdateEventDataStoreOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4503,6 +4819,11 @@ class AsyncCloudTrailClient:
         Returns:
             An instance of `UpdateTrailOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)

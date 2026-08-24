@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.11.0
+
+### API Changes
+* AgenticRetrieveStream API now supports Amazon Bedrock AgentCore Memory. Use the new memoryConfiguration parameter to continue a session from short-term memory and retrieve from long-term memory.
+* Adds CheckIngestedDocumentAcl and GetIngestedDocumentAcl APIs to Amazon Bedrock Knowledge Bases. Customers can verify user access to documents based on ingested ACLs and retrieve full ACL details including allow and deny entries, enabling validation of ACL ingestion without test retrievals.
+
+### Enhancements
+* Re-generated with smithy-python 0.5.0
+
+### Dependencies
+* Bump `smithy-aws-core` from `~=0.10.0` to `~=0.11.0`.
+* Bump `smithy-http` from `~=0.4.0` to `~=0.5.0`.
+
 ## v0.10.0
 
 ### Dependencies

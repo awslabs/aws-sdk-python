@@ -3,8 +3,7 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import Any, TYPE_CHECKING, cast
-import warnings
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
@@ -12,6 +11,7 @@ from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.eventstream import DuplexEventStream
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -95,6 +95,7 @@ class AsyncTranscribeStreamingClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -135,6 +136,25 @@ class AsyncTranscribeStreamingClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def get_medical_scribe_stream(
         self, input: GetMedicalScribeStreamInput, plugins: list[Plugin] | None = None
     ) -> GetMedicalScribeStreamOutput:
@@ -157,6 +177,11 @@ class AsyncTranscribeStreamingClient:
         Returns:
             An instance of `GetMedicalScribeStreamOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -241,6 +266,11 @@ class AsyncTranscribeStreamingClient:
         Returns:
             A `DuplexEventStream` for bidirectional streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -348,6 +378,11 @@ class AsyncTranscribeStreamingClient:
         Returns:
             A `DuplexEventStream` for bidirectional streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -435,6 +470,11 @@ class AsyncTranscribeStreamingClient:
         Returns:
             A `DuplexEventStream` for bidirectional streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -518,6 +558,11 @@ class AsyncTranscribeStreamingClient:
         Returns:
             A `DuplexEventStream` for bidirectional streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -566,20 +611,3 @@ class AsyncTranscribeStreamingClient:
             TranscriptResultStream,
             _TranscriptResultStreamDeserializer().deserialize,
         )
-
-
-if TYPE_CHECKING:
-    # Deprecated alias for backwards compatibility, to be removed.
-    TranscribeStreamingClient = AsyncTranscribeStreamingClient
-
-
-def __getattr__(name: str) -> Any:
-    if name == "TranscribeStreamingClient":
-        warnings.warn(
-            "TranscribeStreamingClient is deprecated, use AsyncTranscribeStreamingClient instead. "
-            "This alias will be removed in a future version.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return AsyncTranscribeStreamingClient
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

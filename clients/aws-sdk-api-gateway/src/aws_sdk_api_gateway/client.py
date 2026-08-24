@@ -3,13 +3,14 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import cast
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
 from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -427,6 +428,7 @@ class AsyncAPIGatewayClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [
             accept_header_plugin,
@@ -471,6 +473,25 @@ class AsyncAPIGatewayClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def create_api_key(
         self, input: CreateApiKeyInput, plugins: list[Plugin] | None = None
     ) -> CreateApiKeyOutput:
@@ -489,6 +510,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateApiKeyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -551,6 +577,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateAuthorizerOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -613,6 +644,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateBasePathMappingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -676,6 +712,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateDeploymentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -738,6 +779,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateDocumentationPartOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -802,6 +848,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateDocumentationVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -864,6 +915,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateDomainNameOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -929,6 +985,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateDomainNameAccessAssociationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -991,6 +1052,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateModelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1053,6 +1119,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateRequestValidatorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1115,6 +1186,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1177,6 +1253,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateRestApiOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1240,6 +1321,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateStageOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1303,6 +1389,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateUsagePlanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1365,6 +1456,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateUsagePlanKeyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1430,6 +1526,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `CreateVpcLinkOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1492,6 +1593,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteApiKeyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1554,6 +1660,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteAuthorizerOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1616,6 +1727,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteBasePathMappingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1678,6 +1794,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteClientCertificateOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1741,6 +1862,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteDeploymentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1803,6 +1929,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteDocumentationPartOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1867,6 +1998,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteDocumentationVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1929,6 +2065,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteDomainNameOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1998,6 +2139,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteDomainNameAccessAssociationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2061,6 +2207,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteGatewayResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2123,6 +2274,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteIntegrationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2185,6 +2341,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteIntegrationResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2247,6 +2408,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteMethodOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2309,6 +2475,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteMethodResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2371,6 +2542,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteModelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2433,6 +2609,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteRequestValidatorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2495,6 +2676,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2557,6 +2743,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteRestApiOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2619,6 +2810,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteStageOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2681,6 +2877,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteUsagePlanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2744,6 +2945,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteUsagePlanKeyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2806,6 +3012,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `DeleteVpcLinkOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2870,6 +3081,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `FlushStageAuthorizersCacheOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2932,6 +3148,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `FlushStageCacheOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2994,6 +3215,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GenerateClientCertificateOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3056,6 +3282,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetAccountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3118,6 +3349,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetApiKeyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3180,6 +3416,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetApiKeysOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3242,6 +3483,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetAuthorizerOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3304,6 +3550,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetAuthorizersOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3366,6 +3617,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetBasePathMappingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3428,6 +3684,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetBasePathMappingsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3490,6 +3751,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetClientCertificateOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3552,6 +3818,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetClientCertificatesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3614,6 +3885,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDeploymentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3676,6 +3952,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDeploymentsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3738,6 +4019,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDocumentationPartOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3800,6 +4086,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDocumentationPartsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3862,6 +4153,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDocumentationVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3924,6 +4220,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDocumentationVersionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -3987,6 +4288,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDomainNameOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4051,6 +4357,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDomainNameAccessAssociationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4113,6 +4424,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetDomainNamesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4175,6 +4491,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetExportOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4238,6 +4559,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetGatewayResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4303,6 +4629,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetGatewayResponsesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4365,6 +4696,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetIntegrationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4427,6 +4763,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetIntegrationResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4489,6 +4830,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetMethodOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4551,6 +4897,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetMethodResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4613,6 +4964,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetModelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4675,6 +5031,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetModelsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4738,6 +5099,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetModelTemplateOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4800,6 +5166,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetRequestValidatorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4862,6 +5233,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetRequestValidatorsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4924,6 +5300,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -4986,6 +5367,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetResourcesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5048,6 +5434,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetRestApiOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5110,6 +5501,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetRestApisOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5172,6 +5568,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetSdkOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5234,6 +5635,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetSdkTypeOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5296,6 +5702,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetSdkTypesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5358,6 +5769,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetStageOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5420,6 +5836,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetStagesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5482,6 +5903,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetTagsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5544,6 +5970,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetUsageOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5606,6 +6037,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetUsagePlanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5668,6 +6104,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetUsagePlanKeyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5731,6 +6172,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetUsagePlanKeysOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5793,6 +6239,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetUsagePlansOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5855,6 +6306,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetVpcLinkOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5918,6 +6374,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `GetVpcLinksOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -5980,6 +6441,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `ImportApiKeysOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6042,6 +6508,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `ImportDocumentationPartsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6105,6 +6576,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `ImportRestApiOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6168,6 +6644,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `PutGatewayResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6230,6 +6711,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `PutIntegrationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6292,6 +6778,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `PutIntegrationResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6354,6 +6845,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `PutMethodOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6416,6 +6912,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `PutMethodResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6481,6 +6982,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `PutRestApiOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6551,6 +7057,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `RejectDomainNameAccessAssociationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6613,6 +7124,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `TagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6676,6 +7192,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `TestInvokeAuthorizerOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6739,6 +7260,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `TestInvokeMethodOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6801,6 +7327,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UntagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6863,6 +7394,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateAccountOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6925,6 +7461,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateApiKeyOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -6987,6 +7528,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateAuthorizerOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7049,6 +7595,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateBasePathMappingOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7111,6 +7662,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateClientCertificateOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7173,6 +7729,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateDeploymentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7235,6 +7796,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateDocumentationPartOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7299,6 +7865,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateDocumentationVersionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7361,6 +7932,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateDomainNameOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7424,6 +8000,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateGatewayResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7486,6 +8067,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateIntegrationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7548,6 +8134,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateIntegrationResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7610,6 +8201,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateMethodOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7672,6 +8268,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateMethodResponseOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7735,6 +8336,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateModelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7797,6 +8403,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateRequestValidatorOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7859,6 +8470,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7921,6 +8537,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateRestApiOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -7983,6 +8604,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateStageOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -8046,6 +8672,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateUsageOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -8108,6 +8739,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateUsagePlanOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -8170,6 +8806,11 @@ class AsyncAPIGatewayClient:
         Returns:
             An instance of `UpdateVpcLinkOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)

@@ -32,6 +32,14 @@ from ._private.schemas import (
     AGENTIC_RETRIEVE_FULL_DOC_EXPANSION_DETAILS as _SCHEMA_AGENTIC_RETRIEVE_FULL_DOC_EXPANSION_DETAILS,
     AGENTIC_RETRIEVE_GENERATED_RESPONSE as _SCHEMA_AGENTIC_RETRIEVE_GENERATED_RESPONSE,
     AGENTIC_RETRIEVE_GUARDRAIL_WARNING as _SCHEMA_AGENTIC_RETRIEVE_GUARDRAIL_WARNING,
+    AGENTIC_RETRIEVE_MEMORY_CONFIGURATION as _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION,
+    AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER as _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER,
+    AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LEFT as _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LEFT,
+    AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_RIGHT as _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_RIGHT,
+    AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE as _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE,
+    AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG as _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG,
+    AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS as _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS,
+    AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING as _SCHEMA_AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING,
     AGENTIC_RETRIEVE_MESSAGE as _SCHEMA_AGENTIC_RETRIEVE_MESSAGE,
     AGENTIC_RETRIEVE_MESSAGE_CONTENT as _SCHEMA_AGENTIC_RETRIEVE_MESSAGE_CONTENT,
     AGENTIC_RETRIEVE_POLICY_CONFIGURATION as _SCHEMA_AGENTIC_RETRIEVE_POLICY_CONFIGURATION,
@@ -73,6 +81,9 @@ from ._private.schemas import (
     BYTE_CONTENT_DOC as _SCHEMA_BYTE_CONTENT_DOC,
     BYTE_CONTENT_FILE as _SCHEMA_BYTE_CONTENT_FILE,
     CALLER as _SCHEMA_CALLER,
+    CHECK_INGESTED_DOCUMENT_ACL as _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL,
+    CHECK_INGESTED_DOCUMENT_ACL_INPUT as _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT,
+    CHECK_INGESTED_DOCUMENT_ACL_OUTPUT as _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_OUTPUT,
     CITATION as _SCHEMA_CITATION,
     CITATION_EVENT as _SCHEMA_CITATION_EVENT,
     CODE_INTERPRETER_INVOCATION_INPUT as _SCHEMA_CODE_INTERPRETER_INVOCATION_INPUT,
@@ -100,6 +111,11 @@ from ._private.schemas import (
     DELETE_SESSION_INPUT as _SCHEMA_DELETE_SESSION_INPUT,
     DELETE_SESSION_OUTPUT as _SCHEMA_DELETE_SESSION_OUTPUT,
     DEPENDENCY_FAILED_EXCEPTION as _SCHEMA_DEPENDENCY_FAILED_EXCEPTION,
+    DOCUMENT_ACL as _SCHEMA_DOCUMENT_ACL,
+    DOCUMENT_ACL_CONDITION as _SCHEMA_DOCUMENT_ACL_CONDITION,
+    DOCUMENT_ACL_GROUP as _SCHEMA_DOCUMENT_ACL_GROUP,
+    DOCUMENT_ACL_MEMBERSHIP as _SCHEMA_DOCUMENT_ACL_MEMBERSHIP,
+    DOCUMENT_ACL_USER as _SCHEMA_DOCUMENT_ACL_USER,
     END_SESSION as _SCHEMA_END_SESSION,
     END_SESSION_INPUT as _SCHEMA_END_SESSION_INPUT,
     END_SESSION_OUTPUT as _SCHEMA_END_SESSION_OUTPUT,
@@ -168,6 +184,9 @@ from ._private.schemas import (
     GET_FLOW_EXECUTION as _SCHEMA_GET_FLOW_EXECUTION,
     GET_FLOW_EXECUTION_INPUT as _SCHEMA_GET_FLOW_EXECUTION_INPUT,
     GET_FLOW_EXECUTION_OUTPUT as _SCHEMA_GET_FLOW_EXECUTION_OUTPUT,
+    GET_INGESTED_DOCUMENT_ACL as _SCHEMA_GET_INGESTED_DOCUMENT_ACL,
+    GET_INGESTED_DOCUMENT_ACL_INPUT as _SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT,
+    GET_INGESTED_DOCUMENT_ACL_OUTPUT as _SCHEMA_GET_INGESTED_DOCUMENT_ACL_OUTPUT,
     GET_INVOCATION_STEP as _SCHEMA_GET_INVOCATION_STEP,
     GET_INVOCATION_STEP_INPUT as _SCHEMA_GET_INVOCATION_STEP_INPUT,
     GET_INVOCATION_STEP_OUTPUT as _SCHEMA_GET_INVOCATION_STEP_OUTPUT,
@@ -3908,6 +3927,126 @@ class AgenticRetrieveMessageContent:
         return cls()
 
 
+@dataclass(kw_only=True)
+class AgenticRetrieveMemoryRetrieveDetails:
+    """
+    A long-term memory retrieval that the agent chose to perform. The record
+    reports the query and the namespace. The corresponding Retrieval step
+    reports the results.
+    """
+
+    input_query: AgenticRetrieveMessageContent = field(repr=False)
+    """The query that the agent composed."""
+
+    memory_id: str
+    """The identifier of the AgentCore Memory resource retrieved from."""
+
+    namespace: str | None = None
+    """
+    The namespace prefix retrieved from, as supplied in the request. This
+    field is present when the request specified namespace.
+    """
+
+    namespace_path: str | None = None
+    """
+    The parent namespace retrieved from hierarchically, as supplied in the
+    request. This field is present when the request specified namespacePath.
+    """
+
+    strategy_id: str | None = None
+    """
+    The extraction strategy that restricted retrieval, if the request
+    specified one.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members["inputQuery"],
+            self.input_query,
+        )
+        serializer.write_string(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members["memoryId"],
+            self.memory_id,
+        )
+        if self.namespace is not None:
+            serializer.write_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members["namespace"],
+                self.namespace,
+            )
+
+        if self.namespace_path is not None:
+            serializer.write_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members[
+                    "namespacePath"
+                ],
+                self.namespace_path,
+            )
+
+        if self.strategy_id is not None:
+            serializer.write_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members["strategyId"],
+                self.strategy_id,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["input_query"] = AgenticRetrieveMessageContent.deserialize(
+                        de
+                    )
+
+                case 1:
+                    kwargs["memory_id"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members[
+                            "memoryId"
+                        ]
+                    )
+
+                case 2:
+                    kwargs["namespace"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members[
+                            "namespace"
+                        ]
+                    )
+
+                case 3:
+                    kwargs["namespace_path"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members[
+                            "namespacePath"
+                        ]
+                    )
+
+                case 4:
+                    kwargs["strategy_id"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS.members[
+                            "strategyId"
+                        ]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVE_DETAILS, consumer=_consumer
+        )
+        if "input_query" not in kwargs:
+            kwargs["input_query"] = AgenticRetrieveMessageContent._smithy_default()
+        if "memory_id" not in kwargs:
+            kwargs["memory_id"] = ""
+        return kwargs
+
+
 def _serialize_agentic_retrieve_source_retriever_list(
     serializer: ShapeSerializer,
     schema: Schema,
@@ -4007,6 +4146,12 @@ class AgenticRetrieveAction:
     full_document_expansion: AgenticRetrieveFullDocExpansionDetails | None = None
     """Details of a full document expansion action."""
 
+    memory_retrieve: AgenticRetrieveMemoryRetrieveDetails | None = None
+    """
+    The details of a long-term memory retrieval that the agent chose to
+    perform.
+    """
+
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_ACTION, self)
 
@@ -4020,6 +4165,12 @@ class AgenticRetrieveAction:
             serializer.write_struct(
                 _SCHEMA_AGENTIC_RETRIEVE_ACTION.members["fullDocumentExpansion"],
                 self.full_document_expansion,
+            )
+
+        if self.memory_retrieve is not None:
+            serializer.write_struct(
+                _SCHEMA_AGENTIC_RETRIEVE_ACTION.members["memoryRetrieve"],
+                self.memory_retrieve,
             )
 
     @classmethod
@@ -4038,6 +4189,11 @@ class AgenticRetrieveAction:
                 case 1:
                     kwargs["full_document_expansion"] = (
                         AgenticRetrieveFullDocExpansionDetails.deserialize(de)
+                    )
+
+                case 2:
+                    kwargs["memory_retrieve"] = (
+                        AgenticRetrieveMemoryRetrieveDetails.deserialize(de)
                     )
 
                 case _:
@@ -4982,6 +5138,962 @@ class AgenticRetrieveGuardrailWarning:
         return kwargs
 
 
+class AgenticRetrieveMemoryPersistenceMode(UnknownEnumMixin, StrEnum):
+    """
+    Specifies whether the agent-generated answer is written back to a
+    short-term memory session.
+    """
+
+    DEFAULT = "DEFAULT"
+    """
+    Specifies that the question and the agent-generated answer are persisted
+    to the session. This is the default when persistenceMode is omitted.
+    """
+    NONE = "NONE"
+    """Specifies that the session is left unchanged."""
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataFilterLeftMetadataKey:
+    """The metadata key to filter on."""
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LEFT, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LEFT.members["metadataKey"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LEFT.members[
+                    "metadataKey"
+                ]
+            )
+        )
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataFilterLeftUnknown:
+    """
+    Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+AgenticRetrieveMemoryMetadataFilterLeft = Union[
+    AgenticRetrieveMemoryMetadataFilterLeftMetadataKey
+    | AgenticRetrieveMemoryMetadataFilterLeftUnknown
+]
+"""
+The left operand of a metadata filter expression. Set exactly one
+member.
+"""
+
+
+class _AgenticRetrieveMemoryMetadataFilterLeftDeserializer:
+    _result: AgenticRetrieveMemoryMetadataFilterLeft | None = None
+
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> AgenticRetrieveMemoryMetadataFilterLeft:
+        self._result = None
+        deserializer.read_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_LEFT, self._consumer
+        )
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataFilterLeftMetadataKey.deserialize(de)
+                )
+
+            case _:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataFilterLeftUnknown(
+                        tag=schema.expect_member_name()
+                    )
+                )
+
+    def _set_result(self, value: AgenticRetrieveMemoryMetadataFilterLeft) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+class AgenticRetrieveMemoryMetadataFilterOperator(UnknownEnumMixin, StrEnum):
+    """
+    Specifies the relationship that a metadata key and value must have for a
+    memory record to match a filter expression.
+    """
+
+    EQUALS_TO = "EQUALS_TO"
+    """
+    The EQUALS_TO operator matches memory records whose metadata value
+    equals the supplied value.
+    """
+    EXISTS = "EXISTS"
+    """
+    The EXISTS operator matches memory records that carry the metadata key,
+    whatever its value. This operator takes no right operand.
+    """
+    NOT_EXISTS = "NOT_EXISTS"
+    """
+    The NOT_EXISTS operator matches memory records that do not carry the
+    metadata key. This operator takes no right operand.
+    """
+    BEFORE = "BEFORE"
+    """
+    The BEFORE operator matches memory records whose timestamp metadata
+    value falls before the supplied value.
+    """
+    AFTER = "AFTER"
+    """
+    The AFTER operator matches memory records whose timestamp metadata value
+    falls after the supplied value.
+    """
+    CONTAINS = "CONTAINS"
+    """
+    The CONTAINS operator matches memory records whose metadata value
+    contains the supplied value.
+    """
+    GREATER_THAN = "GREATER_THAN"
+    """
+    The GREATER_THAN operator matches memory records whose numeric metadata
+    value is greater than the supplied value.
+    """
+    GREATER_THAN_OR_EQUALS = "GREATER_THAN_OR_EQUALS"
+    """
+    The GREATER_THAN_OR_EQUALS operator matches memory records whose numeric
+    metadata value is greater than or equal to the supplied value.
+    """
+    LESS_THAN = "LESS_THAN"
+    """
+    The LESS_THAN operator matches memory records whose numeric metadata
+    value is less than the supplied value.
+    """
+    LESS_THAN_OR_EQUALS = "LESS_THAN_OR_EQUALS"
+    """
+    The LESS_THAN_OR_EQUALS operator matches memory records whose numeric
+    metadata value is less than or equal to the supplied value.
+    """
+
+
+def _serialize_agentic_retrieve_memory_metadata_string_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[str]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_string(member_schema, e)
+
+
+def _deserialize_agentic_retrieve_memory_metadata_string_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[str]:
+    result: list[str] = []
+    member_schema = schema.members["member"]
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(d.read_string(member_schema))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataValueStringValue:
+    """A string value."""
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE.members["stringValue"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE.members["stringValue"]
+            )
+        )
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataValueNumberValue:
+    """A numeric value."""
+
+    value: float
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_double(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE.members["numberValue"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_double(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE.members["numberValue"]
+            )
+        )
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataValueStringListValue:
+    """A list of string values."""
+
+    value: list[str]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        _serialize_agentic_retrieve_memory_metadata_string_list(
+            serializer,
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE.members["stringListValue"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=_deserialize_agentic_retrieve_memory_metadata_string_list(
+                deserializer,
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE.members[
+                    "stringListValue"
+                ],
+            )
+        )
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataValueDateTimeValue:
+    """A timestamp value in ISO 8601 UTC format."""
+
+    value: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_timestamp(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE.members["dateTimeValue"],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=deserializer.read_timestamp(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE.members["dateTimeValue"]
+            )
+        )
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataValueUnknown:
+    """
+    Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+AgenticRetrieveMemoryMetadataValue = Union[
+    AgenticRetrieveMemoryMetadataValueStringValue
+    | AgenticRetrieveMemoryMetadataValueNumberValue
+    | AgenticRetrieveMemoryMetadataValueStringListValue
+    | AgenticRetrieveMemoryMetadataValueDateTimeValue
+    | AgenticRetrieveMemoryMetadataValueUnknown
+]
+"""
+A metadata value that a filter expression compares against. Set exactly
+one member.
+"""
+
+
+class _AgenticRetrieveMemoryMetadataValueDeserializer:
+    _result: AgenticRetrieveMemoryMetadataValue | None = None
+
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> AgenticRetrieveMemoryMetadataValue:
+        self._result = None
+        deserializer.read_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_VALUE, self._consumer
+        )
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataValueStringValue.deserialize(de)
+                )
+
+            case 1:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataValueNumberValue.deserialize(de)
+                )
+
+            case 2:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataValueStringListValue.deserialize(de)
+                )
+
+            case 3:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataValueDateTimeValue.deserialize(de)
+                )
+
+            case _:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataValueUnknown(
+                        tag=schema.expect_member_name()
+                    )
+                )
+
+    def _set_result(self, value: AgenticRetrieveMemoryMetadataValue) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataFilterRightMetadataValue:
+    """The value to compare the metadata key against."""
+
+    value: AgenticRetrieveMemoryMetadataValue
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_RIGHT, self
+        )
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_RIGHT.members[
+                "metadataValue"
+            ],
+            self.value,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(
+            value=_AgenticRetrieveMemoryMetadataValueDeserializer().deserialize(
+                deserializer
+            )
+        )
+
+
+@dataclass
+class AgenticRetrieveMemoryMetadataFilterRightUnknown:
+    """
+    Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SerializationError("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+
+AgenticRetrieveMemoryMetadataFilterRight = Union[
+    AgenticRetrieveMemoryMetadataFilterRightMetadataValue
+    | AgenticRetrieveMemoryMetadataFilterRightUnknown
+]
+"""
+The right operand of a metadata filter expression. Set exactly one
+member.
+"""
+
+
+class _AgenticRetrieveMemoryMetadataFilterRightDeserializer:
+    _result: AgenticRetrieveMemoryMetadataFilterRight | None = None
+
+    def deserialize(
+        self, deserializer: ShapeDeserializer
+    ) -> AgenticRetrieveMemoryMetadataFilterRight:
+        self._result = None
+        deserializer.read_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER_RIGHT, self._consumer
+        )
+
+        if self._result is None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found none."
+            )
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataFilterRightMetadataValue.deserialize(
+                        de
+                    )
+                )
+
+            case _:
+                self._set_result(
+                    AgenticRetrieveMemoryMetadataFilterRightUnknown(
+                        tag=schema.expect_member_name()
+                    )
+                )
+
+    def _set_result(self, value: AgenticRetrieveMemoryMetadataFilterRight) -> None:
+        if self._result is not None:
+            raise SerializationError(
+                "Unions must have exactly one value, but found more than one."
+            )
+        self._result = value
+
+
+@dataclass(kw_only=True)
+class AgenticRetrieveMemoryMetadataFilter:
+    """
+    A metadata filter expression, in the form accepted by the AgentCore
+    Memory RetrieveMemoryRecords operation. The expression has a left
+    operand that names the metadata key, an operator, and a right operand.
+    For the EXISTS and NOT_EXISTS operators, omit the right operand.
+    """
+
+    left: AgenticRetrieveMemoryMetadataFilterLeft
+    """The metadata key that the expression evaluates."""
+
+    operator: AgenticRetrieveMemoryMetadataFilterOperator
+    """
+    The relationship that the metadata key and value must have for a memory
+    record to match.
+    """
+
+    right: AgenticRetrieveMemoryMetadataFilterRight | None = None
+    """
+    The value that the expression compares the metadata key against. Supply
+    this value for every operator except EXISTS and NOT_EXISTS.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER.members["left"], self.left
+        )
+        serializer.write_string(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER.members["operator"],
+            self.operator,
+        )
+        if self.right is not None:
+            serializer.write_struct(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER.members["right"],
+                self.right,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["left"] = (
+                        _AgenticRetrieveMemoryMetadataFilterLeftDeserializer().deserialize(
+                            de
+                        )
+                    )
+
+                case 1:
+                    kwargs["operator"] = AgenticRetrieveMemoryMetadataFilterOperator(
+                        de.read_string(
+                            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER.members[
+                                "operator"
+                            ]
+                        )
+                    )
+
+                case 2:
+                    kwargs["right"] = (
+                        _AgenticRetrieveMemoryMetadataFilterRightDeserializer().deserialize(
+                            de
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_METADATA_FILTER, consumer=_consumer
+        )
+        if "left" not in kwargs:
+            kwargs["left"] = AgenticRetrieveMemoryMetadataFilterLeftUnknown(tag="")
+        if "operator" not in kwargs:
+            kwargs["operator"] = AgenticRetrieveMemoryMetadataFilterOperator._corrected(
+                ""
+            )
+        return kwargs
+
+
+def _serialize_agentic_retrieve_memory_metadata_filter_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[AgenticRetrieveMemoryMetadataFilter],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_agentic_retrieve_memory_metadata_filter_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[AgenticRetrieveMemoryMetadataFilter]:
+    result: list[AgenticRetrieveMemoryMetadataFilter] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(AgenticRetrieveMemoryMetadataFilter.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class AgenticRetrieveMemoryRetrievalConfig:
+    """
+    The long-term memory namespace that the agent might retrieve memory
+    records from, and the filters applied to that retrieval. You must
+    specify either namespace or namespacePath.
+    """
+
+    namespace: str | None = None
+    """
+    The namespace prefix to filter memory records by. The agent retrieves
+    memory records in namespaces that start with the provided prefix. You
+    must specify either namespace or namespacePath.
+    """
+
+    namespace_path: str | None = None
+    """
+    The parent namespace to use for hierarchical retrievals. The agent
+    retrieves all memory records whose namespace falls under the same parent
+    hierarchy. You must specify either namespace or namespacePath.
+    """
+
+    strategy_id: str | None = None
+    """
+    The extraction strategy ID that restricts retrieval to memory records
+    produced by a single strategy. Omit this parameter to retrieve records
+    from every strategy on the memory resource.
+    """
+
+    metadata_filters: list[AgenticRetrieveMemoryMetadataFilter] | None = None
+    """
+    The metadata filter expressions that restrict retrieval to matching
+    memory records. You can specify a maximum of 5 expressions.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.namespace is not None:
+            serializer.write_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG.members["namespace"],
+                self.namespace,
+            )
+
+        if self.namespace_path is not None:
+            serializer.write_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG.members[
+                    "namespacePath"
+                ],
+                self.namespace_path,
+            )
+
+        if self.strategy_id is not None:
+            serializer.write_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG.members["strategyId"],
+                self.strategy_id,
+            )
+
+        if self.metadata_filters is not None:
+            _serialize_agentic_retrieve_memory_metadata_filter_list(
+                serializer,
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG.members[
+                    "metadataFilters"
+                ],
+                self.metadata_filters,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["namespace"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG.members[
+                            "namespace"
+                        ]
+                    )
+
+                case 1:
+                    kwargs["namespace_path"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG.members[
+                            "namespacePath"
+                        ]
+                    )
+
+                case 2:
+                    kwargs["strategy_id"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG.members[
+                            "strategyId"
+                        ]
+                    )
+
+                case 3:
+                    kwargs["metadata_filters"] = (
+                        _deserialize_agentic_retrieve_memory_metadata_filter_list(
+                            de,
+                            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG.members[
+                                "metadataFilters"
+                            ],
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_RETRIEVAL_CONFIG, consumer=_consumer
+        )
+        return kwargs
+
+
+def _serialize_agentic_retrieve_memory_retrieval_config_list(
+    serializer: ShapeSerializer,
+    schema: Schema,
+    value: list[AgenticRetrieveMemoryRetrievalConfig],
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_agentic_retrieve_memory_retrieval_config_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[AgenticRetrieveMemoryRetrievalConfig]:
+    result: list[AgenticRetrieveMemoryRetrievalConfig] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(AgenticRetrieveMemoryRetrievalConfig.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class AgenticRetrieveMemorySessionBinding:
+    """
+    The short-term memory session that this retrieval reads from and writes
+    to.
+    """
+
+    actor_id: str
+    """
+    The identifier of the end user or agent that the session belongs to.
+    This identifier scopes session history so that one actor's history is
+    never returned for another. You are responsible for sending the correct
+    actor value.
+    """
+
+    session_id: str
+    """
+    The identifier of the session to restore and continue. You are
+    responsible for sending the correct session value.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING.members["actorId"],
+            self.actor_id,
+        )
+        serializer.write_string(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING.members["sessionId"],
+            self.session_id,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["actor_id"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING.members[
+                            "actorId"
+                        ]
+                    )
+
+                case 1:
+                    kwargs["session_id"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING.members[
+                            "sessionId"
+                        ]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_SESSION_BINDING, consumer=_consumer
+        )
+        if "actor_id" not in kwargs:
+            kwargs["actor_id"] = ""
+        if "session_id" not in kwargs:
+            kwargs["session_id"] = ""
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class AgenticRetrieveMemoryConfiguration:
+    """
+    Specifies an AgentCore Memory resource and how this retrieval uses it.
+    Set sessionBinding to restore and continue a session. Set
+    retrievalConfigs to let the agent retrieve from long-term memory. You
+    must specify at least one of the two.
+    """
+
+    memory_id: str
+    """
+    The identifier of the AgentCore Memory resource to use. The resource
+    must exist in your account and be in the ACTIVE state.
+    """
+
+    session_binding: AgenticRetrieveMemorySessionBinding | None = None
+    """
+    The short-term memory session whose history is restored for this
+    retrieval. To persist the agent-generated answer to the session, omit
+    persistenceMode or set it to DEFAULT. To leave the session unchanged,
+    set persistenceMode to NONE. Supply session history through the existing
+    messages parameter or through short-term memory, but not both.
+    """
+
+    retrieval_configs: list[AgenticRetrieveMemoryRetrievalConfig] | None = None
+    """
+    Specifies the long-term memory configuration the agent can retrieve
+    from. The agent decides whether to retrieve and composes its own query.
+    This field currently accepts at most one entry.
+    """
+
+    persistence_mode: AgenticRetrieveMemoryPersistenceMode | None = None
+    """
+    Specifies whether the agent-generated answer is written back to the
+    given short-term memory session, and applies only when sessionBinding is
+    set. Valid values:
+
+    - `DEFAULT` (default) -- Specifies that the question and the
+      agent-generated answer are persisted to the session as a single event.
+      This value requires generateResponse to be true.
+
+    - `NONE` -- Specifies that the session is left unchanged.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION.members["memoryId"],
+            self.memory_id,
+        )
+        if self.session_binding is not None:
+            serializer.write_struct(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION.members["sessionBinding"],
+                self.session_binding,
+            )
+
+        if self.retrieval_configs is not None:
+            _serialize_agentic_retrieve_memory_retrieval_config_list(
+                serializer,
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION.members[
+                    "retrievalConfigs"
+                ],
+                self.retrieval_configs,
+            )
+
+        if self.persistence_mode is not None:
+            serializer.write_string(
+                _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION.members[
+                    "persistenceMode"
+                ],
+                self.persistence_mode,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["memory_id"] = de.read_string(
+                        _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION.members[
+                            "memoryId"
+                        ]
+                    )
+
+                case 1:
+                    kwargs["session_binding"] = (
+                        AgenticRetrieveMemorySessionBinding.deserialize(de)
+                    )
+
+                case 2:
+                    kwargs["retrieval_configs"] = (
+                        _deserialize_agentic_retrieve_memory_retrieval_config_list(
+                            de,
+                            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION.members[
+                                "retrievalConfigs"
+                            ],
+                        )
+                    )
+
+                case 3:
+                    kwargs["persistence_mode"] = AgenticRetrieveMemoryPersistenceMode(
+                        de.read_string(
+                            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION.members[
+                                "persistenceMode"
+                            ]
+                        )
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_AGENTIC_RETRIEVE_MEMORY_CONFIGURATION, consumer=_consumer
+        )
+        if "memory_id" not in kwargs:
+            kwargs["memory_id"] = ""
+        return kwargs
+
+
 class ConversationRole(UnknownEnumMixin, StrEnum):
     USER = "user"
     ASSISTANT = "assistant"
@@ -5471,6 +6583,11 @@ class AgenticRetrieveType(UnknownEnumMixin, StrEnum):
 
     BEDROCK_KNOWLEDGE_BASE = "BedrockKnowledgeBase"
     """A Bedrock knowledge base retrieval source."""
+    BEDROCK_AGENT_CORE_MEMORY = "BedrockAgentCoreMemory"
+    """
+    An AgentCore Memory resource. Long-term memory retrievals report under
+    the Retrieval step with this source type.
+    """
 
 
 @dataclass(kw_only=True)
@@ -5581,6 +6698,11 @@ class AgenticRetrieveStep(UnknownEnumMixin, StrEnum):
     """A speculative retrieval phase for optimization."""
     FULL_DOCUMENT_EXPANSION = "FullDocumentExpansion"
     """The full document expansion phase."""
+    SESSION_HISTORY_LOAD = "SessionHistoryLoad"
+    """
+    The phase that restores prior session history from AgentCore Memory
+    short-term memory, before the agent begins work.
+    """
 
 
 @dataclass(kw_only=True)
@@ -12184,6 +13306,177 @@ def _deserialize_agent_traces(
 
     deserializer.read_list(schema, _read_value)
     return result
+
+
+@dataclass(kw_only=True)
+class CheckIngestedDocumentAclInput:
+    """Dataclass for CheckIngestedDocumentAclInput structure."""
+
+    knowledge_base_id: str | None = None
+    """The unique identifier of the knowledge base that contains the document."""
+
+    data_source_id: str | None = None
+    """The unique identifier of the data source that contains the document."""
+
+    document_id: str | None = None
+    """The unique identifier of the document to check access for."""
+
+    user_context: UserContext | None = field(repr=False, default=None)
+    """
+    The context object containing identity information for access control
+    filtering, including user ID and optional group memberships used to
+    evaluate the document access control list (ACL).
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.knowledge_base_id is not None:
+            serializer.write_string(
+                _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT.members["knowledgeBaseId"],
+                self.knowledge_base_id,
+            )
+
+        if self.data_source_id is not None:
+            serializer.write_string(
+                _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT.members["dataSourceId"],
+                self.data_source_id,
+            )
+
+        if self.document_id is not None:
+            serializer.write_string(
+                _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT.members["documentId"],
+                self.document_id,
+            )
+
+        if self.user_context is not None:
+            serializer.write_struct(
+                _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT.members["userContext"],
+                self.user_context,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["knowledge_base_id"] = de.read_string(
+                        _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT.members[
+                            "knowledgeBaseId"
+                        ]
+                    )
+
+                case 1:
+                    kwargs["data_source_id"] = de.read_string(
+                        _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT.members[
+                            "dataSourceId"
+                        ]
+                    )
+
+                case 2:
+                    kwargs["document_id"] = de.read_string(
+                        _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT.members["documentId"]
+                    )
+
+                case 3:
+                    kwargs["user_context"] = UserContext.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT, consumer=_consumer
+        )
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class CheckIngestedDocumentAclOutput:
+    """Dataclass for CheckIngestedDocumentAclOutput structure."""
+
+    has_access: bool
+    """
+    Specifies whether the user has access to the document based on the
+    ingested access control list (ACL). Returns `true` if the user is
+    allowed access, and `false` otherwise.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_boolean(
+            _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_OUTPUT.members["hasAccess"],
+            self.has_access,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["has_access"] = de.read_boolean(
+                        _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_OUTPUT.members["hasAccess"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_OUTPUT, consumer=_consumer
+        )
+        if "has_access" not in kwargs:
+            kwargs["has_access"] = False
+        return kwargs
+
+
+CHECK_INGESTED_DOCUMENT_ACL = APIOperation(
+    input=CheckIngestedDocumentAclInput,
+    output=CheckIngestedDocumentAclOutput,
+    schema=_SCHEMA_CHECK_INGESTED_DOCUMENT_ACL,
+    input_schema=_SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_INPUT,
+    output_schema=_SCHEMA_CHECK_INGESTED_DOCUMENT_ACL_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    error_schemas=[
+        _SCHEMA_ACCESS_DENIED_EXCEPTION,
+        _SCHEMA_INTERNAL_SERVER_EXCEPTION,
+        _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
+        _SCHEMA_THROTTLING_EXCEPTION,
+        _SCHEMA_VALIDATION_EXCEPTION,
+    ],
+)
 
 
 @dataclass(kw_only=True)
@@ -19090,10 +20383,9 @@ class GetDocumentContentInput:
 
     user_context: UserContext | None = field(repr=False, default=None)
     """
-    Contains information about the user making the request. Use this to pass
-    user identity information for access control filtering, so that
-    retrieval results only include documents the user is authorized to
-    access.
+    Contains information about the user making the request. This is used for
+    access control filtering to ensure that results only include documents
+    the user is authorized to access.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -19258,6 +20550,546 @@ GET_DOCUMENT_CONTENT = APIOperation(
     schema=_SCHEMA_GET_DOCUMENT_CONTENT,
     input_schema=_SCHEMA_GET_DOCUMENT_CONTENT_INPUT,
     output_schema=_SCHEMA_GET_DOCUMENT_CONTENT_OUTPUT,
+    error_registry=TypeRegistry(
+        {
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#AccessDeniedException"
+            ): AccessDeniedException,
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#InternalServerException"
+            ): InternalServerException,
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#ResourceNotFoundException"
+            ): ResourceNotFoundException,
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#ThrottlingException"
+            ): ThrottlingException,
+            ShapeID(
+                "com.amazonaws.bedrockagentruntime#ValidationException"
+            ): ValidationException,
+        }
+    ),
+    effective_auth_schemes=[ShapeID("aws.auth#sigv4")],
+    error_schemas=[
+        _SCHEMA_ACCESS_DENIED_EXCEPTION,
+        _SCHEMA_INTERNAL_SERVER_EXCEPTION,
+        _SCHEMA_RESOURCE_NOT_FOUND_EXCEPTION,
+        _SCHEMA_THROTTLING_EXCEPTION,
+        _SCHEMA_VALIDATION_EXCEPTION,
+    ],
+)
+
+
+@dataclass(kw_only=True)
+class GetIngestedDocumentAclInput:
+    """Dataclass for GetIngestedDocumentAclInput structure."""
+
+    knowledge_base_id: str | None = None
+    """The unique identifier of the knowledge base that contains the document."""
+
+    data_source_id: str | None = None
+    """The unique identifier of the data source that contains the document."""
+
+    document_id: str | None = None
+    """
+    The unique identifier of the document to retrieve the ingested access
+    control list (ACL) for.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.knowledge_base_id is not None:
+            serializer.write_string(
+                _SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT.members["knowledgeBaseId"],
+                self.knowledge_base_id,
+            )
+
+        if self.data_source_id is not None:
+            serializer.write_string(
+                _SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT.members["dataSourceId"],
+                self.data_source_id,
+            )
+
+        if self.document_id is not None:
+            serializer.write_string(
+                _SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT.members["documentId"],
+                self.document_id,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["knowledge_base_id"] = de.read_string(
+                        _SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT.members[
+                            "knowledgeBaseId"
+                        ]
+                    )
+
+                case 1:
+                    kwargs["data_source_id"] = de.read_string(
+                        _SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT.members["dataSourceId"]
+                    )
+
+                case 2:
+                    kwargs["document_id"] = de.read_string(
+                        _SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT.members["documentId"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT, consumer=_consumer
+        )
+        return kwargs
+
+
+class DocumentAclMemberRelation(UnknownEnumMixin, StrEnum):
+    """
+    The logical relation for combining access control list (ACL) membership
+    conditions.
+    """
+
+    AND_ = "AND"
+    OR_ = "OR"
+
+
+class DocumentAclMembershipType(UnknownEnumMixin, StrEnum):
+    """
+    The scope type for a document access control list (ACL) membership
+    condition. Valid values: `KNOWLEDGE_BASE` -- The entry applies at the
+    knowledge base level. `DATA_SOURCE` -- The entry applies at the data
+    source level.
+    """
+
+    KNOWLEDGE_BASE = "KNOWLEDGE_BASE"
+    DATA_SOURCE = "DATA_SOURCE"
+
+
+@dataclass(kw_only=True)
+class DocumentAclGroup:
+    """A group entry within a document access control list (ACL) condition."""
+
+    id: str
+    """The identifier of the group."""
+
+    type: DocumentAclMembershipType
+    """The membership type indicating the scope of the group entry."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_ACL_GROUP, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DOCUMENT_ACL_GROUP.members["id"], self.id)
+        serializer.write_string(_SCHEMA_DOCUMENT_ACL_GROUP.members["type"], self.type)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(
+                        _SCHEMA_DOCUMENT_ACL_GROUP.members["id"]
+                    )
+
+                case 1:
+                    kwargs["type"] = DocumentAclMembershipType(
+                        de.read_string(_SCHEMA_DOCUMENT_ACL_GROUP.members["type"])
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DOCUMENT_ACL_GROUP, consumer=_consumer)
+        if "id" not in kwargs:
+            kwargs["id"] = ""
+        if "type" not in kwargs:
+            kwargs["type"] = DocumentAclMembershipType._corrected("")
+        return kwargs
+
+
+def _serialize_document_acl_group_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[DocumentAclGroup]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_document_acl_group_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[DocumentAclGroup]:
+    result: list[DocumentAclGroup] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(DocumentAclGroup.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class DocumentAclUser:
+    """A user entry within a document access control list (ACL) condition."""
+
+    id: str
+    """The identifier of the user."""
+
+    type: DocumentAclMembershipType
+    """The membership type indicating the scope of the user entry."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_ACL_USER, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DOCUMENT_ACL_USER.members["id"], self.id)
+        serializer.write_string(_SCHEMA_DOCUMENT_ACL_USER.members["type"], self.type)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(
+                        _SCHEMA_DOCUMENT_ACL_USER.members["id"]
+                    )
+
+                case 1:
+                    kwargs["type"] = DocumentAclMembershipType(
+                        de.read_string(_SCHEMA_DOCUMENT_ACL_USER.members["type"])
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DOCUMENT_ACL_USER, consumer=_consumer)
+        if "id" not in kwargs:
+            kwargs["id"] = ""
+        if "type" not in kwargs:
+            kwargs["type"] = DocumentAclMembershipType._corrected("")
+        return kwargs
+
+
+def _serialize_document_acl_user_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[DocumentAclUser]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_document_acl_user_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[DocumentAclUser]:
+    result: list[DocumentAclUser] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(DocumentAclUser.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class DocumentAclCondition:
+    """
+    A condition within a document access control list (ACL) membership,
+    specifying users and groups that are evaluated together.
+    """
+
+    condition_operator: DocumentAclMemberRelation | None = None
+    """
+    The logical operator for combining users and groups within this
+    condition. Valid values: `AND` -- Both a user match and a group match
+    are required. `OR` -- Either a user match or a group match is
+    sufficient.
+    """
+
+    users: list[DocumentAclUser] | None = None
+    """The list of user entries in this condition."""
+
+    groups: list[DocumentAclGroup] | None = None
+    """The list of group entries in this condition."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_ACL_CONDITION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.condition_operator is not None:
+            serializer.write_string(
+                _SCHEMA_DOCUMENT_ACL_CONDITION.members["conditionOperator"],
+                self.condition_operator,
+            )
+
+        if self.users is not None:
+            _serialize_document_acl_user_list(
+                serializer, _SCHEMA_DOCUMENT_ACL_CONDITION.members["users"], self.users
+            )
+
+        if self.groups is not None:
+            _serialize_document_acl_group_list(
+                serializer,
+                _SCHEMA_DOCUMENT_ACL_CONDITION.members["groups"],
+                self.groups,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["condition_operator"] = DocumentAclMemberRelation(
+                        de.read_string(
+                            _SCHEMA_DOCUMENT_ACL_CONDITION.members["conditionOperator"]
+                        )
+                    )
+
+                case 1:
+                    kwargs["users"] = _deserialize_document_acl_user_list(
+                        de, _SCHEMA_DOCUMENT_ACL_CONDITION.members["users"]
+                    )
+
+                case 2:
+                    kwargs["groups"] = _deserialize_document_acl_group_list(
+                        de, _SCHEMA_DOCUMENT_ACL_CONDITION.members["groups"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DOCUMENT_ACL_CONDITION, consumer=_consumer)
+        return kwargs
+
+
+def _serialize_document_acl_condition_list(
+    serializer: ShapeSerializer, schema: Schema, value: list[DocumentAclCondition]
+) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+
+def _deserialize_document_acl_condition_list(
+    deserializer: ShapeDeserializer, schema: Schema
+) -> list[DocumentAclCondition]:
+    result: list[DocumentAclCondition] = []
+
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(DocumentAclCondition.deserialize(d))
+
+    deserializer.read_list(schema, _read_value)
+    return result
+
+
+@dataclass(kw_only=True)
+class DocumentAclMembership:
+    """
+    The membership entry for a document access control list (ACL),
+    containing conditions and their logical relation.
+    """
+
+    member_relation: DocumentAclMemberRelation | None = None
+    """
+    The logical relation between conditions. Valid values: `AND` -- All
+    conditions must match. `OR` -- At least one condition must match.
+    """
+
+    conditions: list[DocumentAclCondition] | None = None
+    """The list of conditions that determine membership."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_ACL_MEMBERSHIP, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.member_relation is not None:
+            serializer.write_string(
+                _SCHEMA_DOCUMENT_ACL_MEMBERSHIP.members["memberRelation"],
+                self.member_relation,
+            )
+
+        if self.conditions is not None:
+            _serialize_document_acl_condition_list(
+                serializer,
+                _SCHEMA_DOCUMENT_ACL_MEMBERSHIP.members["conditions"],
+                self.conditions,
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["member_relation"] = DocumentAclMemberRelation(
+                        de.read_string(
+                            _SCHEMA_DOCUMENT_ACL_MEMBERSHIP.members["memberRelation"]
+                        )
+                    )
+
+                case 1:
+                    kwargs["conditions"] = _deserialize_document_acl_condition_list(
+                        de, _SCHEMA_DOCUMENT_ACL_MEMBERSHIP.members["conditions"]
+                    )
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DOCUMENT_ACL_MEMBERSHIP, consumer=_consumer)
+        return kwargs
+
+
+@dataclass(kw_only=True)
+class DocumentAcl:
+    """
+    The access control list for a document, containing allow and deny
+    membership lists. Each list specifies conditions that determine which
+    users and groups are granted or denied access.
+    """
+
+    allow_list: DocumentAclMembership | None = None
+    """The list of principals allowed access to the document."""
+
+    deny_list: DocumentAclMembership | None = None
+    """The list of principals denied access to the document."""
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DOCUMENT_ACL, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.allow_list is not None:
+            serializer.write_struct(
+                _SCHEMA_DOCUMENT_ACL.members["allowList"], self.allow_list
+            )
+
+        if self.deny_list is not None:
+            serializer.write_struct(
+                _SCHEMA_DOCUMENT_ACL.members["denyList"], self.deny_list
+            )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["allow_list"] = DocumentAclMembership.deserialize(de)
+
+                case 1:
+                    kwargs["deny_list"] = DocumentAclMembership.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DOCUMENT_ACL, consumer=_consumer)
+        return kwargs
+
+    @classmethod
+    def _smithy_default(cls) -> Self:
+        return cls()
+
+
+@dataclass(kw_only=True)
+class GetIngestedDocumentAclOutput:
+    """Dataclass for GetIngestedDocumentAclOutput structure."""
+
+    document_acl: DocumentAcl = field(repr=False)
+    """
+    The ingested document access control list (ACL) containing allow and
+    deny membership information.
+    """
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_INGESTED_DOCUMENT_ACL_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(
+            _SCHEMA_GET_INGESTED_DOCUMENT_ACL_OUTPUT.members["documentAcl"],
+            self.document_acl,
+        )
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["document_acl"] = DocumentAcl.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(
+            _SCHEMA_GET_INGESTED_DOCUMENT_ACL_OUTPUT, consumer=_consumer
+        )
+        if "document_acl" not in kwargs:
+            kwargs["document_acl"] = DocumentAcl._smithy_default()
+        return kwargs
+
+
+GET_INGESTED_DOCUMENT_ACL = APIOperation(
+    input=GetIngestedDocumentAclInput,
+    output=GetIngestedDocumentAclOutput,
+    schema=_SCHEMA_GET_INGESTED_DOCUMENT_ACL,
+    input_schema=_SCHEMA_GET_INGESTED_DOCUMENT_ACL_INPUT,
+    output_schema=_SCHEMA_GET_INGESTED_DOCUMENT_ACL_OUTPUT,
     error_registry=TypeRegistry(
         {
             ShapeID(
@@ -31662,21 +33494,8 @@ class ManagedSearchConfiguration:
 
     filter: "RetrievalFilter | None" = field(repr=False, default=None)
     """
-    Specifies the filters to use on the metadata attributes in the knowledge
-    base data sources before returning results. For more information, see
-    [Query
-    configurations](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html).
-    See the examples below to see how to use these filters.
-
-    This data type is used in the following API operations:
-
-    - [Retrieve
-      request](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax)
-      -- in the `filter` field
-
-    - [RetrieveAndGenerate
-      request](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax)
-      -- in the `filter` field
+    Filters the metadata of the retrieved results so that Amazon Bedrock
+    returns only results that match the filter.
     """
 
     reranking_model_type: RerankingModelType | None = None
@@ -32051,6 +33870,12 @@ class AgenticRetrieveStreamInput:
     documents the user is authorized to access.
     """
 
+    memory_configuration: AgenticRetrieveMemoryConfiguration | None = None
+    """
+    The configuration for using an Amazon Bedrock AgentCore Memory resource
+    with this retrieval.
+    """
+
     generate_response: bool = True
     """Whether to generate a response based on the retrieved results."""
 
@@ -32098,6 +33923,12 @@ class AgenticRetrieveStreamInput:
                 self.user_context,
             )
 
+        if self.memory_configuration is not None:
+            serializer.write_struct(
+                _SCHEMA_AGENTIC_RETRIEVE_STREAM_INPUT.members["memoryConfiguration"],
+                self.memory_configuration,
+            )
+
         if self.generate_response is not None:
             serializer.write_boolean(
                 _SCHEMA_AGENTIC_RETRIEVE_STREAM_INPUT.members["generateResponse"],
@@ -32143,6 +33974,11 @@ class AgenticRetrieveStreamInput:
                     kwargs["user_context"] = UserContext.deserialize(de)
 
                 case 6:
+                    kwargs["memory_configuration"] = (
+                        AgenticRetrieveMemoryConfiguration.deserialize(de)
+                    )
+
+                case 7:
                     kwargs["generate_response"] = de.read_boolean(
                         _SCHEMA_AGENTIC_RETRIEVE_STREAM_INPUT.members[
                             "generateResponse"
@@ -32601,10 +34437,9 @@ class RetrieveInput:
 
     user_context: UserContext | None = field(repr=False, default=None)
     """
-    Contains information about the user making the request. Use this to pass
-    user identity information for access control filtering, so that
-    retrieval results only include documents the user is authorized to
-    access.
+    Contains information about the user making the request. This is used for
+    access control filtering to ensure that retrieval results only include
+    documents the user is authorized to access.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -33129,10 +34964,9 @@ class RetrieveAndGenerateOperationInput:
 
     user_context: UserContext | None = field(repr=False, default=None)
     """
-    Contains information about the user making the request. Use this to pass
-    user identity information for access control filtering, so that
-    retrieval results only include documents the user is authorized to
-    access.
+    Contains information about the user making the request. This is used for
+    access control filtering to ensure that retrieval results only include
+    documents the user is authorized to access.
     """
 
     def serialize(self, serializer: ShapeSerializer):
@@ -33246,10 +35080,9 @@ class RetrieveAndGenerateStreamInput:
 
     user_context: UserContext | None = field(repr=False, default=None)
     """
-    Contains information about the user making the request. Use this to pass
-    user identity information for access control filtering, so that
-    retrieval results only include documents the user is authorized to
-    access.
+    Contains information about the user making the request. This is used for
+    access control filtering to ensure that retrieval results only include
+    documents the user is authorized to access.
     """
 
     def serialize(self, serializer: ShapeSerializer):

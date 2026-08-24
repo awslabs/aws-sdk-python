@@ -3,8 +3,7 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import Any, TYPE_CHECKING, cast
-import warnings
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
@@ -12,6 +11,7 @@ from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.eventstream import DuplexEventStream, OutputEventStream
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -93,6 +93,7 @@ class AsyncBedrockRuntimeClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -133,6 +134,25 @@ class AsyncBedrockRuntimeClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def apply_guardrail(
         self, input: ApplyGuardrailInput, plugins: list[Plugin] | None = None
     ) -> ApplyGuardrailOutput:
@@ -157,6 +177,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An instance of `ApplyGuardrailOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -268,6 +293,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An instance of `ConverseOperationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -390,6 +420,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -482,6 +517,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An instance of `CountTokensOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -544,6 +584,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An instance of `GetAsyncInvokeOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -608,6 +653,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An instance of `InvokeGuardrailChecksOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -694,6 +744,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An instance of `InvokeModelOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -772,6 +827,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             A `DuplexEventStream` for bidirectional streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -874,6 +934,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -938,6 +1003,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An instance of `ListAsyncInvokesOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1013,6 +1083,11 @@ class AsyncBedrockRuntimeClient:
         Returns:
             An instance of `StartAsyncInvokeOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1056,20 +1131,3 @@ class AsyncBedrockRuntimeClient:
         )
 
         return await pipeline(call)
-
-
-if TYPE_CHECKING:
-    # Deprecated alias for backwards compatibility, to be removed.
-    BedrockRuntimeClient = AsyncBedrockRuntimeClient
-
-
-def __getattr__(name: str) -> Any:
-    if name == "BedrockRuntimeClient":
-        warnings.warn(
-            "BedrockRuntimeClient is deprecated, use AsyncBedrockRuntimeClient instead. "
-            "This alias will be removed in a future version.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return AsyncBedrockRuntimeClient
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

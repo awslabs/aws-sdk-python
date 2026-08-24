@@ -3,7 +3,7 @@
 import asyncio
 from copy import deepcopy
 import logging
-from typing import cast
+from typing import Any, Self, cast
 
 from smithy_aws_core.config import ConfigSource
 from smithy_aws_core.identity import AWSCredentialsIdentity
@@ -11,6 +11,7 @@ from smithy_aws_core.identity.chain import IdentityChain
 from smithy_core.aio.client import ClientCall, RequestPipeline
 from smithy_core.aio.eventstream import OutputEventStream
 from smithy_core.aio.retries import RetryStrategyResolver
+from smithy_core.aio.utils import close
 from smithy_core.exceptions import ExpectationNotMetError
 from smithy_core.interceptors import InterceptorChain
 from smithy_core.types import TypedProperties
@@ -23,8 +24,11 @@ from .models import (
     AgenticRetrieveStreamInput,
     AgenticRetrieveStreamOutput,
     AgenticRetrieveStreamResponseOutput,
+    CHECK_INGESTED_DOCUMENT_ACL,
     CREATE_INVOCATION,
     CREATE_SESSION,
+    CheckIngestedDocumentAclInput,
+    CheckIngestedDocumentAclOutput,
     CreateInvocationInput,
     CreateInvocationOutput,
     CreateSessionInput,
@@ -44,6 +48,7 @@ from .models import (
     GET_DOCUMENT_CONTENT,
     GET_EXECUTION_FLOW_SNAPSHOT,
     GET_FLOW_EXECUTION,
+    GET_INGESTED_DOCUMENT_ACL,
     GET_INVOCATION_STEP,
     GET_SESSION,
     GenerateQueryInput,
@@ -56,6 +61,8 @@ from .models import (
     GetExecutionFlowSnapshotOutput,
     GetFlowExecutionInput,
     GetFlowExecutionOutput,
+    GetIngestedDocumentAclInput,
+    GetIngestedDocumentAclOutput,
     GetInvocationStepInput,
     GetInvocationStepOutput,
     GetSessionInput,
@@ -139,6 +146,14 @@ logger = logging.getLogger(__name__)
 
 class AsyncBedrockAgentRuntimeClient:
     """
+    Note:
+        Amazon Bedrock Agents (now Amazon Bedrock Agents Classic) is no longer
+        open to new customers. For capabilities similar to Bedrock Agents
+        Classic, explore Amazon Bedrock AgentCore. Existing customers can
+        continue to use the service as normal. For more information, see [Amazon
+        Bedrock Agents Classic availability
+        change](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html).
+
     Contains APIs related to model invocation and querying of knowledge
     bases.
     """
@@ -163,6 +178,7 @@ class AsyncBedrockAgentRuntimeClient:
         self._plugins = plugins
         self._derive_lock = asyncio.Lock()
         self._setup_done = False
+        self._closed = False
         self._retry_strategy_resolver = RetryStrategyResolver()
         self._client_plugins: list[Plugin] = [aws_user_agent_plugin, user_agent_plugin]
 
@@ -203,6 +219,25 @@ class AsyncBedrockAgentRuntimeClient:
                         )
                     self._setup_done = True
 
+    async def close(self) -> None:
+        """Close this client and any resources held by its transport."""
+        if self._closed:
+            return
+        async with self._derive_lock:
+            if self._closed:
+                return
+            self._closed = True
+            if self._setup_done and self._config is not None:
+                await close(self._config.transport)
+
+    async def __aenter__(self) -> Self:
+        if self._closed:
+            raise RuntimeError("Cannot enter a client that has been closed.")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        await self.close()
+
     async def agentic_retrieve_stream(
         self, input: AgenticRetrieveStreamInput, plugins: list[Plugin] | None = None
     ) -> OutputEventStream[
@@ -233,6 +268,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -281,6 +321,77 @@ class AsyncBedrockAgentRuntimeClient:
             _AgenticRetrieveStreamResponseOutputDeserializer().deserialize,
         )
 
+    async def check_ingested_document_acl(
+        self, input: CheckIngestedDocumentAclInput, plugins: list[Plugin] | None = None
+    ) -> CheckIngestedDocumentAclOutput:
+        """
+        Checks whether a user has access to a specific document by verifying
+        against the ingested access control list (ACL) in a knowledge base. Use
+        this operation to validate that document-level access control is working
+        as expected after ingestion. To use this operation, you must have the
+        `bedrock:CheckIngestedDocumentAcl` permission.
+
+        Args:
+            input:
+                An instance of `CheckIngestedDocumentAclInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
+
+        Returns:
+            An instance of `CheckIngestedDocumentAclOutput`.
+        """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
+        operation_plugins: list[Plugin] = []
+        if plugins:
+            operation_plugins.extend(plugins)
+        await self._ensure_setup()
+        assert self._config is not None
+        if operation_plugins:
+            # Keep operation-plugin mutations scoped to this call.
+            config = deepcopy(self._config)
+            for plugin in operation_plugins:
+                plugin(config)
+        else:
+            config = self._config
+        if (
+            config.protocol is None
+            or config.transport is None
+            or config.endpoint_resolver is None
+            or config.auth_scheme_resolver is None
+            or config.auth_schemes is None
+        ):
+            raise ExpectationNotMetError(
+                "protocol, transport, endpoint_resolver, auth_scheme_resolver,"
+                " and auth_schemes MUST be set on the config to make calls."
+            )
+
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy,
+            retry_mode=config.retry_mode,
+            max_attempts=config.max_attempts,
+        )
+
+        pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
+        call = ClientCall(
+            input=input,
+            operation=CHECK_INGESTED_DOCUMENT_ACL,
+            context=TypedProperties({"config": config}),
+            interceptor=InterceptorChain(config.interceptors),
+            auth_scheme_resolver=config.auth_scheme_resolver,
+            supported_auth_schemes=config.auth_schemes,
+            endpoint_resolver=config.endpoint_resolver,
+            retry_strategy=retry_strategy,
+        )
+
+        return await pipeline(call)
+
     async def create_invocation(
         self, input: CreateInvocationInput, plugins: list[Plugin] | None = None
     ) -> CreateInvocationOutput:
@@ -311,6 +422,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `CreateInvocationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -402,6 +518,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `CreateSessionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -464,6 +585,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `DeleteAgentMemoryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -532,6 +658,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `DeleteSessionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -599,6 +730,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `EndSessionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -664,6 +800,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `GenerateQueryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -726,6 +867,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `GetAgentMemoryOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -789,6 +935,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `GetDocumentContentOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -859,6 +1010,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `GetExecutionFlowSnapshotOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -922,6 +1078,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `GetFlowExecutionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -966,6 +1127,77 @@ class AsyncBedrockAgentRuntimeClient:
 
         return await pipeline(call)
 
+    async def get_ingested_document_acl(
+        self, input: GetIngestedDocumentAclInput, plugins: list[Plugin] | None = None
+    ) -> GetIngestedDocumentAclOutput:
+        """
+        Retrieves the ingested access control list (ACL) for a specific document
+        in a knowledge base. Use this operation to inspect the allow and deny
+        lists that were ingested for a document to troubleshoot access control
+        issues. To use this operation, you must have the
+        `bedrock:GetIngestedDocumentAcl` permission.
+
+        Args:
+            input:
+                An instance of `GetIngestedDocumentAclInput`.
+            plugins:
+                A list of callables that modify the configuration dynamically.
+                Changes made by these plugins only apply for the duration of the
+                operation execution and will not affect any other operation
+                invocations.
+
+        Returns:
+            An instance of `GetIngestedDocumentAclOutput`.
+        """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
+        operation_plugins: list[Plugin] = []
+        if plugins:
+            operation_plugins.extend(plugins)
+        await self._ensure_setup()
+        assert self._config is not None
+        if operation_plugins:
+            # Keep operation-plugin mutations scoped to this call.
+            config = deepcopy(self._config)
+            for plugin in operation_plugins:
+                plugin(config)
+        else:
+            config = self._config
+        if (
+            config.protocol is None
+            or config.transport is None
+            or config.endpoint_resolver is None
+            or config.auth_scheme_resolver is None
+            or config.auth_schemes is None
+        ):
+            raise ExpectationNotMetError(
+                "protocol, transport, endpoint_resolver, auth_scheme_resolver,"
+                " and auth_schemes MUST be set on the config to make calls."
+            )
+
+        retry_strategy = await self._retry_strategy_resolver.resolve_retry_strategy(
+            retry_strategy=config.retry_strategy,
+            retry_mode=config.retry_mode,
+            max_attempts=config.max_attempts,
+        )
+
+        pipeline = RequestPipeline(protocol=config.protocol, transport=config.transport)
+        call = ClientCall(
+            input=input,
+            operation=GET_INGESTED_DOCUMENT_ACL,
+            context=TypedProperties({"config": config}),
+            interceptor=InterceptorChain(config.interceptors),
+            auth_scheme_resolver=config.auth_scheme_resolver,
+            supported_auth_schemes=config.auth_schemes,
+            endpoint_resolver=config.endpoint_resolver,
+            retry_strategy=retry_strategy,
+        )
+
+        return await pipeline(call)
+
     async def get_invocation_step(
         self, input: GetInvocationStepInput, plugins: list[Plugin] | None = None
     ) -> GetInvocationStepOutput:
@@ -987,6 +1219,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `GetInvocationStepOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1052,6 +1289,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `GetSessionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1101,6 +1343,13 @@ class AsyncBedrockAgentRuntimeClient:
     ) -> OutputEventStream[ResponseStream, InvokeAgentOutput]:
         """
         Note:
+            Amazon Bedrock Agents (now Amazon Bedrock Agents Classic) is no longer
+            open to new customers. For capabilities similar to Bedrock Agents
+            Classic, explore Amazon Bedrock AgentCore. Existing customers can
+            continue to use the service as normal. For more information, see [Amazon
+            Bedrock Agents Classic availability
+            change](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html).
+        Note:
 
         Sends a prompt for the agent to process and respond to. Note the
         following fields for the request:
@@ -1148,6 +1397,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1221,6 +1475,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1307,6 +1566,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1380,6 +1644,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `ListFlowExecutionEventsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1448,6 +1717,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `ListFlowExecutionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1513,6 +1787,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `ListInvocationsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1578,6 +1857,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `ListInvocationStepsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1643,6 +1927,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `ListSessionsOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1705,6 +1994,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `ListTagsForResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1771,6 +2065,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1851,6 +2150,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `PutInvocationStepOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1915,6 +2219,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `RerankOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -1977,6 +2286,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `RetrieveOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2051,6 +2365,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `RetrieveAndGenerateOperationOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2129,6 +2448,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An `OutputEventStream` for server-to-client streaming.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2205,6 +2529,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `StartFlowExecutionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2269,6 +2598,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `StopFlowExecutionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2333,6 +2667,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `TagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2395,6 +2734,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `UntagResourceOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)
@@ -2460,6 +2804,11 @@ class AsyncBedrockAgentRuntimeClient:
         Returns:
             An instance of `UpdateSessionOutput`.
         """
+        if self._closed:
+            raise RuntimeError(
+                "Cannot invoke an operation on a client that has been closed."
+            )
+
         operation_plugins: list[Plugin] = []
         if plugins:
             operation_plugins.extend(plugins)

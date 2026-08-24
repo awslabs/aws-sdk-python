@@ -1,4 +1,0 @@
-{
-  "type": "api-change",
-  "description": "Adds implementations of third-party evaluators, both managed-as-a-service and as templates within custom evaluators."
-}

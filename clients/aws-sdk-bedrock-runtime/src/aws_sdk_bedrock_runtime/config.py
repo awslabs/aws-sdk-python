@@ -18,7 +18,7 @@ from smithy_core.aio.interfaces.auth import AuthScheme
 from smithy_core.aio.interfaces.identity import IdentityResolver
 from smithy_core.interceptors import Interceptor
 from smithy_core.shapes import ShapeID
-from smithy_http.aio.crt import AWSCRTHTTPClient
+from smithy_http.aio.aiohttp import AIOHTTPClient
 
 from ._private.schemas import (
     AMAZON_BEDROCK_FRONTEND_SERVICE as _SCHEMA_AMAZON_BEDROCK_FRONTEND_SERVICE,
@@ -167,7 +167,7 @@ class AsyncBedrockRuntimeConfig(AsyncAwsConfig):
             }
         ),
         "auth_scheme_resolver": FieldSpec(default_factory=HTTPAuthSchemeResolver),
-        "transport": FieldSpec(default_factory=lambda: AWSCRTHTTPClient()),
+        "transport": FieldSpec(default_factory=lambda: AIOHTTPClient()),
     }
 
     def set_auth_scheme(self, scheme: AuthScheme[Any, Any, Any, Any]) -> None:
