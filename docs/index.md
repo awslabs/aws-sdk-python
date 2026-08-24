@@ -95,7 +95,7 @@ async def main():
 
     async with AsyncDynamoDBClient(config=config) as client:
         response = await client.list_tables(input=ListTablesInput(limit=10))
-        for table in response.table_names:
+        for table in response.table_names or []:
             print(table)
 
 
