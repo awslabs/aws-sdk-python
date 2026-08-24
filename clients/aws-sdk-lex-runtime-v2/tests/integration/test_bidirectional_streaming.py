@@ -7,23 +7,25 @@ import asyncio
 import uuid
 
 from smithy_core.aio.eventstream import DuplexEventStream
+from smithy_http.aio.crt import AWSCRTHTTPClient
 
 from aws_sdk_lex_runtime_v2.models import (
+    ConfigurationEvent,
+    DisconnectionEvent,
     StartConversationInput,
+    StartConversationOutput,
     StartConversationRequestEventStream,
     StartConversationRequestEventStreamConfigurationEvent,
-    StartConversationRequestEventStreamTextInputEvent,
     StartConversationRequestEventStreamDisconnectionEvent,
+    StartConversationRequestEventStreamTextInputEvent,
     StartConversationResponseEventStream,
     StartConversationResponseEventStreamHeartbeatEvent,
     StartConversationResponseEventStreamIntentResultEvent,
     StartConversationResponseEventStreamTextResponseEvent,
     StartConversationResponseEventStreamTranscriptEvent,
-    StartConversationOutput,
-    ConfigurationEvent,
     TextInputEvent,
-    DisconnectionEvent,
 )
+
 from . import BOT_ALIAS_ID, LOCALE_ID, REGION, create_lex_client
 
 
@@ -125,22 +127,21 @@ async def _receive_events(
 
 async def test_start_conversation(lex_bot: str) -> None:
     """Test bidirectional streaming StartConversation operation."""
-    client = await create_lex_client(REGION)
-
-    stream = await client.start_conversation(
-        input=StartConversationInput(
-            bot_id=lex_bot,
-            bot_alias_id=BOT_ALIAS_ID,
-            locale_id=LOCALE_ID,
-            session_id=str(uuid.uuid4()),
-            conversation_mode="TEXT",
+    async with await create_lex_client(REGION, transport=AWSCRTHTTPClient()) as client:
+        stream = await client.start_conversation(
+            input=StartConversationInput(
+                bot_id=lex_bot,
+                bot_alias_id=BOT_ALIAS_ID,
+                locale_id=LOCALE_ID,
+                session_id=str(uuid.uuid4()),
+                conversation_mode="TEXT",
+            )
         )
-    )
 
-    results = await asyncio.gather(_send_events(stream), _receive_events(stream))
+        results = await asyncio.gather(_send_events(stream), _receive_events(stream))
 
-    got_transcript, got_intent_result, got_text_response, got_heartbeat = results[1]
-    assert got_transcript, "Expected to receive a TranscriptEvent"
-    assert got_intent_result, "Expected to receive an IntentResultEvent"
-    assert got_text_response, "Expected to receive a TextResponseEvent"
-    assert got_heartbeat, "Expected to receive a HeartbeatEvent"
+        got_transcript, got_intent_result, got_text_response, got_heartbeat = results[1]
+        assert got_transcript, "Expected to receive a TranscriptEvent"
+        assert got_intent_result, "Expected to receive an IntentResultEvent"
+        assert got_text_response, "Expected to receive a TextResponseEvent"
+        assert got_heartbeat, "Expected to receive a HeartbeatEvent"

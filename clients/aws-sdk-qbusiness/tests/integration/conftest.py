@@ -207,12 +207,12 @@ async def qbusiness_app():
     index_name = f"integ-test-qbusiness-index-{unique_suffix}"
     retriever_name = f"integ-test-qbusiness-retriever-{unique_suffix}"
 
-    client = await create_qbusiness_client(REGION)
-    application_id: str | None = None
-    try:
-        application_id = await _create_qbusiness_app(
-            client, app_name, index_name, retriever_name
-        )
-        yield application_id
-    finally:
-        await _delete_qbusiness_app(client, application_id)
+    async with await create_qbusiness_client(REGION) as client:
+        application_id: str | None = None
+        try:
+            application_id = await _create_qbusiness_app(
+                client, app_name, index_name, retriever_name
+            )
+            yield application_id
+        finally:
+            await _delete_qbusiness_app(client, application_id)

@@ -20,21 +20,20 @@ from . import (
 
 async def test_synthesize_speech() -> None:
     """Test output-streaming SynthesizeSpeech operation."""
-    client = await create_polly_client(REGION)
-
-    response = await client.synthesize_speech(
-        input=SynthesizeSpeechInput(
-            engine=ENGINE,
-            output_format=OUTPUT_FORMAT,
-            sample_rate=SAMPLE_RATE,
-            text=TEST_TEXT,
-            voice_id=VOICE_ID,
+    async with await create_polly_client(REGION) as client:
+        response = await client.synthesize_speech(
+            input=SynthesizeSpeechInput(
+                engine=ENGINE,
+                output_format=OUTPUT_FORMAT,
+                sample_rate=SAMPLE_RATE,
+                text=TEST_TEXT,
+                voice_id=VOICE_ID,
+            )
         )
-    )
 
-    assert isinstance(response, SynthesizeSpeechOutput)
-    assert response.content_type == "audio/mpeg"
-    assert response.request_characters == len(TEST_TEXT)
+        assert isinstance(response, SynthesizeSpeechOutput)
+        assert response.content_type == "audio/mpeg"
+        assert response.request_characters == len(TEST_TEXT)
 
-    audio = await read_streaming_blob_async(response.audio_stream)
-    assert len(audio) > 0
+        audio = await read_streaming_blob_async(response.audio_stream)
+        assert len(audio) > 0
