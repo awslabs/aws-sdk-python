@@ -4889,7 +4889,7 @@
                             "BatchSize": 5,
                             "EventSourceArn": "arn:aws:sqs:us-west-2:123456789012:my-queue",
                             "FunctionArn": "arn:aws:lambda:us-west-2:123456789012:function:my-function",
-                            "LastModified": 1569284520.333,
+                            "LastModified": 1.569284520333E9,
                             "State": "Creating",
                             "StateTransitionReason": "USER_INITIATED",
                             "UUID": "a1b2c3d4-5678-90ab-cdef-11111EXAMPLE"
@@ -17099,7 +17099,7 @@
                                     "BatchSize": 5,
                                     "EventSourceArn": "arn:aws:sqs:us-west-2:123456789012:mySQSqueue",
                                     "FunctionArn": "arn:aws:lambda:us-west-2:123456789012:function:my-function",
-                                    "LastModified": 1569284520.333,
+                                    "LastModified": 1.569284520333E9,
                                     "State": "Enabled",
                                     "StateTransitionReason": "USER_INITIATED",
                                     "UUID": "a1b2c3d4-5678-90ab-cdef-11111EXAMPLE"
@@ -17246,13 +17246,13 @@
                             "FunctionEventInvokeConfigs": [
                                 {
                                     "FunctionArn": "arn:aws:lambda:us-east-2:123456789012:function:my-function:GREEN",
-                                    "LastModified": 1577824406.719,
+                                    "LastModified": 1.577824406719E9,
                                     "MaximumEventAgeInSeconds": 1800,
                                     "MaximumRetryAttempts": 2
                                 },
                                 {
                                     "FunctionArn": "arn:aws:lambda:us-east-2:123456789012:function:my-function:BLUE",
-                                    "LastModified": 1577824396.653,
+                                    "LastModified": 1.577824396653E9,
                                     "MaximumEventAgeInSeconds": 3600,
                                     "MaximumRetryAttempts": 0
                                 }
@@ -26879,7 +26879,7 @@
                                 "OnSuccess": {}
                             },
                             "FunctionArn": "arn:aws:lambda:us-east-2:123456789012:function:my-function:$LATEST",
-                            "LastModified": 1573687896.493,
+                            "LastModified": 1.573687896493E9,
                             "MaximumEventAgeInSeconds": 3600,
                             "MaximumRetryAttempts": 0
                         },
