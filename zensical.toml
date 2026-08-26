@@ -30,15 +30,21 @@ nav = [
     { "Bedrock AgentCore" = "clients/bedrock-agentcore/index.md" },
     { "Bedrock AgentCore Control" = "clients/bedrock-agentcore-control/index.md" },
     { "Bedrock Data Automation" = "clients/bedrock-data-automation/index.md" },
+    { "Bedrock Data Automation Runtime" = "clients/bedrock-data-automation-runtime/index.md" },
     { "Bedrock Runtime" = "clients/bedrock-runtime/index.md" },
+    { "CloudTrail" = "clients/cloudtrail/index.md" },
+    { "Cognito Identity" = "clients/cognito-identity/index.md" },
     { "ConnectHealth" = "clients/connecthealth/index.md" },
+    { "DynamoDB" = "clients/dynamodb/index.md" },
     { "GuardDuty" = "clients/guardduty/index.md" },
     { "Lambda" = "clients/lambda/index.md" },
     { "Lex Runtime V2" = "clients/lex-runtime-v2/index.md" },
     { "Polly" = "clients/polly/index.md" },
     { "QBusiness" = "clients/qbusiness/index.md" },
     { "SageMaker Runtime HTTP2" = "clients/sagemaker-runtime-http2/index.md" },
+    { "Secrets Manager" = "clients/secrets-manager/index.md" },
     { "SNS" = "clients/sns/index.md" },
+    { "SQS" = "clients/sqs/index.md" },
     { "STS" = "clients/sts/index.md" },
     { "Transcribe Streaming" = "clients/transcribe-streaming/index.md" },
   ] },
@@ -55,6 +61,7 @@ extra_javascript = [{ path = "javascript/nav-expand.js", defer = true }]
 # ----------------------------------------------------------------------------
 [project.theme]
 language = "en"
+custom_dir = "overrides"
 
 features = [
     # Zensical includes an announcement bar. This feature allows users to
