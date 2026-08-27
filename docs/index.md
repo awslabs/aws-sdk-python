@@ -29,12 +29,10 @@ The code generator builds each client from its service's
 
 ## Install a client
 
-The clients require Python 3.12 or later. Follow the
-[uv installation guide](https://docs.astral.sh/uv/getting-started/installation/),
-then create and activate a virtual environment:
+The clients require Python 3.12 or later. Create and activate a virtual environment:
 
 ```bash
-uv venv --python 3.12
+python -m venv .venv
 source .venv/bin/activate
 ```
 
@@ -43,7 +41,7 @@ source .venv/bin/activate
     Install the Amazon DynamoDB client from its service package:
 
     ```bash
-    uv pip install aws-sdk-dynamodb
+    python -m pip install aws-sdk-dynamodb
     ```
 
 === "Several clients"
@@ -52,7 +50,7 @@ source .venv/bin/activate
     compatible versions. Select clients with package extras:
 
     ```bash
-    uv pip install "aws-sdk-python[bedrock-runtime,sts]"
+    python -m pip install "aws-sdk-python[bedrock-runtime,sts]"
     ```
 
 See [available clients](clients/index.md) for a list of service packages.

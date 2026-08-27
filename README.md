@@ -4,13 +4,12 @@
 [apache-badge]: https://img.shields.io/badge/license-APACHE2-blue.svg
 [apache-url]: https://github.com/aws/aws-sdk-python/blob/main/LICENSE
 
+> [!WARNING]
 > **Developer Preview — Not for production use**
 >
 > This SDK is in **Developer Preview** and is intended for evaluation and testing in pre-production environments only. Do not use it for production workloads. APIs and behavior might change before general availability.
 >
 > **For production deployments, use [Boto3](https://github.com/boto/boto3)** — the established, generally available AWS SDK for Python with full coverage of all AWS services.
-
----
 
 This repository contains the next-generation AWS SDK for Python, rebuilt from
 the ground up with an async-first, modular architecture. These new clients allow
